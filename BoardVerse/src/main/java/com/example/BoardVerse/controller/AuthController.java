@@ -1,27 +1,74 @@
 package com.example.BoardVerse.controller;
 
-import com.example.BoardVerse.security.JwtTokenUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+/*API per la registrazione e il login degli utenti*/
 
+
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.BoardVerse.model.MongoDB.User;
+import com.example.BoardVerse.DTO.LoginRequest;
+import com.example.BoardVerse.DTO.SignupRequest;
+import com.example.BoardVerse.DTO.JwtResponse;
+import com.example.BoardVerse.DTO.MessageResponse;
+import com.example.BoardVerse.repository.UserRepository;
+import com.example.BoardVerse.security.jwt.JwtUtils;
+import com.example.BoardVerse.service.AuthService;
+import com.example.BoardVerse.security.services.UserDetailsImpl;
+
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Authentication", description = "User authentication operations")
 public class AuthController {
 
+    private final AuthService authService;
+
     @Autowired
-    private JwtTokenUtil jwtTokenUtil;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        // Simula un controllo delle credenziali
-        if ("admin".equals(request.getUsername()) && "password".equals(request.getPassword())) {
-            String token = jwtTokenUtil.generateToken(request.getUsername(), "ROLE_ADMIN");
-            return ResponseEntity.ok(new TokenResponse(token));
-        } else if ("user".equals(request.getUsername()) && "password".equals(request.getPassword())) {
-            String token = jwtTokenUtil.generateToken(request.getUsername(), "ROLE_USER");
-            return ResponseEntity.ok(new TokenResponse(token));
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+        try {
+            // Chiamata al servizio per autenticare l'utente
+            JwtResponse response = authService.authenticateUser(loginRequest);
+            return ResponseEntity.ok(response);
+        } catch (BadCredentialsException e) {
+            // Gestisce il caso di credenziali errate
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new MessageResponse("Error: Invalid username or password!"));
+        } catch (Exception e) {
+            // Gestisce altri errori inaspettati
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MessageResponse("Error: An unexpected error occurred."));
         }
-        return ResponseEntity.status(401).body("Credenziali non valide");
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
+        try {
+            // Chiamata al servizio per registrare l'utente
+            authService.registerUser(signUpRequest);
+            return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        } catch (IllegalArgumentException e) {
+            // Gestione di errori specifici (es. utente o email già esistenti)
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+        } catch (Exception e) {
+            // Gestione di errori generici
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MessageResponse("Error: An unexpected error occurred."));
+        }
     }
 }

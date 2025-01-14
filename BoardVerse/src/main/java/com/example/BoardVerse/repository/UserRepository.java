@@ -10,9 +10,7 @@ public interface UserRepository extends MongoRepository<User, String> {
     // Trova un utente per username
     Optional<User> findByUsername(String username);
 
-    // Controlla se un utente esiste con un determinato username
-    boolean existsByUsername(String username);
+    Boolean existsByUsername(String username);
 
-    // Trova tutti gli utenti che sono admin
-    // List<User> findByIsAdmin(boolean isAdmin);
+    Boolean existsByEmail(String email);
 }

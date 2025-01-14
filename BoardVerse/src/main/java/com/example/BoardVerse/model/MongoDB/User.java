@@ -2,88 +2,84 @@ package com.example.BoardVerse.model.MongoDB;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import jakarta.validation.constraints.Size;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import java.time.LocalDate;
-import java.util.Date;
-import java.util.List;
-import java.util.Collection;
-import java.util.stream.Collectors;
 
 @Document(collection = "users")
-@Data
-public class User implements UserDetails {
+
+public class User {
     @Id
     private String id;
 
-    @NotBlank(message = "Username cannot be blank")
-    @Indexed(unique = true)
+    @NotBlank
+    @Size(max = 20)
     private String username;
 
-    @NotBlank(message = "Password cannot be blank")
-    private String password;
-
-    @NotBlank(message = "Email cannot be blank")
-    @Email(message = "Email should be valid")
-    @Indexed(unique = true)
+    @NotBlank
+    @Size(max = 50)
+    @Email
     private String email;
 
-    private Date createdAt;
-    private String firstName;
-    private String lastName;
+    @NotBlank
+    private String password;
 
-    @NotBlank(message = "State or province cannot be blank")
-    private String stateOrProvince;
+    private String city;
     private String country;
-    private String continent;
+    private String state;
 
-    private List<String> mostRecentReviews;
+    private String role;     // Ruolo come stringa, es: "ROLE_USER" o "ROLE_ADMIN"
 
-    private List<String> roles;
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream()
-                .map(role -> new SimpleGrantedAuthority(role))
-                .collect(Collectors.toList());
+    public User(String username, String email, String password, String role) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+    }
+    public String getId() {
+        return id;
     }
 
-    //metodi necessari per l'integrazione con Spring Security
-    @Override
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getUsername() {
-        return this.username;
+        return username;
     }
 
-    @Override
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public String getPassword() {
-        return this.password;
+        return password;
     }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true; // l'account non scade
+    public void setPassword(String password) {
+        this.password = password;
     }
 
-    @Override
-    public boolean isAccountNonLocked() {
-        return true; // l'account non è bloccato
+    public String getRole() {
+        return role;
     }
 
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true; // le credenziali non sono scadute
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true; // l'account è abilitato
+    public void setRoles(String role) {
+        this.role = role;
     }
 
 
+    /*
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(role));       // Converte la stringa in GrantedAuthority
+    }
+    */
 }
