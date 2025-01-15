@@ -12,6 +12,41 @@ import java.util.List;
 @Document(collection = "games")
 @Data
 public class Game {
+
+    @Id
+    private String id;
+
+    @NotBlank(message = "Name cannot be blank")
+    private String name;
+
+    private String description;
+    private String shortDescription;
+    private String imgURL;
+
+    @Positive(message = "Average rating must be positive")
+    private double averageRating;
+
+    @Positive(message = "Number of reviews must be positive")
+    private int numberReviews;
+
+    private int yearReleased;
+    private int minPlayers;
+    private int maxPlayers;
+    private int minSuggAge;
+    private int minPlayTime;
+    private int maxPlayTime;
+
+    private List<String> designers;
+    private List<String> artists;
+    private List<String> publisher;
+
+    @NotNull(message = "Categories cannot be null")
+    private List<String> categories;
+
+    private List<String> mechanics;
+    private int numRatings;
+
+
     public String getId() {
         return id;
     }
@@ -165,37 +200,4 @@ public class Game {
     public void setNumRatings(int numRatings) {
         this.numRatings = numRatings;
     }
-
-    @Id
-    private String id;
-
-    @NotBlank(message = "Name cannot be blank")
-    private String name;
-
-    private String description;
-    private String shortDescription;
-    private String imgURL;
-
-    @Positive(message = "Average rating must be positive")
-    private double averageRating;
-
-    @Positive(message = "Number of reviews must be positive")
-    private int numberReviews;
-
-    private int yearReleased;
-    private int minPlayers;
-    private int maxPlayers;
-    private int minSuggAge;
-    private int minPlayTime;
-    private int maxPlayTime;
-
-    private List<String> designers;
-    private List<String> artists;
-    private List<String> publisher;
-
-    @NotNull(message = "Categories cannot be null")
-    private List<String> categories;
-
-    private List<String> mechanics;
-    private int numRatings;
 }

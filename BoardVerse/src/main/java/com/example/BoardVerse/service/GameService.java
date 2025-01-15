@@ -22,9 +22,9 @@ public class GameService {
 
     // Operazione di creazione
     public Game addNewGame(Game game) {
-        if (gameRepository.findById(game.getId()).isPresent()) {
-            throw new DuplicateKeyException("Game already exists with id: " + game.getId());
-        }
+       // if (gameRepository.findById(game.getId()).isPresent()) {
+            //throw new DuplicateKeyException("Game already exists with id: " + game.getId());
+       // }
         return gameRepository.save(game);
     }
 
