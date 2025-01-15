@@ -8,6 +8,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,7 +29,9 @@ public class AdminController {
 
     // Endpoint per aggiungere un nuovo gioco
     @PostMapping("/game")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Game> addNewGame(@RequestBody @Valid GameCreationDTO gameCreationDTO) {
+
         // Converte il DTO in un'entità Game
         Game game = GameMapper.toEntity(gameCreationDTO);
         // Salva il gioco utilizzando il servizio

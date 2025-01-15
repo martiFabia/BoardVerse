@@ -66,13 +66,21 @@ public class WebSecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll().requestMatchers("/api/test/**")
-                        .permitAll().anyRequest().authenticated());
+                .authorizeHttpRequests(auth -> auth
+                        // Consenti l'accesso agli endpoint Swagger
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        // Consenti l'accesso agli endpoint di autenticazione e test
+                        .requestMatchers("/api/auth/**", "/api/test/**").permitAll()
+                        .requestMatchers("/api/users").authenticated() // Only authenticated users can access this endpoint
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .anyRequest().hasRole("USER")
+                );
 
+        // Configura il provider di autenticazione e il filtro JWT
         http.authenticationProvider(authenticationProvider());
-
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 }
