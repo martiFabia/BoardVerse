@@ -1,8 +1,32 @@
 package com.example.BoardVerse.DTO;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
+import java.util.Date;
+
+
+public record UserRegDTO(
+        @NotBlank
+        String username,
+        @NotBlank
+        @Email
+        String email,
+        @NotBlank
+        String firstName,
+        @NotBlank
+        String lastName,
+        @NotBlank
+        @Min(3)
+        String password,
+        String city,
+        String country,
+        String state,
+        @Past
+        Date birthDate
+){}
+
+
+
+/*
 public class SignupRequest {
 
     @NotBlank(message = "Username is required")
@@ -43,3 +67,5 @@ public class SignupRequest {
         this.password = password;
     }
 }
+
+ */

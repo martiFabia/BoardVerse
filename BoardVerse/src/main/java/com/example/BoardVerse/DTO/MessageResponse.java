@@ -8,6 +8,10 @@ public class MessageResponse {
         this.message = message;
     }
 
+    public MessageResponse(String message, String args) {
+        this.message = String.format(message, args);
+    }
+
     public String getMessage() {
         return message;
     }

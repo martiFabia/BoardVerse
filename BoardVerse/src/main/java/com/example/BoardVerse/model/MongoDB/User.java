@@ -1,13 +1,16 @@
 package com.example.BoardVerse.model.MongoDB;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
+import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "users")
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
+@Document(collection = "users")
+@Data
 public class User {
     @Id
     private String id;
@@ -18,24 +21,43 @@ public class User {
 
     @NotBlank
     @Size(max = 50)
-    @Email
+    @Email(message = "Email should be valid")
     private String email;
 
     @NotBlank
+    @Min(value = 3, message = "Password must be at least 3 characters long")
     private String password;
+
+    @NotBlank(message = "First name is required")
+    private String firstName;
+    @NotBlank(message = "Last name is required")
+    private String lastName;
 
     private String city;
     private String country;
     private String state;
 
-    private String role;     // Ruolo come stringa, es: "ROLE_USER" o "ROLE_ADMIN"
+    private List<String> mostRecentReviews=new ArrayList<>();
+    @Past(message = "Birthdate must be in the past")
+    private Date birthDate;
+    private Date createdAt;
 
-    public User(String username, String email, String password, String role) {
+    private String role;     // Ruolo come stringa, es: "ROLE_USER" o "ROLE_ADMIN"
+/*
+    public User(String username, String email, String password, String role, String city, String country, String state, Date createdAt, List<String> mostRecentReviews) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.role = role;
+        this.city = city;
+        this.country = country;
+        this.state = state;
+        this.createdAt = createdAt;
+        this.mostRecentReviews = mostRecentReviews;
     }
+
+ */
+
     public String getId() {
         return id;
     }
@@ -72,14 +94,75 @@ public class User {
         return role;
     }
 
-    public void setRoles(String role) {
+    public void setRole(String role) {
         this.role = role;
     }
 
 
-    /*
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role));       // Converte la stringa in GrantedAuthority
+    public String getCity() {
+        return city;
     }
-    */
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+    public void setCreatedAt(Date date) {
+        this.createdAt = date;
+    }
+
+    public List<String> getMostRecentReviews() {
+        return mostRecentReviews;
+    }
+
+    public void setMostRecentReviews(List<String> mostRecentReviews) {
+        this.mostRecentReviews = mostRecentReviews;
+    }
+
+    public Date getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(Date birthDate) {
+        this.birthDate = birthDate;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public User get() {
+        return this;
+    }
 }

@@ -2,7 +2,7 @@ package com.example.BoardVerse.service;
 
 import com.example.BoardVerse.DTO.JwtResponse;
 import com.example.BoardVerse.DTO.LoginRequest;
-import com.example.BoardVerse.DTO.SignupRequest;
+import com.example.BoardVerse.DTO.UserRegDTO;
 import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.repository.UserRepository;
 import com.example.BoardVerse.security.jwt.JwtUtils;
@@ -15,6 +15,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
+import java.util.UUID;
 
 
 @Service
@@ -47,13 +50,10 @@ public class AuthService {
 
         // Configura il contesto di sicurezza con i dettagli dell'utente autenticato
         SecurityContextHolder.getContext().setAuthentication(authentication);
-
         // Genera il token JWT
         String jwt = jwtUtils.generateJwtToken(authentication);
-
         // Recupera i dettagli dell'utente autenticato
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-
         // Recupera il ruolo dal database
         String role = userMongoRepository.findByUsername(userDetails.getUsername())
                 .map(User::getRole)
@@ -70,25 +70,40 @@ public class AuthService {
     }
 
     //SIGNUP
-    public void registerUser(SignupRequest signUpRequest) {
+    public void registerUser(UserRegDTO signUpRequest) {
         // Verifica se il nome utente o l'email sono già registrati
-        if (userMongoRepository.existsByUsername(signUpRequest.getUsername())) {
+        if (userMongoRepository.existsByUsername(signUpRequest.username())) {
             throw new IllegalArgumentException("Error: Username is already taken!");
         }
 
-        if (userMongoRepository.existsByEmail(signUpRequest.getEmail())) {
+        if (userMongoRepository.existsByEmail(signUpRequest.email())) {
             throw new IllegalArgumentException("Error: Email is already in use!");
         }
 
+        String userId = UUID.randomUUID().toString();
+    /*
+        UserNeo4j newUserNeo4j = new UserNeo4j();
+        newUserNeo4j.setId(userId);
+        newUserNeo4j.setUsername(signUpRequest.username());
+        userNeo4jRepository.save(newUserNeo4j);
+        */
+
         // Crea un nuovo utente con ruolo fisso
-        User user = new User(
-                signUpRequest.getUsername(),
-                signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()),
-                "ROLE_USER" // Ruolo predefinito
-        );
+        User newUserMongo = new User();
+        newUserMongo.setId(userId);
+        newUserMongo.setUsername(signUpRequest.username());
+        newUserMongo.setPassword(encoder.encode(signUpRequest.password()));
+        newUserMongo.setEmail(signUpRequest.email());
+        newUserMongo.setFirstName(signUpRequest.firstName());
+        newUserMongo.setLastName(signUpRequest.lastName());
+        newUserMongo.setCity(signUpRequest.city());
+        newUserMongo.setCountry(signUpRequest.country());
+        newUserMongo.setState(signUpRequest.state());
+        newUserMongo.setBirthDate(signUpRequest.birthDate());
+        newUserMongo.setRole("ROLE_USER");
+        newUserMongo.setCreatedAt(new Date());
 
         // Salva l'utente nel database
-        userMongoRepository.save(user);
+        userMongoRepository.save(newUserMongo);
     }
 }

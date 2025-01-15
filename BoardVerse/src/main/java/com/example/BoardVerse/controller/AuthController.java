@@ -16,15 +16,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.DTO.LoginRequest;
-import com.example.BoardVerse.DTO.SignupRequest;
+import com.example.BoardVerse.DTO.UserRegDTO;
 import com.example.BoardVerse.DTO.JwtResponse;
 import com.example.BoardVerse.DTO.MessageResponse;
-import com.example.BoardVerse.repository.UserRepository;
-import com.example.BoardVerse.security.jwt.JwtUtils;
 import com.example.BoardVerse.service.AuthService;
-import com.example.BoardVerse.security.services.UserDetailsImpl;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -57,7 +53,7 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegDTO signUpRequest) {
         try {
             // Chiamata al servizio per registrare l'utente
             authService.registerUser(signUpRequest);
