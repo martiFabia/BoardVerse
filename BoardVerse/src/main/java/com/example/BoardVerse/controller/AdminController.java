@@ -28,8 +28,8 @@ public class AdminController {
     }
 
     // Endpoint per aggiungere un nuovo gioco
-    @PostMapping("/game")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/addGame")
+    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Game> addNewGame(@RequestBody @Valid GameCreationDTO gameCreationDTO) {
 
         // Converte il DTO in un'entità Game

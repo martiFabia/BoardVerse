@@ -4,6 +4,7 @@ import com.example.BoardVerse.DTO.*;
 import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.repository.UserRepository;
+import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
@@ -45,27 +46,34 @@ public class UserController {
         return ResponseEntity.ok(userInfoDto);
     }
 
-    /*
-    //aggiorna i dati dell'utente
-    @PatchMapping("/updateUser")
-    public ResponseEntity<MessageResponse> updateUser(@RequestBody @Validated UserUpdateDTO userUpdateDTO) {
-        //cerco username utente loggato
-        String username =  SecurityContextHolder.getContext().getAuthentication().getName();
-        //stampa username
-        System.out.println(username);
-        MessageResponse update= userService.updateUser(username, userUpdateDTO);
-
-        return ResponseEntity.ok(update);
+    //restituisce dati dell'utente loggato
+    @GetMapping("/myInfo")
+    public ResponseEntity<UserInfoDTO> getMyInfo() {
+        //id utente loggato
+        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserInfoDTO userInfoDto = userService.getInfo(user.getUsername());
+        return ResponseEntity.ok(userInfoDto);
     }
 
-     */
+
+    //aggiorna i dati dell'utente
+    @PatchMapping("/updateUser")
+    public ResponseEntity<UserInfoDTO> updateUser(@RequestBody @Validated UserUpdateDTO userUpdateDTO) {
+        //utente loggato
+        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        // Recupera i dettagli dell'utente autenticato
+        UserInfoDTO updatedUser= userService.updateUser(user.getId(), userUpdateDTO);
+
+        return ResponseEntity.ok(updatedUser);
+    }
+
 
     //elimina l'utente
     @DeleteMapping("/deleteUser")
     public ResponseEntity<String> deleteUser() {
         //cerco username utente loggato
-        String username =  SecurityContextHolder.getContext().getAuthentication().getName();
-        userService.deleteUser(username);
+        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        userService.deleteUser(user.getUsername());
         return ResponseEntity.ok("User deleted successfully");
     }
 

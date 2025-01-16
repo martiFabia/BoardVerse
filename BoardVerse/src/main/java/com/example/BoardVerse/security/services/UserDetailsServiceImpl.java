@@ -28,4 +28,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return UserDetailsImpl.build(user);
     }
 
+
+    // Nuovo metodo per caricare l'utente usando l'ID
+    @Transactional
+    public UserDetails loadUserById(String id) throws UsernameNotFoundException {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with ID: " + id));
+
+        return UserDetailsImpl.build(user);
+    }
+
 }

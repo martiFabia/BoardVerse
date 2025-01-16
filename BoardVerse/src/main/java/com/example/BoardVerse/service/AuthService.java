@@ -81,7 +81,7 @@ public class AuthService {
         }
 
         String userId = UUID.randomUUID().toString();
-    /*
+        /*
         UserNeo4j newUserNeo4j = new UserNeo4j();
         newUserNeo4j.setId(userId);
         newUserNeo4j.setUsername(signUpRequest.username());

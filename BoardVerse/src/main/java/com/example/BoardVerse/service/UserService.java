@@ -6,6 +6,7 @@ import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.repository.UserRepository;
 import com.example.BoardVerse.security.jwt.JwtUtils;
+import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.utils.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -61,10 +62,10 @@ public class UserService {
         return UserMapper.toInfoDTO(user.get());
     }
 
-    /*
-    public MessageResponse updateUser(String username, UserUpdateDTO updates) {
-        User userMongo = userMongoRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
+
+    public UserInfoDTO updateUser(String userId, UserUpdateDTO updates) {
+        User userMongo = userMongoRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
 
         if (updates.username() != null) {
             if (userMongoRepository.existsByUsername(updates.username())) {
@@ -107,27 +108,10 @@ public class UserService {
 
         //userNeo4jRepository.save(userNeo4j);
         userMongoRepository.save(userMongo);
-        // Genera un nuovo token JWT con i dettagli aggiornati
-        if(updates.username() != null || updates.password() != null){
-            return new MessageResponse("Nuovo JWT token: ", newToken(userMongo));
-        }
 
-        return new MessageResponse("User updated successfully");
+        return UserMapper.toInfoDTO(userMongo.get());
     }
 
-    // Genera un nuovo token JWT con i dettagli aggiornati
-    public String newToken(User user){
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        user.getUsername(),
-                        user.getPassword()
-                )
-        );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        return jwtUtils.generateJwtToken(authentication);
-    }
-
-     */
 
     public void deleteUser(String username) {
         // Trova l'utente esistente

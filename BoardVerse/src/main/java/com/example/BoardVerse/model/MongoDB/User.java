@@ -38,8 +38,10 @@ public class User {
     private String state;
 
     private List<String> mostRecentReviews=new ArrayList<>();
+    
     @Past(message = "Birthdate must be in the past")
     private Date birthDate;
+
     private Date createdAt;
 
     private String role;     // Ruolo come stringa, es: "ROLE_USER" o "ROLE_ADMIN"
