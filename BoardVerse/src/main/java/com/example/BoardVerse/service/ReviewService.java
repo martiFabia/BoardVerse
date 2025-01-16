@@ -2,22 +2,26 @@ package com.example.BoardVerse.service;
 
 import com.example.BoardVerse.DTO.Game.AddReviewDTO;
 import com.example.BoardVerse.DTO.Game.ReviewInfoDTO;
+import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.Game;
 import com.example.BoardVerse.model.MongoDB.Review;
 import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.repository.GameRepository;
 import com.example.BoardVerse.repository.ReviewRepository;
 import com.example.BoardVerse.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class ReviewService {
 
-    private final UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
     private final GameRepository gameRepository;
     private final ReviewRepository reviewRepository;
 
@@ -32,10 +36,13 @@ public class ReviewService {
         // Verifica se il gioco esiste
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found with ID: "+ gameId));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
 
         // Crea e salva la recensione
         Review review = new Review();
         review.setAuthorUsername(username);
+        review.setAuthorLocation(user.getLocation());
         review.setGameId(gameId);
         review.setComment(addReviewDTO.getComment());
         review.setRating(addReviewDTO.getRating());
