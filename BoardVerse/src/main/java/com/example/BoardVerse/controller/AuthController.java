@@ -2,7 +2,6 @@ package com.example.BoardVerse.controller;
 
 /*API per la registrazione e il login degli utenti*/
 
-
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
@@ -16,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.BoardVerse.DTO.LoginRequest;
-import com.example.BoardVerse.DTO.UserRegDTO;
+import com.example.BoardVerse.DTO.User.LoginRequest;
+import com.example.BoardVerse.DTO.User.UserRegDTO;
 import com.example.BoardVerse.DTO.JwtResponse;
 import com.example.BoardVerse.DTO.MessageResponse;
 import com.example.BoardVerse.service.AuthService;

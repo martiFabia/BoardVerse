@@ -1,23 +1,20 @@
 package com.example.BoardVerse.service;
 
 
-import com.example.BoardVerse.DTO.*;
+import com.example.BoardVerse.DTO.User.UserDTO;
+import com.example.BoardVerse.DTO.User.UserInfoDTO;
+import com.example.BoardVerse.DTO.User.UserUpdateDTO;
 import com.example.BoardVerse.exception.NotFoundException;
+import com.example.BoardVerse.model.MongoDB.Location;
 import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.repository.UserRepository;
 import com.example.BoardVerse.security.jwt.JwtUtils;
-import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.utils.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
-import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -95,15 +92,22 @@ public class UserService {
             userMongo.setBirthDate(updates.birthDate());
         }
 
-        if(updates.city() != null) {
-            userMongo.setCity(updates.city());
-        }
+        if(updates.location() != null) {
+            if (userMongo.getLocation() == null) {
+                // Se `userMongo` non ha una location, creiamo un nuovo oggetto
+                userMongo.setLocation(new Location());
+            }
 
-        if (updates.country() != null) {
-            userMongo.setCountry(updates.country());
-        }
-        if (updates.state() != null) {
-            userMongo.setState(updates.state());
+            // Aggiorniamo i singoli campi della location
+            if (updates.location().getCountry() != null) {
+                userMongo.getLocation().setCountry(updates.location().getCountry());
+            }
+            if (updates.location().getState() != null) {
+                userMongo.getLocation().setState(updates.location().getState());
+            }
+            if (updates.location().getCity() != null) {
+                userMongo.getLocation().setCity(updates.location().getCity());
+            }
         }
 
         //userNeo4jRepository.save(userNeo4j);

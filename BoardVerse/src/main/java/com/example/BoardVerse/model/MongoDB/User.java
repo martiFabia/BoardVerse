@@ -1,5 +1,6 @@
 package com.example.BoardVerse.model.MongoDB;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
@@ -33,18 +34,21 @@ public class User {
     @NotBlank(message = "Last name is required")
     private String lastName;
 
-    private String city;
-    private String country;
-    private String state;
+    @Schema(description = "User Location (Country, State, City)")
+    private Location location;
 
-    private List<String> mostRecentReviews=new ArrayList<>();
-    
+    private List<Review> mostRecentReviews=new ArrayList<>();
+
     @Past(message = "Birthdate must be in the past")
     private Date birthDate;
 
     private Date createdAt;
 
     private String role;     // Ruolo come stringa, es: "ROLE_USER" o "ROLE_ADMIN"
+
+    public User get() {
+        return this;
+    }
 /*
     public User(String username, String email, String password, String role, String city, String country, String state, Date createdAt, List<String> mostRecentReviews) {
         this.username = username;
@@ -58,7 +62,7 @@ public class User {
         this.mostRecentReviews = mostRecentReviews;
     }
 
- */
+
 
     public String getId() {
         return id;
@@ -164,7 +168,7 @@ public class User {
         this.lastName = lastName;
     }
 
-    public User get() {
-        return this;
-    }
+
+
+ */
 }

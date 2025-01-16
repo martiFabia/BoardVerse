@@ -1,6 +1,8 @@
 package com.example.BoardVerse.DTO;
 
+import lombok.Data;
 
+@Data
 public class JwtResponse {
     private String token;
     private String type = "Bearer";
@@ -32,7 +34,7 @@ public class JwtResponse {
     public void setTokenType(String tokenType) {
         this.type = tokenType;
     }
-
+/*
     public String getId() {
         return id;
     }
@@ -60,5 +62,7 @@ public class JwtResponse {
     public String getRole() {
         return role;
     }
+
+ */
 
 }

@@ -1,5 +1,6 @@
-package com.example.BoardVerse.DTO;
+package com.example.BoardVerse.DTO.User;
 
+import com.example.BoardVerse.model.MongoDB.Location;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
 
@@ -10,9 +11,7 @@ public record UserInfoDTO (
     @NotBlank String email,
     String firstName,
     String lastName,
-    String city,
-    String country,
-    String state,
+    Location location,
     @Past Date birthDate
 ){
 }

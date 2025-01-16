@@ -1,8 +1,8 @@
 package com.example.BoardVerse.service;
 
 import com.example.BoardVerse.DTO.JwtResponse;
-import com.example.BoardVerse.DTO.LoginRequest;
-import com.example.BoardVerse.DTO.UserRegDTO;
+import com.example.BoardVerse.DTO.User.LoginRequest;
+import com.example.BoardVerse.DTO.User.UserRegDTO;
 import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.repository.UserRepository;
 import com.example.BoardVerse.security.jwt.JwtUtils;
@@ -96,9 +96,7 @@ public class AuthService {
         newUserMongo.setEmail(signUpRequest.email());
         newUserMongo.setFirstName(signUpRequest.firstName());
         newUserMongo.setLastName(signUpRequest.lastName());
-        newUserMongo.setCity(signUpRequest.city());
-        newUserMongo.setCountry(signUpRequest.country());
-        newUserMongo.setState(signUpRequest.state());
+        newUserMongo.setLocation(signUpRequest.location());
         newUserMongo.setBirthDate(signUpRequest.birthDate());
         newUserMongo.setRole("ROLE_USER");
         newUserMongo.setCreatedAt(new Date());

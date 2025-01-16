@@ -1,4 +1,6 @@
-package com.example.BoardVerse.DTO;
+package com.example.BoardVerse.DTO.User;
+import com.example.BoardVerse.model.MongoDB.Location;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
 import java.util.Date;
@@ -17,9 +19,9 @@ public record UserRegDTO(
         @NotBlank
         @Min(3)
         String password,
-        String city,
-        String country,
-        String state,
+        @Schema(description = "User Location (Country, State, City)",
+                example = "{ \"country\": \"Italy\", \"state\": \"Tuscany\", \"city\": \"Pisa\" }")
+        Location location,
         @Past
         Date birthDate
 ){}

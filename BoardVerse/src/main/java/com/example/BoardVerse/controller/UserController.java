@@ -1,16 +1,13 @@
 package com.example.BoardVerse.controller;
 
-import com.example.BoardVerse.DTO.*;
-import com.example.BoardVerse.exception.NotFoundException;
-import com.example.BoardVerse.model.MongoDB.User;
+import com.example.BoardVerse.DTO.User.UserDTO;
+import com.example.BoardVerse.DTO.User.UserInfoDTO;
+import com.example.BoardVerse.DTO.User.UserUpdateDTO;
 import com.example.BoardVerse.repository.UserRepository;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -76,6 +73,9 @@ public class UserController {
         userService.deleteUser(user.getUsername());
         return ResponseEntity.ok("User deleted successfully");
     }
+
+
+
 
 
 
