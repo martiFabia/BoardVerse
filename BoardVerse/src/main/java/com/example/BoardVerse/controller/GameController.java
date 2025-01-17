@@ -26,22 +26,22 @@ public class GameController {
     }
 
 
-@GetMapping("/searchByName/{name}")
-public ResponseEntity<List<GameInfoDTO>> searchGamesByName(@PathVariable String name) {
-    List<GameInfoDTO> games = gameService.findByName(name); // Trova i giochi per nome
-    if (games.isEmpty()) {
-        return ResponseEntity.notFound().build();  // Nessun gioco trovato
+    @GetMapping("/searchByName/{name}")
+    public ResponseEntity<List<GameInfoDTO>> searchGamesByName(@PathVariable String name) {
+        List<GameInfoDTO> games = gameService.findByName(name); // Trova i giochi per nome
+        if (games.isEmpty()) {
+            return ResponseEntity.notFound().build();  // Nessun gioco trovato
+        }
+        return ResponseEntity.ok(games);  // Restituisci i giochi trovati
     }
-    return ResponseEntity.ok(games);  // Restituisci i giochi trovati
-}
 
 
-@GetMapping("/searchByCategory/{category}")
-public ResponseEntity<List<GameInfoDTO>> searchGamesByCategory(@PathVariable String category) {
-    List<GameInfoDTO> games = gameService.findByCategory(category); // Trova i giochi per nome
-    if (games.isEmpty()) {
-        return ResponseEntity.notFound().build();  // Nessun gioco trovato
+    @GetMapping("/searchByCategory/{category}")
+    public ResponseEntity<List<GameInfoDTO>> searchGamesByCategory(@PathVariable String category) {
+        List<GameInfoDTO> games = gameService.findByCategory(category); // Trova i giochi per nome
+        if (games.isEmpty()) {
+            return ResponseEntity.notFound().build();  // Nessun gioco trovato
+        }
+        return ResponseEntity.ok(games);  // Restituisci i giochi trovati
     }
-    return ResponseEntity.ok(games);  // Restituisci i giochi trovati
-}
 }

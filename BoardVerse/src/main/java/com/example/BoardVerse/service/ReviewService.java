@@ -5,10 +5,10 @@ import com.example.BoardVerse.DTO.Review.ReviewGame;
 import com.example.BoardVerse.DTO.Review.ReviewInfoDTO;
 import com.example.BoardVerse.DTO.Review.ReviewUser;
 import com.example.BoardVerse.exception.NotFoundException;
-import com.example.BoardVerse.model.MongoDB.Game;
+import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.model.MongoDB.Review;
 import com.example.BoardVerse.model.MongoDB.User;
-import com.example.BoardVerse.repository.GameRepository;
+import com.example.BoardVerse.repository.GameMongoRepository;
 import com.example.BoardVerse.repository.ReviewRepository;
 import com.example.BoardVerse.repository.UserRepository;
 import com.example.BoardVerse.utils.Constants;
@@ -25,19 +25,18 @@ public class ReviewService {
 
     @Autowired
     private UserRepository userRepository;
-    private final GameRepository gameRepository;
+    private final GameMongoRepository gameRepository;
     private final ReviewRepository reviewRepository;
 
-    public ReviewService(UserRepository userRepository, GameRepository gameRepository, ReviewRepository reviewRepository) {
+    public ReviewService(UserRepository userRepository, GameMongoRepository gameRepository, ReviewRepository reviewRepository) {
         this.userRepository = userRepository;
         this.gameRepository = gameRepository;
         this.reviewRepository = reviewRepository;
     }
 
-
     public void addReview(String username, String gameId, AddReviewDTO addReviewDTO) {
         // Verifica se il gioco esiste
-        Game game = gameRepository.findById(gameId)
+        GameMongo game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found with ID: " + gameId));
 
         // Verifica se l'utente esiste
@@ -104,7 +103,7 @@ public class ReviewService {
     }
 
     public void addReviewGame(String gameId, ReviewGame review){
-        Game game = gameRepository.findById(gameId)
+        GameMongo game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + gameId));
 
         // Verifica se il campo rating della recensione non è vuoto (null)
@@ -127,7 +126,7 @@ public class ReviewService {
 
     //rimuovi review da Game
     public void removeReviewGame(String gameId, Review review){
-        Game game = gameRepository.findById(gameId)
+        GameMongo game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + gameId));
 
         //rimuovere il rating dal game
@@ -171,7 +170,7 @@ public class ReviewService {
 
     public List<ReviewInfoDTO> findReviewByGameId(String gameId) {
         // Verifica se il gioco esiste
-        Game game = gameRepository.findById(gameId)
+        GameMongo game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found with ID: "+ gameId));
         // Trova tutte le recensioni di un gioco
         return reviewRepository.findByGameId(gameId).stream()
