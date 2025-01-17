@@ -12,7 +12,4 @@ public interface GameRepository extends MongoRepository<Game, String> {
     List<Game> findByName(String name);
     List<Game> findByCategoriesContaining(String category);
 
-
-
-
 }

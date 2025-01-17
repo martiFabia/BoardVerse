@@ -10,43 +10,6 @@ import java.util.List;
 @Data
 public class GameCreationDTO {
 
-    @NotBlank(message = "Name cannot be blank")
-    private String name;
-
-    private String description;
-    private String shortDescription; // Opzionale, se necessario
-
-    private String imgURL;
-
-    @Positive(message = "Average rating must be a positive number")
-    private double averageRating;
-
-    @Positive(message = "Number of reviews must be a positive integer")
-    private int numberReviews;
-
-    private int yearReleased;
-
-    private int minPlayers;
-
-    private int maxPlayers;
-
-    private int minSuggAge;
-
-    private int minPlayTime;
-
-    private int maxPlayTime;
-
-    private List<String> designers;
-
-    private List<String> artists;
-
-    private List<String> publisher;
-
-    @NotNull(message = "Categories cannot be null")
-    private List<String> categories;
-
-    private List<String> mechanics;
-/*
     public @NotBlank(message = "Name cannot be blank") String getName() {
         return name;
     }
@@ -185,6 +148,40 @@ public class GameCreationDTO {
         this.mechanics = mechanics;
     }
 
- */
+    @NotBlank(message = "Name cannot be blank")
+    private String name;
 
+    private String description;
+    private String shortDescription; // Opzionale, se necessario
+
+    private String imgURL;
+
+    @Positive(message = "Average rating must be a positive number")
+    private double averageRating;
+
+    @Positive(message = "Number of reviews must be a positive integer")
+    private int numberReviews;
+
+    private int yearReleased;
+
+    private int minPlayers;
+
+    private int maxPlayers;
+
+    private int minSuggAge;
+
+    private int minPlayTime;
+
+    private int maxPlayTime;
+
+    private List<String> designers;
+
+    private List<String> artists;
+
+    private List<String> publisher;
+
+    @NotNull(message = "Categories cannot be null")
+    private List<String> categories;
+
+    private List<String> mechanics;
 }

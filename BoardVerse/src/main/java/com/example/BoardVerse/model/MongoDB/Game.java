@@ -1,7 +1,5 @@
 package com.example.BoardVerse.model.MongoDB;
 
-import com.example.BoardVerse.DTO.Review.ReviewGame;
-import com.example.BoardVerse.DTO.Review.ReviewInfoDTO;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -9,7 +7,6 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Document(collection = "games")
@@ -49,14 +46,6 @@ public class Game {
     private List<String> mechanics;
     private int numRatings;
 
-    private List<ReviewGame> mostRecentReviews=new ArrayList<>();
-
-
-    public Game get() {
-        return this;
-    }
-
-    //GETTER E SETTER
 
     public String getId() {
         return id;
