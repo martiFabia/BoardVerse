@@ -1,4 +1,4 @@
-package com.example.BoardVerse.DTO.Game;
+package com.example.BoardVerse.DTO.Review;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;

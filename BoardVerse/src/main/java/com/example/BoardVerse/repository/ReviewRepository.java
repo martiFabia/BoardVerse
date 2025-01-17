@@ -12,4 +12,6 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
     // Trova tutte le recensioni di un utente
     List<Review> findByAuthorUsername(String authorUsername);
 
+    void deleteByAuthorUsername(String username);
+
 }

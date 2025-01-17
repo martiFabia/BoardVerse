@@ -10,7 +10,8 @@ public class UserMapper {
     }
 
     public static UserInfoDTO toInfoDTO(User user) {
-        return new UserInfoDTO(user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getLocation(), user.getBirthDate());
+        return new UserInfoDTO(user.getUsername(), user.getEmail(), user.getFirstName(),
+                user.getLastName(), user.getLocation(), user.getBirthDate(), user.getMostRecentReviews());
     }
 }
 

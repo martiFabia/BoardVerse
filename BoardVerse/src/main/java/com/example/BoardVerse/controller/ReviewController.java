@@ -1,9 +1,8 @@
 package com.example.BoardVerse.controller;
 
 
-import com.example.BoardVerse.DTO.Game.AddReviewDTO;
-import com.example.BoardVerse.DTO.Game.ReviewInfoDTO;
-import com.example.BoardVerse.model.MongoDB.Review;
+import com.example.BoardVerse.DTO.Review.AddReviewDTO;
+import com.example.BoardVerse.DTO.Review.ReviewInfoDTO;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.ReviewService;
 import io.swagger.v3.oas.annotations.tags.Tag;

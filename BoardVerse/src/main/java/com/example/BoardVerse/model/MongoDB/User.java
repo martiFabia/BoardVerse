@@ -1,5 +1,7 @@
 package com.example.BoardVerse.model.MongoDB;
 
+import com.example.BoardVerse.DTO.Review.ReviewInfoDTO;
+import com.example.BoardVerse.DTO.Review.ReviewUser;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -37,7 +39,7 @@ public class User {
     @Schema(description = "User Location (Country, State, City)")
     private Location location;
 
-    private List<Review> mostRecentReviews=new ArrayList<>();
+    private List<ReviewUser> mostRecentReviews=new ArrayList<>();
 
     @Past(message = "Birthdate must be in the past")
     private Date birthDate;

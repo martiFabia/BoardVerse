@@ -2,8 +2,8 @@ package com.example.BoardVerse.repository;
 
 import com.example.BoardVerse.model.MongoDB.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
+
 import java.util.Optional;
-import java.util.List;
 
 public interface UserRepository extends MongoRepository<User, String> {
 
@@ -13,4 +13,5 @@ public interface UserRepository extends MongoRepository<User, String> {
     Boolean existsByUsername(String username);
 
     Boolean existsByEmail(String email);
+
 }

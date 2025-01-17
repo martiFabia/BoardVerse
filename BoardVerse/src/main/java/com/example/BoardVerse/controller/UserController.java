@@ -30,21 +30,21 @@ public class UserController {
     /* ================================ USERS CRUD ================================ */
 
     //restitusice solo username ed email
-    @GetMapping("/searchUser")
+    @GetMapping("/getUserbyUsername")
     public ResponseEntity<UserDTO> getUserByUsername(@RequestParam String username) {
         UserDTO userDto = userService.getUserByUsername(username);
         return ResponseEntity.ok(userDto);
     }
 
     //restituisce tutti i dati dell'utente tranne la password
-    @GetMapping("/UserInfo")
+    @GetMapping("/getInfo")
     public ResponseEntity<UserInfoDTO> getUserInfoByUsername(@RequestParam String username) {
         UserInfoDTO userInfoDto = userService.getInfo(username);
         return ResponseEntity.ok(userInfoDto);
     }
 
     //restituisce dati dell'utente loggato
-    @GetMapping("/myInfo")
+    @GetMapping("/getProfile")
     public ResponseEntity<UserInfoDTO> getMyInfo() {
         //id utente loggato
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -54,7 +54,7 @@ public class UserController {
 
 
     //aggiorna i dati dell'utente
-    @PatchMapping("/updateUser")
+    @PatchMapping("/updateProfile")
     public ResponseEntity<UserInfoDTO> updateUser(@RequestBody @Validated UserUpdateDTO userUpdateDTO) {
         //utente loggato
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

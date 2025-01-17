@@ -7,6 +7,7 @@ import com.example.BoardVerse.DTO.User.UserUpdateDTO;
 import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.Location;
 import com.example.BoardVerse.model.MongoDB.User;
+import com.example.BoardVerse.repository.ReviewRepository;
 import com.example.BoardVerse.repository.UserRepository;
 import com.example.BoardVerse.security.jwt.JwtUtils;
 import com.example.BoardVerse.utils.UserMapper;
@@ -25,16 +26,18 @@ public class UserService {
     private JwtUtils jwtUtils;
     @Autowired
     private UserRepository userMongoRepository;
+    private ReviewRepository reviewRepository;
     @Autowired
     PasswordEncoder encoder;
     @Autowired
     private AuthService authService;
 
     @Autowired
-    public UserService(AuthenticationManager authManager, JwtUtils jwtUtils, UserRepository userMongoRepository) {
+    public UserService(AuthenticationManager authManager, JwtUtils jwtUtils, UserRepository userMongoRepository, ReviewRepository reviewRepository) {
         this.authenticationManager = authManager;
         this.jwtUtils = jwtUtils;
         this.userMongoRepository = userMongoRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     public UserDTO getUserByUsername(String username) {
@@ -97,7 +100,6 @@ public class UserService {
                 // Se `userMongo` non ha una location, creiamo un nuovo oggetto
                 userMongo.setLocation(new Location());
             }
-
             // Aggiorniamo i singoli campi della location
             if (updates.location().getCountry() != null) {
                 userMongo.getLocation().setCountry(updates.location().getCountry());
@@ -123,10 +125,11 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
         // Cancella l'utente
         userMongoRepository.delete(user);
+        //elimina recensioni
+        reviewRepository.deleteByAuthorUsername(username);
 
         //eliminare utente dal graph
         //eliminare utente dai followers
-        //eliminare recensioni
 
     }
 }

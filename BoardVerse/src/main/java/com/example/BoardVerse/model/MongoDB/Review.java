@@ -42,6 +42,10 @@ public class Review {
         this.createdAt = createdAt;
     }
 
+    public Review get() {
+        return this;
+    }
+
     @Override
     public String toString() {
         return "Review{" +
