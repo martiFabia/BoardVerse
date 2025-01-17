@@ -2,7 +2,7 @@ package com.example.BoardVerse.controller;
 
 
 import com.example.BoardVerse.DTO.Review.AddReviewDTO;
-import com.example.BoardVerse.DTO.Review.ReviewInfoDTO;
+import com.example.BoardVerse.DTO.Review.ReviewInfo;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.ReviewService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/review")
+@RequestMapping("/api/users/review")
 @Tag(name = "Review", description = "Operations related to reviews")
 public class ReviewController {
     private final ReviewService reviewService;
@@ -54,7 +54,7 @@ public class ReviewController {
     @GetMapping("/{gameId}/find")
     public ResponseEntity<?> findReviewByGameId(@PathVariable String gameId) {
         try {
-            List<ReviewInfoDTO> reviews = reviewService.findReviewByGameId(gameId);
+            List<ReviewInfo> reviews = reviewService.findReviewByGameId(gameId);
             return ResponseEntity.ok(reviews);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

@@ -5,8 +5,8 @@ import lombok.Data;
 
 import java.util.List;
 
-import com.example.BoardVerse.utils.validation.ValidMaxPlayers;
-import com.example.BoardVerse.utils.validation.ValidMaxPlayTime;
+//import com.example.BoardVerse.utils.validation.ValidMaxPlayers;
+//import com.example.BoardVerse.utils.validation.ValidMaxPlayTime;
 
 @Data
 public class GameCreationDTO {

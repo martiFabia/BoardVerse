@@ -71,6 +71,7 @@ public class UserService {
             if (userMongoRepository.existsByUsername(updates.username())) {
                 throw new IllegalArgumentException("Username already exists");
             }
+            reviewRepository.updateUsernameInReviews(userMongo.getUsername(), updates.username());
             userMongo.setUsername(updates.username());
             //userNeo4j.setUsername(userMongo.getUsername());
 

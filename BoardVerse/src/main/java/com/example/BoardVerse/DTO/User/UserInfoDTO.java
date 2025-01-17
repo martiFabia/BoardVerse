@@ -1,6 +1,5 @@
 package com.example.BoardVerse.DTO.User;
 
-import com.example.BoardVerse.DTO.Review.ReviewInfoDTO;
 import com.example.BoardVerse.DTO.Review.ReviewUser;
 import com.example.BoardVerse.model.MongoDB.Location;
 import jakarta.validation.constraints.NotBlank;

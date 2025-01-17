@@ -1,6 +1,5 @@
 package com.example.BoardVerse.model.MongoDB;
 
-import com.example.BoardVerse.DTO.Review.ReviewGame;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -8,7 +7,6 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -48,7 +46,6 @@ public class GameMongo {
 
     private List<String> mechanics;
     private int numRatings;
-    private List<ReviewGame> mostRecentReviews= new ArrayList<>();
 
     @Override
     public boolean equals(Object o) {

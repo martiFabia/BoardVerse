@@ -1,6 +1,5 @@
 package com.example.BoardVerse.model.MongoDB;
 
-import com.example.BoardVerse.DTO.Review.ReviewInfoDTO;
 import com.example.BoardVerse.DTO.Review.ReviewUser;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;

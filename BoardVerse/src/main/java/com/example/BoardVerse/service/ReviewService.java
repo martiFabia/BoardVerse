@@ -1,8 +1,7 @@
 package com.example.BoardVerse.service;
 
 import com.example.BoardVerse.DTO.Review.AddReviewDTO;
-import com.example.BoardVerse.DTO.Review.ReviewGame;
-import com.example.BoardVerse.DTO.Review.ReviewInfoDTO;
+import com.example.BoardVerse.DTO.Review.ReviewInfo;
 import com.example.BoardVerse.DTO.Review.ReviewUser;
 import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
@@ -60,7 +59,7 @@ public class ReviewService {
             throw new IllegalStateException("Error saving the review: " + e.getMessage(), e);
         }
 
-        ReviewGame reviewGame = ReviewMapper.toGame(savedReview);
+        ReviewInfo reviewGame = ReviewMapper.toGame(savedReview);
         ReviewUser reviewUser = ReviewMapper.toUser(savedReview);
 
         // Aggiungi la recensione al gioco
@@ -102,7 +101,7 @@ public class ReviewService {
         userRepository.save(userMongo);
     }
 
-    public void addReviewGame(String gameId, ReviewGame review){
+    public void addReviewGame(String gameId, ReviewInfo review){
         GameMongo game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + gameId));
 
@@ -111,17 +110,7 @@ public class ReviewService {
             // Incrementa numRatings
             game.setNumRatings(game.getNumRatings() + 1);
         }
-
-        List<ReviewGame> list = game.get().getMostRecentReviews();
-        //aggiunge review in cima alla lista
-        list.add(0, review);
-
-        //rimuove l'ultima review se la lista è troppo lunga
-        if(list.size() > Constants.RECENT_SIZE)
-            list.remove(list.size() - 1);
-
-        game.get().setMostRecentReviews(list);
-        gameRepository.save(game.get());
+        gameRepository.save(game);
     }
 
     //rimuovi review da Game
@@ -135,12 +124,7 @@ public class ReviewService {
             game.setNumRatings(game.getNumRatings() - 1);
         }
 
-        List<ReviewGame> list = game.get().getMostRecentReviews();
-        //rimuove review dalla lista
-        list.removeIf(reviewGame -> reviewGame.id().equals(review.getId()));
-
-        game.get().setMostRecentReviews(list);
-        gameRepository.save(game.get());
+        gameRepository.save(game);
     }
 
 
@@ -157,24 +141,31 @@ public class ReviewService {
         //rimuove la review dall'utente
         User user = userRepository.findByUsername(review.getAuthorUsername())
                 .orElseThrow(() -> new NotFoundException("User not found with username: " + review.getAuthorUsername()));
-        List<ReviewUser> list= user.get().getMostRecentReviews();
+        List<ReviewUser> list= user.getMostRecentReviews();
         //rimuove review dalla lista
         list.removeIf(reviewUser -> reviewUser.id().equals(reviewId));
-        user.get().setMostRecentReviews(list);
-        userRepository.save(user.get());
 
-        //aggiornare la lista di mostRecentReviews dell'utente
-        //aggiornare la lista di mostRecentReviews del gioco
+        // Se la lista ha meno di 5 elementi, aggiungi la prossima recensione più recente
+        if (list.size() < Constants.RECENT_SIZE) {
+            Review nextRecentReviewForUser = reviewRepository.findFirstByAuthorUsernameOrderByCreatedAtDesc(review.getAuthorUsername())
+                    .orElse(null);
+            if (nextRecentReviewForUser != null) {
+                ReviewUser mappnextRecentReviewUser =ReviewMapper.toUser(nextRecentReviewForUser);
+                list.add(mappnextRecentReviewUser);
+            }
+        }
+        user.setMostRecentReviews(list);
+        userRepository.save(user);
 
     }
 
-    public List<ReviewInfoDTO> findReviewByGameId(String gameId) {
+    public List<ReviewInfo> findReviewByGameId(String gameId) {
         // Verifica se il gioco esiste
         GameMongo game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found with ID: "+ gameId));
         // Trova tutte le recensioni di un gioco
         return reviewRepository.findByGameId(gameId).stream()
-                .map(elem -> new ReviewInfoDTO(elem.getAuthorUsername(), elem.getRating(), elem.getComment(), elem.getCreatedAt()))
+                .map(elem -> new ReviewInfo(elem.getId(), elem.getAuthorUsername(), elem.getRating(), elem.getComment(), elem.getCreatedAt()))
                 .collect(Collectors.toList());
     }
 

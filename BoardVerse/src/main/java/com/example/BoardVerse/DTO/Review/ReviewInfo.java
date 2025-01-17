@@ -2,7 +2,7 @@ package com.example.BoardVerse.DTO.Review;
 
 import java.util.Date;
 
-public record ReviewGame(
+public record ReviewInfo(
         String id,
         String authorUsername,
         Double rating,
