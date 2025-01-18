@@ -17,6 +17,8 @@ public class Review {
     @Id
     private String id;
     private String gameId;
+    private String gameName;
+    private int GameYearReleased;
     private String authorUsername;
     private Location authorLocation;
 
@@ -46,16 +48,4 @@ public class Review {
         return this;
     }
 
-    @Override
-    public String toString() {
-        return "Review{" +
-                "id='" + id + '\'' +
-                ", gameId='" + gameId + '\'' +
-                ", authorUsername='" + authorUsername + '\'' +
-                ", location=" + authorLocation +
-                ", rating=" + rating +
-                ", comment='" + comment + '\'' +
-                ", createdAt=" + createdAt +
-                '}';
-    }
 }

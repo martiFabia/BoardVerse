@@ -128,7 +128,7 @@ public class UserService {
         userMongoRepository.delete(user);
         //elimina recensioni
         reviewRepository.deleteByAuthorUsername(username);
-
+        //correggere averageRating Game
         //eliminare utente dal graph
         //eliminare utente dai followers
 

@@ -18,13 +18,11 @@ public class GameCreationDTO {
     @NotBlank
     private String description;
 
-    private String imgURL;
+    //@Positive(message = "Average rating must be a positive number")
+    //private double averageRating;
 
-    @Positive(message = "Average rating must be a positive number")
-    private double averageRating;
-
-    @Positive(message = "Number of reviews must be a positive integer")
-    private Integer numberReviews;
+    //@Positive(message = "Number of reviews must be a positive integer")
+    //private Integer numberReviews;
 
     @NotNull(message = "Year released cannot be blank")
     @Positive(message = "Year released must be a positive integer")

@@ -1,5 +1,6 @@
 package com.example.BoardVerse.model.MongoDB;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -22,13 +23,12 @@ public class GameMongo {
 
     private String description;
     private String shortDescription;
-    private String imgURL;
 
-    @Positive(message = "Average rating must be positive")
-    private double averageRating;
+    @Min(value = 0, message = "Average rating must be positive")
+    private Double averageRating;
 
-    @Positive(message = "Number of reviews must be positive")
-    private int numberReviews;
+    //@Min(value = 0, message = "Number of reviews must be positive")
+    //private int numberReviews;
 
     private int yearReleased;
     private int minPlayers;

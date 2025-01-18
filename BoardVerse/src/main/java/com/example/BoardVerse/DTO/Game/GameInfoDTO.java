@@ -15,11 +15,9 @@ public class GameInfoDTO {
 
     private String shortDescription;
 
-    private String imgURL;
-
     private double averageRating;
 
-    private int numberReviews;
+    //private int numberReviews;
 
     private int yearReleased;
 

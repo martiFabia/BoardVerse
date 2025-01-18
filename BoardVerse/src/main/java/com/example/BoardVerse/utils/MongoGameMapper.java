@@ -2,6 +2,7 @@ package com.example.BoardVerse.utils;
 
 import com.example.BoardVerse.DTO.Game.GameCreationDTO;
 import com.example.BoardVerse.DTO.Game.GameInfoDTO;
+import com.example.BoardVerse.DTO.Game.GamePreviewDTO;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
 import lombok.AllArgsConstructor;
 
@@ -15,17 +16,19 @@ public class MongoGameMapper {
         GameMongo newGameMongo = new GameMongo();
 
         String gameId = UUID.randomUUID().toString();
-        newGameMongo.setId(gameId);
 
+        newGameMongo.setId(gameId);
         newGameMongo.setName(newGameDTO.getName());
         newGameMongo.setDescription(newGameDTO.getDescription());
+
         if( newGameDTO.getDescription() != null && newGameDTO.getDescription().length() > 20)
             newGameMongo.setShortDescription(newGameDTO.getDescription().substring(0, 20) + "...");
         else
             newGameMongo.setShortDescription(newGameDTO.getDescription());
-        newGameMongo.setImgURL(newGameDTO.getImgURL());
-        newGameMongo.setAverageRating(0);
-        newGameMongo.setNumberReviews(0);
+
+        newGameMongo.setAverageRating(0.0);
+        //newGameMongo.setNumberReviews(0);
+        newGameMongo.setNumRatings(0);
         newGameMongo.setYearReleased(newGameDTO.getYearReleased());
         newGameMongo.setMinPlayers(newGameDTO.getMinPlayers());
         newGameMongo.setMaxPlayers(newGameDTO.getMaxPlayers());
@@ -48,9 +51,8 @@ public class MongoGameMapper {
             gameMongo.getName(),
             gameMongo.getDescription(),
             gameMongo.getShortDescription(),
-            gameMongo.getImgURL(),
             gameMongo.getAverageRating(),
-            gameMongo.getNumberReviews(),
+            //gameMongo.getNumberReviews(),
             gameMongo.getYearReleased(),
             gameMongo.getMinPlayers(),
             gameMongo.getMaxPlayers(),
@@ -62,6 +64,16 @@ public class MongoGameMapper {
             gameMongo.getPublisher(),
             gameMongo.getCategories(),
             gameMongo.getMechanics()
+        );
+    }
+
+    public static GamePreviewDTO toPreviewDTO(GameMongo gameMongo) {
+        return new GamePreviewDTO(
+            gameMongo.getId(),
+            gameMongo.getName(),
+            gameMongo.getShortDescription(),
+            gameMongo.getYearReleased(),
+            gameMongo.getAverageRating()
         );
     }
 }

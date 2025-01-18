@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/users/review")
+@RequestMapping("/api/users")
 @Tag(name = "Review", description = "Operations related to reviews")
 public class ReviewController {
     private final ReviewService reviewService;
@@ -26,11 +26,12 @@ public class ReviewController {
 
     /* ================================ REVIEW CRUD ================================ */
 
-    @PostMapping("/{gameId}/add")
-    public ResponseEntity<String> addReview(@PathVariable String gameId, @Valid @RequestBody AddReviewDTO addReviewDTO) {
+    //aggiungi review
+    @PostMapping("/{gameId}/{gameName}/{gameYearReleased}/review/add")
+    public ResponseEntity<String> addReview(@PathVariable String gameId, @PathVariable String gameName, @PathVariable int gameYearReleased, @Valid @RequestBody AddReviewDTO addReviewDTO) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            reviewService.addReview(user.getUsername(), gameId, addReviewDTO);
+            reviewService.addReview(user.getUser(), gameId, gameName, gameYearReleased, addReviewDTO);
             return ResponseEntity.ok("Review successfully added!");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -39,7 +40,8 @@ public class ReviewController {
         }
     }
 
-    @DeleteMapping("/{reviewId}/delete")
+    //elimina review
+    @DeleteMapping("/{reviewId}")
     public ResponseEntity<String> deleteReview(@PathVariable String reviewId) {
         try {
             reviewService.deleteReview(reviewId);
@@ -51,10 +53,10 @@ public class ReviewController {
         }
     }
 
-    @GetMapping("/{gameId}/find")
-    public ResponseEntity<?> findReviewByGameId(@PathVariable String gameId) {
+    @GetMapping("/{gameId}/{gameName}/{gameYearReleased}/review")
+    public ResponseEntity<?> getReview(@PathVariable String gameId, @PathVariable String gameName, @PathVariable int gameYearReleased) {
         try {
-            List<ReviewInfo> reviews = reviewService.findReviewByGameId(gameId);
+            List<ReviewInfo> reviews = reviewService.getGameReview(gameId);
             return ResponseEntity.ok(reviews);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -63,10 +65,11 @@ public class ReviewController {
         }
     }
 
-    @PatchMapping("/{reviewId}/update")
-    public ResponseEntity<String> updateReview(@PathVariable String reviewId, @Valid @RequestBody AddReviewDTO addReviewDTO) {
+    //aggiorna review
+    @PatchMapping("/{gameId}/{gameName}/{gameYearReleased}/review/{reviewId}/update")
+    public ResponseEntity<String> updateReview(@PathVariable String gameId, @PathVariable String gameName, @PathVariable int gameYearReleased, @PathVariable String reviewId, @Valid @RequestBody AddReviewDTO addReviewDTO) {
         try {
-            reviewService.updateReview(reviewId, addReviewDTO);
+            reviewService.updateReview(gameId, reviewId, addReviewDTO);
             return ResponseEntity.ok("Review successfully updated!");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -74,7 +77,6 @@ public class ReviewController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
         }
     }
-
 
 
 }

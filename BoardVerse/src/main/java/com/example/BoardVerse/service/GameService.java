@@ -2,6 +2,7 @@ package com.example.BoardVerse.service;
 
 import com.example.BoardVerse.DTO.Game.GameCreationDTO;
 import com.example.BoardVerse.DTO.Game.GameInfoDTO;
+import com.example.BoardVerse.DTO.Game.GamePreviewDTO;
 import com.example.BoardVerse.DTO.Game.GameUpdateDTO;
 import com.example.BoardVerse.exception.GameNotFoundException;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
@@ -58,8 +59,6 @@ public class GameService {
         else
             game.setShortDescription(updateGameDTO.getDescription());
         }
-        
-        game.setImgURL(updateGameDTO.getImgURL());
 
         game.setYearReleased(updateGameDTO.getYearReleased());
 
@@ -107,16 +106,26 @@ public class GameService {
     }
 
     // Operazione di ricerca per nome
-    public List<GameInfoDTO> findByName(String name) {
+    public List<GamePreviewDTO> findByName(String name) {
         List<GameMongo> games = gameMongoRepository.findByName(name);
 
-        return games.stream().map(MongoGameMapper::toDTO).collect(Collectors.toList());
+        return games.stream().map(MongoGameMapper::toPreviewDTO).collect(Collectors.toList());
     }
 
+    public GameInfoDTO getInfo(String gameId) {
+        GameMongo game = gameMongoRepository.findById(gameId)
+                .orElseThrow(() -> new GameNotFoundException("Game not found with ID: " + gameId));
+        return MongoGameMapper.toDTO(game);
+    }
+
+
     // Operazione di ricerca per categoria
+    /*
     public List<GameInfoDTO> findByCategory(String category) {
         List<GameMongo> games = gameMongoRepository.findByCategoriesContaining(category);
 
         return games.stream().map(MongoGameMapper::toDTO).collect(Collectors.toList());
     }
+
+     */
 }

@@ -30,15 +30,15 @@ public class UserController {
     /* ================================ USERS CRUD ================================ */
 
     //restitusice solo username ed email
-    @GetMapping("/getUserbyUsername")
-    public ResponseEntity<UserDTO> getUserByUsername(@RequestParam String username) {
+    @GetMapping("/search/{username}")
+    public ResponseEntity<UserDTO> getUserByUsername(@PathVariable String username) {
         UserDTO userDto = userService.getUserByUsername(username);
         return ResponseEntity.ok(userDto);
     }
 
     //restituisce tutti i dati dell'utente tranne la password
-    @GetMapping("/getInfo")
-    public ResponseEntity<UserInfoDTO> getUserInfoByUsername(@RequestParam String username) {
+    @GetMapping("/{username}/getInfo")
+    public ResponseEntity<UserInfoDTO> getUserInfoByUsername(@PathVariable String username) {
         UserInfoDTO userInfoDto = userService.getInfo(username);
         return ResponseEntity.ok(userInfoDto);
     }
@@ -52,7 +52,6 @@ public class UserController {
         return ResponseEntity.ok(userInfoDto);
     }
 
-
     //aggiorna i dati dell'utente
     @PatchMapping("/updateProfile")
     public ResponseEntity<UserInfoDTO> updateUser(@RequestBody @Validated UserUpdateDTO userUpdateDTO) {
@@ -63,7 +62,6 @@ public class UserController {
 
         return ResponseEntity.ok(updatedUser);
     }
-
 
     //elimina l'utente
     @DeleteMapping("/deleteUser")

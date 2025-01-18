@@ -21,22 +21,19 @@ public class UserDetailsImpl implements UserDetails {
     private String password;
     private GrantedAuthority authority;
 
-    public UserDetailsImpl(String id, String username, String email, String password, String role) {
-        this.id = id;
-        this.username = username;
-        this.email = email;
-        this.password = password;
-        this.authority = new SimpleGrantedAuthority(role); // Converte il ruolo in un oggetto GrantedAuthority
+    private final User user;
+
+    public UserDetailsImpl(User user) {
+        this.user = user; // Inizializza il campo User
+        this.id = user.getId();
+        this.username = user.getUsername();
+        this.email = user.getEmail();
+        this.password = user.getPassword();
+        this.authority = new SimpleGrantedAuthority(user.getRole());
     }
 
     public static UserDetailsImpl build(User user) {
-        return new UserDetailsImpl(
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getPassword(),
-                user.getRole()
-        );
+        return new UserDetailsImpl(user);
     }
 
     @Override
@@ -45,6 +42,9 @@ public class UserDetailsImpl implements UserDetails {
         return List.of(authority);
     }
 
+    public User getUser() {
+        return user;
+    }
     public String getId() {
         return id;
     }

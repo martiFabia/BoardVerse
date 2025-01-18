@@ -13,13 +13,11 @@ public class GameUpdateDTO {
 
     private String description;
 
-    private String imgURL;
+    //@Positive(message = "Average rating must be positive")
+    //private double averageRating;
 
-    @Positive(message = "Average rating must be positive")
-    private double averageRating;
-
-    @Positive(message = "Number of reviews must be positive")
-    private int numberReviews;
+    //@Positive(message = "Number of reviews must be positive")
+    //private int numberReviews;
 
     @NotNull(message = "Year released is mandatory")
     @Positive(message = "Year released must be a positive integer")
