@@ -4,6 +4,7 @@ import com.example.BoardVerse.DTO.JwtResponse;
 import com.example.BoardVerse.DTO.User.LoginRequest;
 import com.example.BoardVerse.DTO.User.UserRegDTO;
 import com.example.BoardVerse.model.MongoDB.User;
+import com.example.BoardVerse.model.MongoDB.subentities.Role;
 import com.example.BoardVerse.repository.UserRepository;
 import com.example.BoardVerse.security.jwt.JwtUtils;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
@@ -55,9 +56,9 @@ public class AuthService {
         // Recupera i dettagli dell'utente autenticato
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         // Recupera il ruolo dal database
-        String role = userMongoRepository.findByUsername(userDetails.getUsername())
+        Role role = userMongoRepository.findByUsername(userDetails.getUsername())
                 .map(User::getRole)
-                .orElse("ROLE_USER"); // Valore predefinito in caso di errore (non dovrebbe accadere)
+                .orElse(Role.ROLE_USER); // Valore predefinito in caso di errore (non dovrebbe accadere)
 
         // Restituisce il DTO JwtResponse
         return new JwtResponse(
@@ -97,9 +98,12 @@ public class AuthService {
         newUserMongo.setFirstName(signUpRequest.firstName());
         newUserMongo.setLastName(signUpRequest.lastName());
         newUserMongo.setLocation(signUpRequest.location());
-        newUserMongo.setBirthDate(signUpRequest.birthDate());
-        newUserMongo.setRole("ROLE_USER");
-        newUserMongo.setCreatedAt(new Date());
+        newUserMongo.setBirthdayDate(signUpRequest.birthDate());
+        newUserMongo.setFollowers(0);
+        newUserMongo.setFollowing(0);
+        newUserMongo.setTournaments(null); // Non ci sono tornei associati
+        newUserMongo.setRole(Role.ROLE_USER);
+        newUserMongo.setRegisteredDate(new Date());
 
         // Salva l'utente nel database
         userMongoRepository.save(newUserMongo);

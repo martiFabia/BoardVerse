@@ -8,4 +8,11 @@ public class GameReview {
     private String name;
     private int yearReleased;
     private String shortDescription;
+
+    public GameReview(String id, String name, int yearReleased, String shortDescription) {
+        this.id = id;
+        this.name = name;
+        this.yearReleased = yearReleased;
+        this.shortDescription = shortDescription;
+    }
 }

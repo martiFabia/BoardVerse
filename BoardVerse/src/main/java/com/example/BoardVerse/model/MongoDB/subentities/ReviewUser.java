@@ -1,6 +1,4 @@
-package com.example.BoardVerse.DTO.Review;
-
-import com.example.BoardVerse.model.MongoDB.subentities.GameReview;
+package com.example.BoardVerse.model.MongoDB.subentities;
 
 import java.util.Date;
 

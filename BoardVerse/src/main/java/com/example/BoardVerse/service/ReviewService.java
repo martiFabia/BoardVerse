@@ -2,11 +2,12 @@ package com.example.BoardVerse.service;
 
 import com.example.BoardVerse.DTO.Review.AddReviewDTO;
 import com.example.BoardVerse.DTO.Review.ReviewInfo;
-import com.example.BoardVerse.DTO.Review.ReviewUser;
+import com.example.BoardVerse.model.MongoDB.subentities.ReviewUser;
 import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.model.MongoDB.Review;
 import com.example.BoardVerse.model.MongoDB.User;
+import com.example.BoardVerse.model.MongoDB.subentities.GameReview;
 import com.example.BoardVerse.repository.GameMongoRepository;
 import com.example.BoardVerse.repository.ReviewRepository;
 import com.example.BoardVerse.repository.UserRepository;
@@ -41,36 +42,33 @@ public class ReviewService {
         // Crea la recensione
         Review review = new Review();
         review.setAuthorUsername(user.getUsername());
-        review.setAuthorLocation(user.getLocation());
-        review.setGameId(gameId);
-        review.setGameName(gameName);
-        review.setGameYearReleased(gameYearReleased);
+        review.setAuthorBirthDate(user.getBirthdayDate());
+        review.setLocation(user.getLocation());
+        review.setGame(new GameReview(game.getId(), game.getName(), game.getYearReleased(), game.getShortDescription()));
         review.setContent(addReviewDTO.getComment());
         review.setRating(addReviewDTO.getRating());
-        review.setCreatedAt(new Date()); // Imposta la data corrente
+        review.setPostDate(new Date()); // Imposta la data corrente
 
         // Salva la recensione nella collection Review
-        Review savedReview;
         try {
-            savedReview = reviewRepository.save(review);
+            reviewRepository.save(review);
         } catch (Exception e) {
             throw new IllegalStateException("Error saving the review: " + e.getMessage(), e);
         }
 
-        ReviewInfo reviewGame = ReviewMapper.toGame(savedReview);
-        ReviewUser reviewUser = ReviewMapper.toUser(savedReview);
+        ReviewUser reviewUser = ReviewMapper.toUser(review);
 
-        // Aggiungi la recensione al gioco
+        // Aggiungi il rating al gioco se è presente
         try {
             // Verifica se il campo rating della recensione non è vuoto (null)
-            if (reviewGame.rating() != null) {
-                addRating(game, reviewGame.rating());
+            if (review.getRating() != null) {
+                addRating(game, review.getRating());
             }
 
 
         } catch (Exception e) {
             // Rollback: elimina la recensione salvata
-            reviewRepository.deleteById(savedReview.getId());
+            reviewRepository.deleteById(review.getId());
             throw new IllegalStateException("Error adding review to the game: " + e.getMessage(), e);
         }
 
@@ -79,8 +77,8 @@ public class ReviewService {
             addReviewUser(user, reviewUser);
         } catch (Exception e) {
             // Rollback: elimina la recensione e rimuovila dal gioco
-            reviewRepository.deleteById(savedReview.getId());
-            removeRating(game, savedReview.getRating());
+            reviewRepository.deleteById(review.getId());
+            removeRating(game, review.getRating());
             throw new IllegalStateException("Error adding review to the user: " + e.getMessage(), e);
         }
     }
@@ -102,28 +100,28 @@ public class ReviewService {
 
     public void addRating(GameMongo game, Double rating){
         //moltiplica averageRating per numRatings
-        double totalRating = game.getAverageRating() * game.getNumRatings();
+        double totalRating = game.getAverageRating() * game.getRatingVoters();
         // Aggiungi il nuovo rating
         totalRating += rating;
         // Incrementa numRatings
-        game.setNumRatings(game.getNumRatings() + 1);
+        game.setRatingVoters(game.getRatingVoters() + 1);
         // Calcola la nuova media
-        game.setAverageRating(totalRating / game.getNumRatings());
+        game.setAverageRating(totalRating / game.getRatingVoters());
         gameRepository.save(game);
     }
 
-    //rimuovi review da Game
+    //rimuovi rating da Game
     public void removeRating(GameMongo game, Double rating){
         //rimuovere il rating dal game
         if (rating != null) {
             // moltiplica averageRating per numRatings
-            double totalRating = game.getAverageRating() * game.getNumRatings();
+            double totalRating = game.getAverageRating() * game.getRatingVoters();
             // Rimuovi il rating
             totalRating -= rating;
             // decrementa numRatings
-            game.setNumRatings(game.getNumRatings() - 1);
+            game.setRatingVoters(game.getRatingVoters() - 1);
             // Calcola la nuova media
-            game.setAverageRating(totalRating / game.getNumRatings());
+            game.setAverageRating(totalRating / game.getRatingVoters());
         }
 
         gameRepository.save(game);
@@ -141,8 +139,8 @@ public class ReviewService {
         //rimuovere il rating dal game
         if(review.getRating() != null) {
             //rimuovo rating
-            GameMongo game = gameRepository.findById(review.getGameId())
-                    .orElseThrow(() -> new NotFoundException("Game not found with ID: " + review.getGameId()));
+            GameMongo game = gameRepository.findById(review.getGame().getId())
+                    .orElseThrow(() -> new NotFoundException("Game not found with ID: " + review.getGame().getId()));
             removeRating(game, review.getRating());
         }
 
@@ -155,7 +153,7 @@ public class ReviewService {
 
         // Se la lista ha meno di 5 elementi, aggiungi la prossima recensione più recente
         if (list.size() < Constants.RECENT_SIZE) {
-            Review nextRecentReviewForUser = reviewRepository.findFirstByAuthorUsernameOrderByCreatedAtDesc(review.getAuthorUsername())
+            Review nextRecentReviewForUser = reviewRepository.findFirstByAuthorUsernameOrderByPostDateDesc(review.getAuthorUsername())
                     .orElse(null);
             if (nextRecentReviewForUser != null) {
                 ReviewUser mappnextRecentReviewUser =ReviewMapper.toUser(nextRecentReviewForUser);
@@ -168,12 +166,9 @@ public class ReviewService {
     }
 
     public List<ReviewInfo> getGameReview(String gameId) {
-        // Verifica se il gioco esiste
-        GameMongo game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new IllegalArgumentException("Game not found with ID: "+ gameId));
         // Trova tutte le recensioni di un gioco
         return reviewRepository.findByGameId(gameId).stream()
-                .map(elem -> new ReviewInfo(elem.getId(), elem.getAuthorUsername(), elem.getRating(), elem.getContent(), elem.getCreatedAt()))
+                .map(elem -> new ReviewInfo(elem.getId(), elem.getAuthorUsername(), elem.getRating(), elem.getContent(), elem.getPostDate()))
                 .collect(Collectors.toList());
     }
 

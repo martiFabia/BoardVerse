@@ -5,6 +5,7 @@ import com.example.BoardVerse.DTO.Game.GameInfoDTO;
 import com.example.BoardVerse.DTO.Game.GamePreviewDTO;
 import com.example.BoardVerse.DTO.Game.GameUpdateDTO;
 import com.example.BoardVerse.exception.GameNotFoundException;
+import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.repository.GameMongoRepository;
 import com.example.BoardVerse.utils.MongoGameMapper;
@@ -28,7 +29,7 @@ public class GameService {
     // Operazione di creazione
     public String addNewGame(GameCreationDTO newGameDTO) {
         if (gameMongoRepository.findByNameAndYearReleased(newGameDTO.getName(), newGameDTO.getYearReleased()).isPresent()) {
-            throw new GameNotFoundException("Game " + newGameDTO.getName() + " released in " + newGameDTO.getYearReleased() + " already exists");
+            throw new NotFoundException("Game " + newGameDTO.getName() + " released in " + newGameDTO.getYearReleased() + " already exists");
         }
         GameMongo newGameMongo = mapDTOToGameMongo(newGameDTO);
         gameMongoRepository.save(newGameMongo);
@@ -39,7 +40,7 @@ public class GameService {
 
     public String updateGame(String gameId, GameUpdateDTO updateGameDTO) {
         GameMongo game = gameMongoRepository.findById(gameId)
-                .orElseThrow(() -> new GameNotFoundException("Game not found with ID: " + gameId));
+                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
 
         //Se è presente un gioco con lo stesso nome e anno di rilascio,
@@ -53,14 +54,11 @@ public class GameService {
         game.setName(updateGameDTO.getName());
 
         if(updateGameDTO.getDescription() != null){
-        game.setDescription(updateGameDTO.getDescription());
-        if (updateGameDTO.getDescription().length() > 20)
-            game.setShortDescription(updateGameDTO.getDescription().substring(0, 20) + "...");
-        else
-            game.setShortDescription(updateGameDTO.getDescription());
+            game.setDescription(updateGameDTO.getDescription());
         }
 
-        game.setYearReleased(updateGameDTO.getYearReleased());
+        if(updateGameDTO.getYearReleased() != null)
+            game.setYearReleased(updateGameDTO.getYearReleased());
 
         if(updateGameDTO.getMinPlayers()!=null) {
             game.setMinPlayers(updateGameDTO.getMinPlayers());
@@ -82,14 +80,28 @@ public class GameService {
             game.setMaxPlayTime(updateGameDTO.getMaxPlayTime());
         }
 
-        game.setDesigners(updateGameDTO.getDesigners());
-        game.setArtists(updateGameDTO.getArtists());
-        game.setPublisher(updateGameDTO.getPublisher());
+        if (updateGameDTO.getShortDescription()!=null) {
+            game.setShortDescription(updateGameDTO.getShortDescription());
+        }
+
+        if (updateGameDTO.getDesigners()!=null) {
+            game.setDesigners(updateGameDTO.getDesigners());
+        }
+        if (updateGameDTO.getArtists()!=null)
+            game.setArtists(updateGameDTO.getArtists());
+
+        if (updateGameDTO.getPublisher()!=null)
+            game.setPublisher(updateGameDTO.getPublisher());
 
         if(updateGameDTO.getCategories()!=null && !updateGameDTO.getCategories().isEmpty()) {
             game.setCategories(updateGameDTO.getCategories());
         }
-        game.setMechanics(updateGameDTO.getMechanics());
+
+        if(updateGameDTO.getFamily()!=null)
+            game.setFamily(updateGameDTO.getFamily());
+
+        if(updateGameDTO.getMechanics()!=null)
+            game.setMechanics(updateGameDTO.getMechanics());
 
         gameMongoRepository.save(game);
         return "Game " + game.getId() + " updated successfully";
@@ -99,7 +111,7 @@ public class GameService {
     // Operazione di eliminazione
     public String deleteGame(String gameId) {
         GameMongo game = gameMongoRepository.findById(gameId)
-                .orElseThrow(() -> new GameNotFoundException("Game not found with ID: " + gameId));
+                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
         gameMongoRepository.delete(game);
         return "Game with id " + gameId + " deleted successfully";
 
@@ -114,7 +126,7 @@ public class GameService {
 
     public GameInfoDTO getInfo(String gameId) {
         GameMongo game = gameMongoRepository.findById(gameId)
-                .orElseThrow(() -> new GameNotFoundException("Game not found with ID: " + gameId));
+                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
         return MongoGameMapper.toDTO(game);
     }
 

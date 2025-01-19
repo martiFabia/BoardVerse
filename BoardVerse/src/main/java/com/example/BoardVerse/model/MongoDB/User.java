@@ -1,7 +1,7 @@
 package com.example.BoardVerse.model.MongoDB;
 
 import com.example.BoardVerse.model.MongoDB.subentities.Location;
-import com.example.BoardVerse.DTO.Review.ReviewUser;
+import com.example.BoardVerse.model.MongoDB.subentities.ReviewUser;
 import com.example.BoardVerse.model.MongoDB.subentities.Role;
 import com.example.BoardVerse.model.MongoDB.subentities.TournamentsUser;
 import io.swagger.v3.oas.annotations.media.Schema;

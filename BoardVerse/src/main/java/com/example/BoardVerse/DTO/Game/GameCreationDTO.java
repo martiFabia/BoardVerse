@@ -16,18 +16,15 @@ public class GameCreationDTO {
     private String name;
 
     @NotBlank
+    private String shortDescription;
+
+    @NotBlank
     private String description;
-
-    //@Positive(message = "Average rating must be a positive number")
-    //private double averageRating;
-
-    //@Positive(message = "Number of reviews must be a positive integer")
-    //private Integer numberReviews;
 
     @NotNull(message = "Year released cannot be blank")
     @Positive(message = "Year released must be a positive integer")
     @Min(value = 1900, message = "Year released must be after 1900")
-    @Max(value = 2024, message = "Year released must be before 2024")
+    //@Max(value = 2024, message = "Year released must be before 2024")
     private Integer yearReleased;
 
     @NotNull(message = "Minimum number of players cannot be blank")
@@ -65,4 +62,5 @@ public class GameCreationDTO {
     private List<String> categories;
 
     private List<String> mechanics;
+    private List<String> family;
 }

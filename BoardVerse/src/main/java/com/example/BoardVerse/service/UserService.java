@@ -72,6 +72,9 @@ public class UserService {
                 throw new IllegalArgumentException("Username already exists");
             }
             reviewRepository.updateUsernameInReviews(userMongo.getUsername(), updates.username());
+
+            //AGGIORNARE THREADS, MESSAGGI E TORNEI
+
             userMongo.setUsername(updates.username());
             //userNeo4j.setUsername(userMongo.getUsername());
 
@@ -93,7 +96,7 @@ public class UserService {
         }
 
         if (updates.birthDate() != null) {
-            userMongo.setBirthDate(updates.birthDate());
+            userMongo.setBirthdayDate(updates.birthDate());
         }
 
         if(updates.location() != null) {
@@ -129,6 +132,9 @@ public class UserService {
         //elimina recensioni
         reviewRepository.deleteByAuthorUsername(username);
         //correggere averageRating Game
+
+        //ELIMINARE THREADS, MESSAGGI E TORNEI
+
         //eliminare utente dal graph
         //eliminare utente dai followers
 

@@ -6,6 +6,7 @@ import com.example.BoardVerse.DTO.Game.GamePreviewDTO;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
 import lombok.AllArgsConstructor;
 
+import java.util.Date;
 import java.util.UUID;
 
 public class MongoGameMapper {
@@ -17,18 +18,15 @@ public class MongoGameMapper {
 
         String gameId = UUID.randomUUID().toString();
 
+        //AGGIUNGERE GAME AL GRAPH
+
         newGameMongo.setId(gameId);
         newGameMongo.setName(newGameDTO.getName());
         newGameMongo.setDescription(newGameDTO.getDescription());
-
-        if( newGameDTO.getDescription() != null && newGameDTO.getDescription().length() > 20)
-            newGameMongo.setShortDescription(newGameDTO.getDescription().substring(0, 20) + "...");
-        else
-            newGameMongo.setShortDescription(newGameDTO.getDescription());
-
+        newGameMongo.setShortDescription(newGameDTO.getShortDescription());
         newGameMongo.setAverageRating(0.0);
-        //newGameMongo.setNumberReviews(0);
-        newGameMongo.setNumRatings(0);
+        newGameMongo.setRatingVoters(0);
+        newGameMongo.setAverageRating(0.0);
         newGameMongo.setYearReleased(newGameDTO.getYearReleased());
         newGameMongo.setMinPlayers(newGameDTO.getMinPlayers());
         newGameMongo.setMaxPlayers(newGameDTO.getMaxPlayers());
@@ -40,6 +38,8 @@ public class MongoGameMapper {
         newGameMongo.setPublisher(newGameDTO.getPublisher());
         newGameMongo.setCategories(newGameDTO.getCategories());
         newGameMongo.setMechanics(newGameDTO.getMechanics());
+        newGameMongo.setFamily(newGameDTO.getFamily());
+        newGameMongo.setUploadTime(new Date());
 
         return newGameMongo;
     }

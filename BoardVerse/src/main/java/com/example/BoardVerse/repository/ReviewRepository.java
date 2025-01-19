@@ -5,8 +5,10 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.Update;
 
+
 import java.util.List;
 import java.util.Optional;
+
 
 public interface ReviewRepository extends MongoRepository<Review, String> {
     // Trova tutte le recensioni di un gioco
@@ -17,11 +19,8 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
 
     void deleteByAuthorUsername(String username);
 
-    // Trova la prossima recensione più recente per un gioco
-    Optional<Review> findFirstByGameIdOrderByCreatedAtDesc(String gameId);
-
     // Trova la prossima recensione più recente per un utente
-    Optional<Review> findFirstByAuthorUsernameOrderByCreatedAtDesc(String username);
+    Optional<Review> findFirstByAuthorUsernameOrderByPostDateDesc(String username);
 
     // Aggiorna il campo username in tutte le recensioni di un utente
     @Query("{ 'authorUsername': ?0 }")

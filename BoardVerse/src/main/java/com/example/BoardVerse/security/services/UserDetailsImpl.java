@@ -29,7 +29,7 @@ public class UserDetailsImpl implements UserDetails {
         this.username = user.getUsername();
         this.email = user.getEmail();
         this.password = user.getPassword();
-        this.authority = new SimpleGrantedAuthority(user.getRole());
+        this.authority = new SimpleGrantedAuthority(user.getRole().name());
     }
 
     public static UserDetailsImpl build(User user) {

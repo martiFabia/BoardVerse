@@ -1,5 +1,6 @@
 package com.example.BoardVerse.DTO;
 
+import com.example.BoardVerse.model.MongoDB.subentities.Role;
 import lombok.Data;
 
 @Data
@@ -9,9 +10,9 @@ public class JwtResponse {
     private String id;
     private String username;
     private String email;
-    private String role;
+    private Role role;
 
-    public JwtResponse(String accessToken, String id, String username, String email, String role) {
+    public JwtResponse(String accessToken, String id, String username, String email, Role role) {
         this.token = accessToken;
         this.id = id;
         this.username = username;
