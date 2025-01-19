@@ -1,7 +1,6 @@
 package com.example.BoardVerse.model.MongoDB;
 
 import com.example.BoardVerse.model.MongoDB.subentities.Location;
-import com.example.BoardVerse.model.MongoDB.subentities.AuthorReview;
 import com.example.BoardVerse.model.MongoDB.subentities.GameReview;
 import com.example.BoardVerse.model.MongoDB.subentities.Post;
 import jakarta.validation.constraints.Max;
