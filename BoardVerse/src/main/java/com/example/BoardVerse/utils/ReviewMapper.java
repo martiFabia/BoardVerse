@@ -7,11 +7,11 @@ import com.example.BoardVerse.model.MongoDB.Review;
 public class ReviewMapper {
 
     public static ReviewUser toUser(Review review) {
-        return new ReviewUser(review.getId(), review.getGameId(), review.getRating(), review.getComment(), review.getCreatedAt());
+        return new ReviewUser(review.getId(), review.getGameId(), review.getRating(), review.getContent(), review.getCreatedAt());
     }
 
     public static ReviewInfo toGame(Review review) {
-        return new ReviewInfo(review.getId(), review.getAuthorUsername(), review.getRating(), review.getComment(), review.getCreatedAt());
+        return new ReviewInfo(review.getId(), review.getAuthorUsername(), review.getRating(), review.getContent(), review.getCreatedAt());
     }
 
 }

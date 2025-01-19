@@ -1,12 +1,14 @@
 package com.example.BoardVerse.DTO.Review;
 
+import com.example.BoardVerse.model.MongoDB.subentities.GameReview;
+
 import java.util.Date;
 
 public record ReviewUser(
         String id,
-        String gameId,
+        Date reviewDate,
+        GameReview game,
         Double rating,
-        String comment,
-        Date createdAt
+        String comment
 ) {
 }

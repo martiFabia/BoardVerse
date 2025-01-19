@@ -1,4 +1,4 @@
-package com.example.BoardVerse.model.MongoDB;
+package com.example.BoardVerse.model.MongoDB.subentities;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

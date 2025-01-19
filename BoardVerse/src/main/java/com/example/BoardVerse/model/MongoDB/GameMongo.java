@@ -8,6 +8,7 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,17 +21,16 @@ public class GameMongo {
 
     @NotBlank(message = "Name cannot be blank")
     private String name;
+    private int yearReleased;
+    private Date uploadTime;
 
     private String description;
     private String shortDescription;
 
     @Min(value = 0, message = "Average rating must be positive")
     private Double averageRating;
+    private int ratingVoters;
 
-    //@Min(value = 0, message = "Number of reviews must be positive")
-    //private int numberReviews;
-
-    private int yearReleased;
     private int minPlayers;
     private int maxPlayers;
     private int minSuggAge;
@@ -45,7 +45,8 @@ public class GameMongo {
     private List<String> categories;
 
     private List<String> mechanics;
-    private int numRatings;
+    private List<String> family;
+
 
     @Override
     public boolean equals(Object o) {

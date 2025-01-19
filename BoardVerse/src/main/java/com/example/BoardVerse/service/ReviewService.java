@@ -45,7 +45,7 @@ public class ReviewService {
         review.setGameId(gameId);
         review.setGameName(gameName);
         review.setGameYearReleased(gameYearReleased);
-        review.setComment(addReviewDTO.getComment());
+        review.setContent(addReviewDTO.getComment());
         review.setRating(addReviewDTO.getRating());
         review.setCreatedAt(new Date()); // Imposta la data corrente
 
@@ -173,7 +173,7 @@ public class ReviewService {
                 .orElseThrow(() -> new IllegalArgumentException("Game not found with ID: "+ gameId));
         // Trova tutte le recensioni di un gioco
         return reviewRepository.findByGameId(gameId).stream()
-                .map(elem -> new ReviewInfo(elem.getId(), elem.getAuthorUsername(), elem.getRating(), elem.getComment(), elem.getCreatedAt()))
+                .map(elem -> new ReviewInfo(elem.getId(), elem.getAuthorUsername(), elem.getRating(), elem.getContent(), elem.getCreatedAt()))
                 .collect(Collectors.toList());
     }
 
@@ -184,7 +184,7 @@ public class ReviewService {
 
         // Aggiorna la recensione
         if(addReviewDTO.getComment() != null){
-            review.setComment(addReviewDTO.getComment());
+            review.setContent(addReviewDTO.getComment());
         }
         if(addReviewDTO.getRating() != null){
             GameMongo game = gameRepository.findById(gameId)

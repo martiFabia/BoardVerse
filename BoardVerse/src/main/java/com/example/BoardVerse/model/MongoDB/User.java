@@ -1,6 +1,9 @@
 package com.example.BoardVerse.model.MongoDB;
 
+import com.example.BoardVerse.model.MongoDB.subentities.Location;
 import com.example.BoardVerse.DTO.Review.ReviewUser;
+import com.example.BoardVerse.model.MongoDB.subentities.Role;
+import com.example.BoardVerse.model.MongoDB.subentities.TournamentsUser;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -21,37 +24,37 @@ public class User {
     @Size(max = 20)
     private String username;
 
-    @NotBlank
-    @Size(max = 50)
-    @Email(message = "Email should be valid")
-    private String email;
-
-    @NotBlank
-    @Min(value = 3, message = "Password must be at least 3 characters long")
-    private String password;
-
     @NotBlank(message = "First name is required")
     private String firstName;
     @NotBlank(message = "Last name is required")
     private String lastName;
 
+    @NotBlank
+    @Size(max = 50)
+    @Email(message = "Email should be valid")
+    private String email;
+    @NotBlank
+    @Min(value = 3, message = "Password must be at least 3 characters long")
+    private String password;
+    private Date registeredDate;
+    @Past(message = "Birthdate must be in the past")
+
+    private Date birthdayDate;
     @Schema(description = "User Location (Country, State, City)")
     private Location location;
+    private int followers;
+    private int following;
+    private TournamentsUser tournaments;
+    private Role role;     // Ruolo enum: "ROLE_USER" o "ROLE_ADMIN"
 
     private List<ReviewUser> mostRecentReviews=new ArrayList<>();
 
-    @Past(message = "Birthdate must be in the past")
-    private Date birthDate;
-
-    private Date createdAt;
-
-    private String role;     // Ruolo come stringa, es: "ROLE_USER" o "ROLE_ADMIN"
 
     public User get() {
         return this;
     }
 /*
-    public User(String username, String email, String password, String role, String city, String country, String state, Date createdAt, List<String> mostRecentReviews) {
+    public User(String username, String email, String password, String role, String city, String country, String state, Date reviewDate, List<String> mostRecentReviews) {
         this.username = username;
         this.email = email;
         this.password = password;
@@ -59,7 +62,7 @@ public class User {
         this.city = city;
         this.country = country;
         this.state = state;
-        this.createdAt = createdAt;
+        this.reviewDate = reviewDate;
         this.mostRecentReviews = mostRecentReviews;
     }
 
@@ -131,10 +134,10 @@ public class User {
     }
 
     public Date getCreatedAt() {
-        return createdAt;
+        return reviewDate;
     }
     public void setCreatedAt(Date date) {
-        this.createdAt = date;
+        this.reviewDate = date;
     }
 
     public List<String> getMostRecentReviews() {

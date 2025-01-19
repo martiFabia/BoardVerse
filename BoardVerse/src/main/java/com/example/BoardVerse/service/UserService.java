@@ -5,7 +5,7 @@ import com.example.BoardVerse.DTO.User.UserDTO;
 import com.example.BoardVerse.DTO.User.UserInfoDTO;
 import com.example.BoardVerse.DTO.User.UserUpdateDTO;
 import com.example.BoardVerse.exception.NotFoundException;
-import com.example.BoardVerse.model.MongoDB.Location;
+import com.example.BoardVerse.model.MongoDB.subentities.Location;
 import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.repository.ReviewRepository;
 import com.example.BoardVerse.repository.UserRepository;
