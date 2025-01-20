@@ -7,15 +7,14 @@ import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.ReviewService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/game/")
 @Tag(name = "Review", description = "Operations related to reviews")
 public class ReviewController {
     private final ReviewService reviewService;
@@ -27,11 +26,11 @@ public class ReviewController {
     /* ================================ REVIEW CRUD ================================ */
 
     //aggiungi review
-    @PostMapping("/{gameId}/{gameName}/{gameYearReleased}/review/add")
-    public ResponseEntity<String> addReview(@PathVariable String gameId, @PathVariable String gameName, @PathVariable int gameYearReleased, @Valid @RequestBody AddReviewDTO addReviewDTO) {
+    @PostMapping("/{gameId}/review")
+    public ResponseEntity<String> addReview(@PathVariable String gameId, @Valid @RequestBody AddReviewDTO addReviewDTO) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            reviewService.addReview(user.getUser(), gameId, gameName, gameYearReleased, addReviewDTO);
+            reviewService.addReview(user.getUser(), gameId, addReviewDTO);
             return ResponseEntity.ok("Review successfully added!");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -41,10 +40,11 @@ public class ReviewController {
     }
 
     //elimina review
-    @DeleteMapping("/{reviewId}")
-    public ResponseEntity<String> deleteReview(@PathVariable String reviewId) {
+    @DeleteMapping("/{gameId}/review/{reviewId}")
+    public ResponseEntity<String> deleteReview(@PathVariable String gameId, @PathVariable String reviewId) {
         try {
-            reviewService.deleteReview(reviewId);
+            UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            reviewService.deleteReview(reviewId, gameId, user.getUsername());
             return ResponseEntity.ok("Review successfully deleted!");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -53,10 +53,11 @@ public class ReviewController {
         }
     }
 
-    @GetMapping("/{gameId}/{gameName}/{gameYearReleased}/review")
-    public ResponseEntity<?> getReview(@PathVariable String gameId, @PathVariable String gameName, @PathVariable int gameYearReleased) {
+    //restituisce review del gioco
+    @GetMapping("/{gameId}/review")
+    public ResponseEntity<?> getReview(@PathVariable String gameId, @RequestParam(defaultValue = "0") int page) {
         try {
-            List<ReviewInfo> reviews = reviewService.getGameReview(gameId);
+            Slice<ReviewInfo> reviews = reviewService.getGameReviews(gameId,page);
             return ResponseEntity.ok(reviews);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -66,8 +67,8 @@ public class ReviewController {
     }
 
     //aggiorna review
-    @PatchMapping("/{gameId}/{gameName}/{gameYearReleased}/review/{reviewId}/update")
-    public ResponseEntity<String> updateReview(@PathVariable String gameId, @PathVariable String gameName, @PathVariable int gameYearReleased, @PathVariable String reviewId, @Valid @RequestBody AddReviewDTO addReviewDTO) {
+    @PatchMapping("/{gameId}/review/{reviewId}")
+    public ResponseEntity<String> updateReview(@PathVariable String gameId, @PathVariable String reviewId, @Valid @RequestBody AddReviewDTO addReviewDTO) {
         try {
             reviewService.updateReview(gameId, reviewId, addReviewDTO);
             return ResponseEntity.ok("Review successfully updated!");

@@ -8,9 +8,15 @@ import com.example.BoardVerse.exception.GameNotFoundException;
 import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.repository.GameMongoRepository;
+import com.example.BoardVerse.repository.ReviewRepository;
+import com.example.BoardVerse.utils.Constants;
 import com.example.BoardVerse.utils.MongoGameMapper;
+import org.springframework.data.domain.*;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,9 +27,11 @@ import static com.example.BoardVerse.utils.MongoGameMapper.mapDTOToGameMongo;
 public class GameService {
 
     private final GameMongoRepository gameMongoRepository;
+    private final ReviewRepository reviewRepository;
 
-    public GameService(GameMongoRepository gameMongoRepository) {
+    public GameService(GameMongoRepository gameMongoRepository, ReviewRepository reviewRepository) {
         this.gameMongoRepository = gameMongoRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     // Operazione di creazione
@@ -42,7 +50,6 @@ public class GameService {
         GameMongo game = gameMongoRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
-
         //Se è presente un gioco con lo stesso nome e anno di rilascio,
         // ma questo gioco non è quello che si sta cercando di aggiornare
         // allora lancia un'eccezione
@@ -50,7 +57,6 @@ public class GameService {
         if (existingGame.isPresent() && !existingGame.get().getId().equals(gameId)) {
             throw new GameNotFoundException("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
         }
-
         game.setName(updateGameDTO.getName());
 
         if(updateGameDTO.getDescription() != null){
@@ -105,6 +111,8 @@ public class GameService {
 
         gameMongoRepository.save(game);
         return "Game " + game.getId() + " updated successfully";
+
+        //SE VENGONO MODIFICATI NAME, YEAR, SHORTDESC, MODIFICARE ANCHE TUTTE LE ALTRE COLLECTIONS
     }
 
 
@@ -115,13 +123,14 @@ public class GameService {
         gameMongoRepository.delete(game);
         return "Game with id " + gameId + " deleted successfully";
 
+        //ELIMINARE DAL GRAPH, DALLA LISTA DEI GIOCHI DEGLI UTENTI, DALLE REVIEW, DAI THREADS, DAI TORNEI
+
     }
 
     // Operazione di ricerca per nome
-    public List<GamePreviewDTO> findByName(String name) {
-        List<GameMongo> games = gameMongoRepository.findByName(name);
-
-        return games.stream().map(MongoGameMapper::toPreviewDTO).collect(Collectors.toList());
+    public Slice<GamePreviewDTO> findByName(String name, int page) {
+        Pageable pageable = PageRequest.of(page, Constants.PAGE_SIZE);
+        return gameMongoRepository.findByNameContaining(name, pageable);
     }
 
     public GameInfoDTO getInfo(String gameId) {
@@ -130,14 +139,46 @@ public class GameService {
         return MongoGameMapper.toDTO(game);
     }
 
+    public Slice<GamePreviewDTO> getFilteredGames(Integer yearReleased, String categories,
+                                                  String mechanics, String sortBy, String order, int page) {
+        //Determina su quale campo ordinare
+        Sort sort;
+        if ("yearReleased".equalsIgnoreCase(sortBy)) {
+            // Se vuoi considerare asc/desc
+            sort = "asc".equalsIgnoreCase(order)
+                    ? Sort.by("yearReleased").ascending()
+                    : Sort.by("yearReleased").descending();
+        } else {
+            // di default ordiniamo su averageRating
+            sort = "asc".equalsIgnoreCase(order)
+                    ? Sort.by("averageRating").ascending()
+                    : Sort.by("averageRating").descending();
+        }
 
-    // Operazione di ricerca per categoria
-    /*
-    public List<GameInfoDTO> findByCategory(String category) {
-        List<GameMongo> games = gameMongoRepository.findByCategoriesContaining(category);
+        // 10 elementi per pagina.
+        Pageable pageable = PageRequest.of(page, Constants.PAGE_SIZE, sort);
 
-        return games.stream().map(MongoGameMapper::toDTO).collect(Collectors.toList());
+        return gameMongoRepository.findGamesByFilters(
+                yearReleased, categories, mechanics, pageable
+        );
     }
 
-     */
+    public Slice<GamePreviewDTO> getAverageRatingsBetweenDates(Date startDate, Date endDate, int page) {
+
+        if(startDate == null){
+            startDate = new Date(0);
+        }
+        if (endDate == null) {
+            endDate = new Date();
+        }
+
+        Pageable pageable = PageRequest.of(page, Constants.PAGE_SIZE);
+
+        //Esegui la query
+        return reviewRepository.findAverageRatingByGameBetweenDates(
+                startDate, endDate, pageable
+        );
+    }
+
+
 }

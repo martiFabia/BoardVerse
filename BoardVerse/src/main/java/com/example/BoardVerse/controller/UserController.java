@@ -7,6 +7,7 @@ import com.example.BoardVerse.repository.UserRepository;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
@@ -30,21 +31,22 @@ public class UserController {
     /* ================================ USERS CRUD ================================ */
 
     //restitusice solo username ed email
-    @GetMapping("/search/{username}")
-    public ResponseEntity<UserDTO> getUserByUsername(@PathVariable String username) {
-        UserDTO userDto = userService.getUserByUsername(username);
+    @GetMapping("/browse")
+    public ResponseEntity<Slice<UserDTO>> getUserByUsername( @RequestParam(defaultValue = "") String username,
+                                                             @RequestParam(defaultValue = "0") int page) {
+        Slice<UserDTO> userDto = userService.getUserByUsername(username, page);
         return ResponseEntity.ok(userDto);
     }
 
     //restituisce tutti i dati dell'utente tranne la password
-    @GetMapping("/{username}/getInfo")
+    @GetMapping("/{username}")
     public ResponseEntity<UserInfoDTO> getUserInfoByUsername(@PathVariable String username) {
         UserInfoDTO userInfoDto = userService.getInfo(username);
         return ResponseEntity.ok(userInfoDto);
     }
 
-    //restituisce dati dell'utente loggato
-    @GetMapping("/getProfile")
+    //restituisce pagina profilo utente loggato
+    @GetMapping("/myProfile")
     public ResponseEntity<UserInfoDTO> getMyInfo() {
         //id utente loggato
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -53,7 +55,7 @@ public class UserController {
     }
 
     //aggiorna i dati dell'utente
-    @PatchMapping("/updateProfile")
+    @PatchMapping("/myProfile")
     public ResponseEntity<UserInfoDTO> updateUser(@RequestBody @Validated UserUpdateDTO userUpdateDTO) {
         //utente loggato
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -63,8 +65,8 @@ public class UserController {
         return ResponseEntity.ok(updatedUser);
     }
 
-    //elimina l'utente
-    @DeleteMapping("/deleteUser")
+    //elimina l'utente loggato
+    @DeleteMapping("/myProfile")
     public ResponseEntity<String> deleteUser() {
         //cerco username utente loggato
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

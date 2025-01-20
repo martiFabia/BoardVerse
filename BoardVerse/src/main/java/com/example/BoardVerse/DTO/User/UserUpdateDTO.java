@@ -2,25 +2,26 @@ package com.example.BoardVerse.DTO.User;
 
 import com.example.BoardVerse.model.MongoDB.subentities.Location;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotEmpty;
 
 import java.util.Date;
 
 public record UserUpdateDTO (
 
-        @Schema(example = "null")
+        @NotEmpty
         String username,
-        @Schema(example = "null")
+        @NotEmpty
         String email,
-        @Schema(example = "null")
+        @NotEmpty
         String firstName,
-        @Schema(example = "null")
+        @NotEmpty
         String lastName,
-        @Schema(example = "null")
+        @NotEmpty
         String password,
         @Schema(description = "User Location (Country, State, City)",
                 example = "{ \"country\": \"null\", \"state\": \"null\", \"city\": \"null\" }")
         Location location,
-        @Schema(example = "null")
+        @NotEmpty
         Date birthDate
 ) {
 }

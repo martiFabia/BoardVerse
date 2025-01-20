@@ -4,6 +4,7 @@ import com.example.BoardVerse.DTO.Game.GameCreationDTO;
 import com.example.BoardVerse.DTO.Game.GameInfoDTO;
 import com.example.BoardVerse.DTO.Game.GamePreviewDTO;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
+import com.example.BoardVerse.model.MongoDB.Review;
 import lombok.AllArgsConstructor;
 
 import java.util.Date;
@@ -70,11 +71,14 @@ public class MongoGameMapper {
     public static GamePreviewDTO toPreviewDTO(GameMongo gameMongo) {
         return new GamePreviewDTO(
             gameMongo.getId(),
-            gameMongo.getName(),
+            gameMongo.getName(), gameMongo.getYearReleased(),
             gameMongo.getShortDescription(),
-            gameMongo.getYearReleased(),
             gameMongo.getAverageRating()
         );
     }
+
+
+
+
 }
 

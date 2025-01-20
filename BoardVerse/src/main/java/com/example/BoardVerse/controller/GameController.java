@@ -7,10 +7,15 @@ import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.service.GameService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Slice;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -25,31 +30,47 @@ public class GameController {
     }
 
 
-    @GetMapping("/search/{gameName}")
-    public ResponseEntity<List<GamePreviewDTO>> searchGamesByName(@PathVariable String gameName) {
-        List<GamePreviewDTO> games = gameService.findByName(gameName); // Trova i giochi per nome
+    @GetMapping("/browse")
+    public ResponseEntity<Slice<GamePreviewDTO>> getGamesByName(@RequestParam(defaultValue = "") String gameName,
+                                                                  @RequestParam(defaultValue = "0") int page) {
+        Slice<GamePreviewDTO> games = gameService.findByName(gameName, page); // Trova i giochi per nome
         if (games.isEmpty()) {
             return ResponseEntity.notFound().build();  // Nessun gioco trovato
         }
         return ResponseEntity.ok(games);  // Restituisci i giochi trovati
     }
 
-    //restituisce tutti i dati dell'utente tranne la password
-    @GetMapping("/{gameId}/getInfo")
+    //restituisce pagina gioco
+    @GetMapping("/{gameId}")
     public ResponseEntity<GameInfoDTO> getUserInfoByUsername(@PathVariable String gameId) {
         GameInfoDTO gameInfo= gameService.getInfo(gameId);
         return ResponseEntity.ok(gameInfo);
     }
 
 
-    /*
-    @GetMapping("/searchByCategory/{category}")
-    public ResponseEntity<List<GameInfoDTO>> searchGamesByCategory(@PathVariable String category) {
-        List<GameInfoDTO> games = gameService.findByCategory(category); // Trova i giochi per nome
-        if (games.isEmpty()) {
-            return ResponseEntity.notFound().build();  // Nessun gioco trovato
-        }
-        return ResponseEntity.ok(games);  // Restituisci i giochi trovati
+    @GetMapping("/searchBy")
+    public Slice<GamePreviewDTO> filterGames(
+            @RequestParam(required = false) Integer yearReleased,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String mechanic,
+            @RequestParam(defaultValue = "averageRating") String sortBy,
+            @RequestParam(defaultValue = "desc") String order,
+            @RequestParam(defaultValue = "0") int page
+    ) {
+        return gameService.getFilteredGames(
+                yearReleased, category, mechanic,
+                sortBy, order, page
+        );
     }
-     */
+
+    @GetMapping("/ranking")
+    public Slice<GamePreviewDTO>getRanking(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endDate,
+            @RequestParam(defaultValue = "0") int page){
+
+        return gameService.getAverageRatingsBetweenDates(startDate, endDate, page);
+    }
+
+
 }

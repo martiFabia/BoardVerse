@@ -7,5 +7,6 @@ import lombok.Data;
 public class AddReviewDTO {
     @Min(1) @Max(10)
     private Double rating;
+    @NotEmpty
     private String comment;
 }

@@ -10,8 +10,12 @@ import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.repository.ReviewRepository;
 import com.example.BoardVerse.repository.UserRepository;
 import com.example.BoardVerse.security.jwt.JwtUtils;
+import com.example.BoardVerse.utils.Constants;
 import com.example.BoardVerse.utils.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,15 +44,10 @@ public class UserService {
         this.reviewRepository = reviewRepository;
     }
 
-    public UserDTO getUserByUsername(String username) {
+    public Slice<UserDTO> getUserByUsername(String username, int page) {
         // Trova l'utente nel database
-        Optional<User> user = userMongoRepository.findByUsername(username);
-        // Se l'utente non esiste, lancia un'eccezione
-        if (user.isEmpty()) {
-            throw new NotFoundException("User not found with username: " + username);
-        }
-        // Converte l'entità User in un DTO
-        return UserMapper.toDTO(user.get());
+        Pageable pageable = PageRequest.of(page, Constants.PAGE_SIZE);
+        return userMongoRepository.findByUsernameContaining(username, pageable);
     }
 
     public UserInfoDTO getInfo(String username) {
@@ -131,7 +130,7 @@ public class UserService {
         userMongoRepository.delete(user);
         //elimina recensioni
         reviewRepository.deleteByAuthorUsername(username);
-        //correggere averageRating Game
+        //CORREGGERE RATING NEL GIOCO
 
         //ELIMINARE THREADS, MESSAGGI E TORNEI
 

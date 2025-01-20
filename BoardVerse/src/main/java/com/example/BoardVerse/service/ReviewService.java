@@ -14,11 +14,13 @@ import com.example.BoardVerse.repository.UserRepository;
 import com.example.BoardVerse.utils.Constants;
 import com.example.BoardVerse.utils.ReviewMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ReviewService {
@@ -34,7 +36,7 @@ public class ReviewService {
         this.reviewRepository = reviewRepository;
     }
 
-    public void addReview(User user, String gameId, String gameName, int gameYearReleased, AddReviewDTO addReviewDTO) {
+    public void addReview(User user, String gameId, AddReviewDTO addReviewDTO) {
         // Verifica se il gioco esiste
         GameMongo game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found with ID: " + gameId));
@@ -64,8 +66,6 @@ public class ReviewService {
             if (review.getRating() != null) {
                 addRating(game, review.getRating());
             }
-
-
         } catch (Exception e) {
             // Rollback: elimina la recensione salvata
             reviewRepository.deleteById(review.getId());
@@ -81,6 +81,8 @@ public class ReviewService {
             removeRating(game, review.getRating());
             throw new IllegalStateException("Error adding review to the user: " + e.getMessage(), e);
         }
+
+        //AGGIUNGERE RAMO AL GRAPH
     }
 
     public void addReviewUser(User user, ReviewUser review) {
@@ -128,19 +130,21 @@ public class ReviewService {
     }
 
 
-    public void deleteReview(String reviewId) {
+    public void deleteReview(String reviewId, String gameId, String username) {
+        GameMongo game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
         // Verifica se la recensione esiste
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("Review not found with ID: " + reviewId));
 
+        if(!username.equals(review.getAuthorUsername())){
+            throw new IllegalArgumentException("You can delete only your reviews");
+        }
         // Elimina la recensione dalle review
         reviewRepository.delete(review);
 
         //rimuovere il rating dal game
         if(review.getRating() != null) {
-            //rimuovo rating
-            GameMongo game = gameRepository.findById(review.getGame().getId())
-                    .orElseThrow(() -> new NotFoundException("Game not found with ID: " + review.getGame().getId()));
             removeRating(game, review.getRating());
         }
 
@@ -163,16 +167,22 @@ public class ReviewService {
         user.setMostRecentReviews(list);
         userRepository.save(user);
 
+        //ELIMINARE RAMO DAL GRAPH
+
     }
 
-    public List<ReviewInfo> getGameReview(String gameId) {
-        // Trova tutte le recensioni di un gioco
-        return reviewRepository.findByGameId(gameId).stream()
-                .map(elem -> new ReviewInfo(elem.getId(), elem.getAuthorUsername(), elem.getRating(), elem.getContent(), elem.getPostDate()))
-                .collect(Collectors.toList());
+    public Slice<ReviewInfo> getGameReviews(String gameId, int page) {
+        Pageable pageable = PageRequest.of(page, Constants.PAGE_SIZE);
+
+        return reviewRepository.findByGameIdOrderByPostDateDesc(gameId, pageable)
+                .map(elem -> new ReviewInfo(elem.getId(), elem.getAuthorUsername(), elem.getRating(), elem.getContent(), elem.getPostDate()));
+
     }
 
     public void updateReview(String gameId, String reviewId, AddReviewDTO addReviewDTO) {
+        GameMongo game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
+
         // Verifica se la recensione esiste
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("Review not found with ID: " + reviewId));
@@ -182,8 +192,6 @@ public class ReviewService {
             review.setContent(addReviewDTO.getComment());
         }
         if(addReviewDTO.getRating() != null){
-            GameMongo game = gameRepository.findById(gameId)
-                    .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
             //rimuovere il rating vecchio dal game
             removeRating(game, review.getRating());
             //aggiungere il nuovo rating al game

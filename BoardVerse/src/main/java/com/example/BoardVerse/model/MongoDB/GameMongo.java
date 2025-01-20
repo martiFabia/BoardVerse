@@ -21,7 +21,7 @@ public class GameMongo {
 
     @NotBlank(message = "Name cannot be blank")
     private String name;
-    private int yearReleased;
+    private Integer yearReleased;
     private Date uploadTime;
 
     private String description;
