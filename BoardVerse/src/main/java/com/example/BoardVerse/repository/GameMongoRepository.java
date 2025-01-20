@@ -17,7 +17,7 @@ public interface GameMongoRepository extends MongoRepository<GameMongo, String> 
     Optional<GameMongo> findByNameAndYearReleased(String name, int yearReleased);
     //List<GameMongo> findByName(String name);
 
-    @Query( value = "{ 'username': { '$regex': ?0, '$options': 'i' } }",
+    @Query( value = "{ 'name': { '$regex': ?0, '$options': 'i' } }",
             fields = "{ 'id': 1, 'name': 1, 'yearReleased': 1, 'shortDescription' : 1, 'averageRating': 1 }" )
     Slice<GamePreviewDTO> findByNameContaining(String name, Pageable pageable);
 
