@@ -8,20 +8,12 @@ import java.util.Date;
 
 public record UserUpdateDTO (
 
-        @NotEmpty
         String username,
-        @NotEmpty
         String email,
-        @NotEmpty
         String firstName,
-        @NotEmpty
         String lastName,
-        @NotEmpty
         String password,
-        @Schema(description = "User Location (Country, State, City)",
-                example = "{ \"country\": \"null\", \"state\": \"null\", \"city\": \"null\" }")
         Location location,
-        @NotEmpty
         Date birthDate
 ) {
 }

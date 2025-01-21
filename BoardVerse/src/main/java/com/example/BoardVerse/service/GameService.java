@@ -1,11 +1,8 @@
 package com.example.BoardVerse.service;
 
-import com.example.BoardVerse.DTO.Game.GameCreationDTO;
-import com.example.BoardVerse.DTO.Game.GameInfoDTO;
-import com.example.BoardVerse.DTO.Game.GamePreviewDTO;
-import com.example.BoardVerse.DTO.Game.GameUpdateDTO;
-import com.example.BoardVerse.exception.GameNotFoundException;
+import com.example.BoardVerse.DTO.Game.*;
 import com.example.BoardVerse.exception.NotFoundException;
+import com.example.BoardVerse.config.GlobalExceptionHandler;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.repository.GameMongoRepository;
 import com.example.BoardVerse.repository.ReviewRepository;
@@ -50,21 +47,34 @@ public class GameService {
         GameMongo game = gameMongoRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
+        System.out.println("Year: " + updateGameDTO.getYearReleased());
+
         //Se è presente un gioco con lo stesso nome e anno di rilascio,
         // ma questo gioco non è quello che si sta cercando di aggiornare
         // allora lancia un'eccezione
-        Optional<GameMongo> existingGame = gameMongoRepository.findByNameAndYearReleased(updateGameDTO.getName(), updateGameDTO.getYearReleased());
-        if (existingGame.isPresent() && !existingGame.get().getId().equals(gameId)) {
-            throw new GameNotFoundException("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
+        if(updateGameDTO.getName() != null) {
+            Optional<GameMongo> existingGame = gameMongoRepository.findByNameAndYearReleased(updateGameDTO.getName(), game.getYearReleased());
+            if (existingGame.isPresent() && !existingGame.get().getId().equals(gameId)) {
+                throw new NotFoundException("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
+            }
+            game.setName(updateGameDTO.getName());
         }
-        game.setName(updateGameDTO.getName());
+
+        if(updateGameDTO.getYearReleased() != null) {
+            Optional<GameMongo> existingGame = gameMongoRepository.findByNameAndYearReleased(game.getName(), updateGameDTO.getYearReleased());
+            if (existingGame.isPresent() && !existingGame.get().getId().equals(gameId)) {
+                throw new NotFoundException("Game " + game.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
+            }
+            game.setYearReleased(updateGameDTO.getYearReleased());
+        }
+
+        if (updateGameDTO.getShortDescription()!=null) {
+            game.setShortDescription(updateGameDTO.getShortDescription());
+        }
 
         if(updateGameDTO.getDescription() != null){
             game.setDescription(updateGameDTO.getDescription());
         }
-
-        if(updateGameDTO.getYearReleased() != null)
-            game.setYearReleased(updateGameDTO.getYearReleased());
 
         if(updateGameDTO.getMinPlayers()!=null) {
             game.setMinPlayers(updateGameDTO.getMinPlayers());
@@ -84,10 +94,6 @@ public class GameService {
 
         if (updateGameDTO.getMaxPlayTime()!=null) {
             game.setMaxPlayTime(updateGameDTO.getMaxPlayTime());
-        }
-
-        if (updateGameDTO.getShortDescription()!=null) {
-            game.setShortDescription(updateGameDTO.getShortDescription());
         }
 
         if (updateGameDTO.getDesigners()!=null) {
@@ -112,7 +118,8 @@ public class GameService {
         gameMongoRepository.save(game);
         return "Game " + game.getId() + " updated successfully";
 
-        //SE VENGONO MODIFICATI NAME, YEAR, SHORTDESC, MODIFICARE ANCHE TUTTE LE ALTRE COLLECTIONS
+        //SE VENGONO MODIFICATI NAME E YEAR  MODIFICARE TOURNAMENT E THREAD
+        //SE VENGONO MODIFICATI NAME, YEAR, SHORTDESC MODIFICARE REVIEW
     }
 
 
@@ -163,8 +170,8 @@ public class GameService {
         );
     }
 
-    public Slice<GamePreviewDTO> getAverageRatingsBetweenDates(Date startDate, Date endDate, int page) {
 
+    public Slice<GamePreviewDTO> getRanking(Date startDate, Date endDate, String country, String state, String city, int page) {
         if(startDate == null){
             startDate = new Date(0);
         }
@@ -173,12 +180,14 @@ public class GameService {
         }
 
         Pageable pageable = PageRequest.of(page, Constants.PAGE_SIZE);
-
-        //Esegui la query
-        return reviewRepository.findAverageRatingByGameBetweenDates(
-                startDate, endDate, pageable
-        );
+        return reviewRepository.findAverageRatingByPostDateLocation(startDate, endDate, country, state, city, pageable);
     }
 
+    /*
+    public List<BestGameAgeDTO> bestGamesByAge() {
+        return reviewRepository.findBestGameByAgeBrackets();
+    }
+
+     */
 
 }

@@ -32,4 +32,6 @@ public interface GameMongoRepository extends MongoRepository<GameMongo, String> 
 
 
 
+
+
 }

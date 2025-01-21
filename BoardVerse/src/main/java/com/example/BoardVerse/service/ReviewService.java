@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -171,10 +172,19 @@ public class ReviewService {
 
     }
 
-    public Slice<ReviewInfo> getGameReviews(String gameId, int page) {
-        Pageable pageable = PageRequest.of(page, Constants.PAGE_SIZE);
+    public Slice<ReviewInfo> getGameReviews(String gameId,String sortBy, int page) {
+        //Determina su quale campo ordinare
+        Sort sort;
+        if ("rating".equalsIgnoreCase(sortBy)) {
+            // Se vuoi considerare asc/desc
+            sort = Sort.by("rating").descending();
+        } else {
+            // di default ordiniamo su postDate
+            sort = Sort.by("postDate").descending();
+        }
 
-        return reviewRepository.findByGameIdOrderByPostDateDesc(gameId, pageable)
+        Pageable pageable = PageRequest.of(page, Constants.PAGE_SIZE, sort);
+        return reviewRepository.findByGameId(gameId, pageable)
                 .map(elem -> new ReviewInfo(elem.getId(), elem.getAuthorUsername(), elem.getRating(), elem.getContent(), elem.getPostDate()));
 
     }

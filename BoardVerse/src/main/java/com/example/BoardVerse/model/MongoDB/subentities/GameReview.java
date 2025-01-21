@@ -6,7 +6,7 @@ import lombok.Data;
 public class GameReview {
     private String id;
     private String name;
-    private int yearReleased;
+    private Integer yearReleased;
     private String shortDescription;
 
     public GameReview(String id, String name, int yearReleased, String shortDescription) {

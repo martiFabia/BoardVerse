@@ -48,8 +48,8 @@ public class GameController {
     }
 
 
-    @GetMapping("/searchBy")
-    public Slice<GamePreviewDTO> filterGames(
+    @GetMapping("/filter")
+    public ResponseEntity<Slice<GamePreviewDTO>> filterGames(
             @RequestParam(required = false) Integer yearReleased,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String mechanic,
@@ -57,20 +57,25 @@ public class GameController {
             @RequestParam(defaultValue = "desc") String order,
             @RequestParam(defaultValue = "0") int page
     ) {
-        return gameService.getFilteredGames(
+        return ResponseEntity.ok(gameService.getFilteredGames(
                 yearReleased, category, mechanic,
-                sortBy, order, page
-        );
+                sortBy, order, page));
     }
+
 
     @GetMapping("/ranking")
-    public Slice<GamePreviewDTO>getRanking(
+    public ResponseEntity<Slice<GamePreviewDTO>> getRanking(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endDate,
+            @RequestParam(required = false) String country,
+            @RequestParam(required = false) String state,
+            @RequestParam(required = false) String city,
             @RequestParam(defaultValue = "0") int page){
 
-        return gameService.getAverageRatingsBetweenDates(startDate, endDate, page);
+        return ResponseEntity.ok(gameService.getRanking(startDate, endDate, country, state, city, page));
     }
+
+
 
 
 }

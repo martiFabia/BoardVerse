@@ -11,7 +11,6 @@ import java.util.List;
 @Data
 public class GameCreationDTO {
 
-
     @NotBlank(message = "Name cannot be blank")
     private String name;
 
@@ -24,12 +23,12 @@ public class GameCreationDTO {
     @NotNull(message = "Year released cannot be blank")
     @Positive(message = "Year released must be a positive integer")
     @Min(value = 1900, message = "Year released must be after 1900")
-    //@Max(value = 2024, message = "Year released must be before 2024")
+    @PastOrPresent
     private Integer yearReleased;
 
     @NotNull(message = "Minimum number of players cannot be blank")
     @Positive(message = "Minimum number of players must be a positive integer")
-    @Min(value = 1, message = "Minimum number of players must be at least 1")
+    @Min(1)
     private Integer minPlayers;
 
     @NotNull(message = "Maximum number of players cannot be blank")
@@ -39,12 +38,12 @@ public class GameCreationDTO {
 
     @NotNull(message = "Minimun suggested age cannot be blank")
     @Positive(message = "Minimum suggested age must be a positive integer")
-    @Max(value = 99, message = "Minimum suggested age must be less than 99")
+    @Max(99)
     private Integer minSuggAge;
 
     @NotNull(message = "Minimun play time cannot be blank")
     @Positive(message = "Minimum play time must be a positive integer")
-    @Min(value = 1, message = "Minimum play time must be at least 1")
+    @Min(1)
     private Integer minPlayTime;
 
     @NotNull(message = "Maximum play time cannot be blank")
@@ -53,9 +52,7 @@ public class GameCreationDTO {
     private Integer maxPlayTime;
 
     private List<String> designers;
-
     private List<String> artists;
-
     private List<String> publisher;
 
     @NotNull(message = "Categories cannot be null")

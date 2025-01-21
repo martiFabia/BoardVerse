@@ -1,14 +1,19 @@
 package com.example.BoardVerse.controller;
 
+import com.example.BoardVerse.DTO.Game.BestGameAgeDTO;
 import com.example.BoardVerse.DTO.Game.GameCreationDTO;
+import com.example.BoardVerse.DTO.Game.GamePreviewDTO;
 import com.example.BoardVerse.DTO.Game.GameUpdateDTO;
 import com.example.BoardVerse.service.GameService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(path = "api/admin")
@@ -21,6 +26,7 @@ public class AdminController {
         this.gameService = gameService;
     }
 
+    /*--------------------------------ADMIN CRUD ---------------------------------*/
     // Endpoint per aggiungere un nuovo gioco
     @PostMapping("/games")
     //@PreAuthorize("hasRole('ADMIN')")
@@ -40,5 +46,16 @@ public class AdminController {
     public ResponseEntity<String> deleteGame(@PathVariable String id) {
         return ResponseEntity.status(HttpStatus.OK).body(gameService.deleteGame(id));
     }
+
+    /*--------------------------------ADMIN ANALYTICS ---------------------------------*/
+
+    /*
+    // best giochi per fascia di età
+    @GetMapping("/analytics/bestGamesByAge")
+    public ResponseEntity<List<BestGameAgeDTO>> bestGamesByAge() {
+        return ResponseEntity.ok(gameService.bestGamesByAge());
+    }
+
+     */
 
 }

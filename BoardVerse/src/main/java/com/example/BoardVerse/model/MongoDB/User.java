@@ -34,7 +34,6 @@ public class User {
     @Email(message = "Email should be valid")
     private String email;
     @NotBlank
-    @Min(value = 3, message = "Password must be at least 3 characters long")
     private String password;
     private Date registeredDate;
     @Past(message = "Birthdate must be in the past")

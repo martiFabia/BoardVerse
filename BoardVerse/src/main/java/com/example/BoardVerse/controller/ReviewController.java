@@ -55,9 +55,10 @@ public class ReviewController {
 
     //restituisce review del gioco
     @GetMapping("/{gameId}/review")
-    public ResponseEntity<?> getReview(@PathVariable String gameId, @RequestParam(defaultValue = "0") int page) {
+    public ResponseEntity<?> getReview(@PathVariable String gameId,
+                                       @RequestParam(defaultValue = "postDate") String sortBy, @RequestParam(defaultValue = "0") int page) {
         try {
-            Slice<ReviewInfo> reviews = reviewService.getGameReviews(gameId,page);
+            Slice<ReviewInfo> reviews = reviewService.getGameReviews(gameId,sortBy, page);
             return ResponseEntity.ok(reviews);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

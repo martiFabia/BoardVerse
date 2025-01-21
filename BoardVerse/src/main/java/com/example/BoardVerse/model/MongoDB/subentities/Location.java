@@ -6,13 +6,13 @@ import lombok.Data;
 @Schema(description = "User Location (Country, State, City)")
 @Data
 public class Location {
-    @Schema(description = "Country", example = "Italy")
+    @Schema(description = "Country", example = " ")
     private String country;
 
-    @Schema(description = "State", example = "Tuscany")
+    @Schema(description = "State", example = " ")
     private String state;
 
-    @Schema(description = "City", example = "Pisa")
+    @Schema(description = "City", example = " ")
     private String city;
 
     public Location(){

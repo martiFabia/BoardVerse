@@ -27,7 +27,6 @@ public class MongoGameMapper {
         newGameMongo.setShortDescription(newGameDTO.getShortDescription());
         newGameMongo.setAverageRating(0.0);
         newGameMongo.setRatingVoters(0);
-        newGameMongo.setAverageRating(0.0);
         newGameMongo.setYearReleased(newGameDTO.getYearReleased());
         newGameMongo.setMinPlayers(newGameDTO.getMinPlayers());
         newGameMongo.setMaxPlayers(newGameDTO.getMaxPlayers());
@@ -53,7 +52,7 @@ public class MongoGameMapper {
             gameMongo.getDescription(),
             gameMongo.getShortDescription(),
             gameMongo.getAverageRating(),
-            //gameMongo.getNumberReviews(),
+            gameMongo.getRatingVoters(),
             gameMongo.getYearReleased(),
             gameMongo.getMinPlayers(),
             gameMongo.getMaxPlayers(),
@@ -64,7 +63,8 @@ public class MongoGameMapper {
             gameMongo.getArtists(),
             gameMongo.getPublisher(),
             gameMongo.getCategories(),
-            gameMongo.getMechanics()
+            gameMongo.getMechanics(),
+            gameMongo.getFamily()
         );
     }
 
