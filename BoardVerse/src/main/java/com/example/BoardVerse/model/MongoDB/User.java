@@ -34,10 +34,11 @@ public class User {
     @Email(message = "Email should be valid")
     private String email;
     @NotBlank
+    @Size(min = 8, max = 20)
     private String password;
     private Date registeredDate;
-    @Past(message = "Birthdate must be in the past")
 
+    @Past(message = "Birthdate must be in the past")
     private Date birthdayDate;
     @Schema(description = "User Location (Country, State, City)")
     private Location location;
