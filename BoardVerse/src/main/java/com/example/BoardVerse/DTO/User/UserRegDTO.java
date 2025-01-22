@@ -17,7 +17,7 @@ public record UserRegDTO(
         @NotBlank
         String lastName,
         @NotBlank
-        @Min(3)
+        @Size(min = 3)
         String password,
         @Schema(description = "User Location (Country, State, City)",
                 example = "{ \"country\": \"Italy\", \"state\": \"Tuscany\", \"city\": \"Pisa\" }")
