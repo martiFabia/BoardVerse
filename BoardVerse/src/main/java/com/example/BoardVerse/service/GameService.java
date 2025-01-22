@@ -6,6 +6,7 @@ import com.example.BoardVerse.config.GlobalExceptionHandler;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.repository.GameMongoRepository;
 import com.example.BoardVerse.repository.ReviewRepository;
+import com.example.BoardVerse.repository.ThreadRepository;
 import com.example.BoardVerse.utils.Constants;
 import com.example.BoardVerse.utils.MongoGameMapper;
 import org.springframework.data.domain.*;
@@ -25,10 +26,12 @@ public class GameService {
 
     private final GameMongoRepository gameMongoRepository;
     private final ReviewRepository reviewRepository;
+    private final ThreadRepository threadRepository;
 
-    public GameService(GameMongoRepository gameMongoRepository, ReviewRepository reviewRepository) {
+    public GameService(GameMongoRepository gameMongoRepository, ReviewRepository reviewRepository, ThreadRepository threadRepository) {
         this.gameMongoRepository = gameMongoRepository;
         this.reviewRepository = reviewRepository;
+        this.threadRepository = threadRepository;
     }
 
     // Operazione di creazione
@@ -128,6 +131,10 @@ public class GameService {
         GameMongo game = gameMongoRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
         gameMongoRepository.delete(game);
+
+        //Si eliminano anche i thread associati al game
+        threadRepository.deleteAllByGameId(gameId);
+
         return "Game with id " + gameId + " deleted successfully";
 
         //ELIMINARE DAL GRAPH, DALLA LISTA DEI GIOCHI DEGLI UTENTI, DALLE REVIEW, DAI THREADS, DAI TORNEI

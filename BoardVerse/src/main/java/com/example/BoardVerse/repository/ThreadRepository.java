@@ -14,10 +14,14 @@ public interface ThreadRepository extends MongoRepository<ThreadMongo, String> {
 
     @Aggregation(pipeline = {
             "{ $match: { $and: [ "
-                    + "  { $or: [ { $expr: { $eq: [ :#{#gameName}, null ] } }, { 'game.name': { $regex: :#{#gameName}, $options: 'i' } } ] }, "
+                    + "  { $or: [ "
+                    + "      { $expr: { $eq: [ :#{#gameName}, null ] } }, "
+                    + "      { $expr: { $eq: [ :#{#gameName}, '' ] } }, "
+                    + "      { 'game.name': { $regex: :#{#gameName}, $options: 'i' } } "
+                    + "    ] }, "
                     + "  { $or: [ { $expr: { $eq: [ :#{#yearReleased}, null ] } }, { 'game.yearReleased': :#{#yearReleased} } ] }, "
-                    + "  { $or: [ { $expr: { $eq: [ :#{#startDate}, null ] } }, { 'postDate': { $gte: :#{#startDate} } } ] }, "
-                    + "  { $or: [ { $expr: { $eq: [ :#{#endDate}, null ] } }, { 'postDate': { $lte: :#{#endDate} } } ] }, "
+                    + "  { $or: [ { $expr: { $eq: [ :#{#startPostDate}, null ] } }, { 'postDate': { $gte: :#{#startPostDate} } } ] }, "
+                    + "  { $or: [ { $expr: { $eq: [ :#{#endPostDate}, null ] } }, { 'postDate': { $lte: :#{#endPostDate} } } ] }, "
                     + "  { $or: [ { $expr: { $eq: [ :#{#tag}, null ] } }, { 'tag': :#{#tag} } ] } "
                     + "] } }",
             "{ $addFields: { messageCount: { $size: '$messages' } } }", // Aggiungi il numero di messaggi
@@ -35,12 +39,15 @@ public interface ThreadRepository extends MongoRepository<ThreadMongo, String> {
     Slice<ThreadPreviewDTO> findFilteredThread(
             String gameName,
             Integer yearReleased,
-            Date startDate,
-            Date endDate,
+            Date startPostDate,
+            Date endPostDate,
             String tag,
             Pageable pageable);
 
+    @Query("{ 'game.id': ?0 }")
+    void deleteAllByGameId(String gameId);
 
+    void deleteAllByAuthorUsername(String authorUsername);
 
 }
 

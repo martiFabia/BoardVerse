@@ -3,6 +3,7 @@ package com.example.BoardVerse.service;
 
 import com.example.BoardVerse.DTO.Thread.MessageCreationDTO;
 import com.example.BoardVerse.DTO.Thread.ThreadCreationDTO;
+import com.example.BoardVerse.DTO.Thread.ThreadInfoDTO;
 import com.example.BoardVerse.DTO.Thread.ThreadPreviewDTO;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.model.MongoDB.ThreadMongo;
@@ -27,6 +28,8 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
 
+import static org.apache.commons.lang3.StringUtils.substring;
+
 @Service
 public class ThreadService {
 
@@ -41,9 +44,9 @@ public class ThreadService {
         this.gameRepository = gameRepository;
     }
 
-    public void addThread(User user, String gameId, String gameName, int gameYearReleased, ThreadCreationDTO addThreadDTO) {
+    public void addThread(User user, String gameId, ThreadCreationDTO addThreadDTO) {
         // Verifica se il gioco esiste
-             gameRepository.findById(gameId)
+            GameMongo game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found with ID: " + gameId));
 
         String threadId = UUID.randomUUID().toString();
@@ -56,7 +59,7 @@ public class ThreadService {
         thread.setContent(addThreadDTO.getSubjectContent());
         thread.setId(threadId);
         thread.setTag(addThreadDTO.getTag());
-        thread.setGame(new GameThread(gameId, gameName, gameYearReleased));
+        thread.setGame(new GameThread(gameId, game.getName(), game.getYearReleased()));
         thread.setLastPostDate(new Date());
         thread.setMessages(new ArrayList<>());
 
@@ -164,6 +167,36 @@ public class ThreadService {
     }
 
 
+    public void editMessage(User user, String threadId, String messageId, MessageCreationDTO editDTO) {
+        // Verifica se il thread esiste
+        ThreadMongo thread = threadRepository.findById(threadId)
+                .orElseThrow(() -> new IllegalArgumentException("Thread not found with ID: " + threadId));
+
+        // Verifica se l'utente è l'autore del messaggio
+        if(!Objects.equals(user.getUsername(), thread.getMessages().stream().filter(m -> m.getId().equals(messageId)).findFirst().get().getAuthorUsername())) {
+            throw new IllegalArgumentException("You are not the author of this message");
+        }
+
+        // Modifica il messaggio
+        thread.getMessages().stream()
+                .filter(m -> m.getId().equals(messageId))
+                .findFirst()
+                .ifPresent(m -> m.setContent(editDTO.getMessageContent()));
+
+        // Aggiorna i contentPreview dei messaggi che fanno riferimento al messaggio modificato
+        thread.getMessages().stream()
+                .filter(m -> m.getReplyTo() != null && messageId.equals(m.getReplyTo().getMessageUUID()))
+                .forEach(m -> m.getReplyTo().setContentPreview(editDTO.getMessageContent().substring(0, Math.min(editDTO.getMessageContent().length(), 50))));
+
+        // Salva il thread nella collection Thread
+        try {
+            threadRepository.save(thread);
+        } catch (Exception e) {
+            throw new IllegalStateException("Error editing the message: " + e.getMessage(), e);
+        }
+    }
+
+
     public void deleteMessage(User user, String threadId, String messageId) {
         // Verifica se il thread esiste
         ThreadMongo thread = threadRepository.findById(threadId)
@@ -177,6 +210,15 @@ public class ThreadService {
         // Elimina il messaggio
         thread.getMessages().removeIf(m -> m.getId().equals(messageId));
 
+// Aggiorna messageUUID e authorUsername dei messaggi che fanno riferimento al messaggio eliminato impostandoli a null
+        thread.getMessages().stream()
+                .filter(m -> m.getReplyTo() != null && messageId.equals(m.getReplyTo().getMessageUUID()))
+                .forEach(m -> {
+                    m.getReplyTo().setMessageUUID(null); // Imposta a null il messageUUID
+                    m.getReplyTo().setUsername(null); // Imposta a null l'authorUsername
+                });
+
+
         // Salva il thread nella collection Thread
         try {
             threadRepository.save(thread);
@@ -186,7 +228,7 @@ public class ThreadService {
     }
 
 
-    public Slice<ThreadPreviewDTO> getFilteredThreads(String gameName, Integer YearReleased, Date startDate, Date endDate, String tag, String sortBy, String order, int page) {
+    public Slice<ThreadPreviewDTO> getFilteredThreads(String gameName, Integer YearReleased, Date startPostDate, Date endPostDate, String tag, String sortBy, String order, int page) {
 
         Sort sort;
         if("creationDate".equalsIgnoreCase(sortBy)) {
@@ -203,16 +245,29 @@ public class ThreadService {
                     ? Sort.by("lastPostDate").ascending()
                     : Sort.by("lastPostDate").descending();
         }
-
-        if(startDate == null){
-            startDate = new Date(0);
+        // Imposta un valore predefinito per gameName se è null
+        if (gameName == null) {
+            gameName = ""; // Valore di default per evitare errori con $regex
         }
-        if (endDate == null) {
-            endDate = new Date();
+        if(startPostDate == null){
+            startPostDate = new Date(0);
+        }
+        if (endPostDate == null) {
+            endPostDate = new Date();
         }
 
-        return threadRepository.findFilteredThread(gameName, YearReleased, startDate, endDate, tag, PageRequest.of(page, Constants.PAGE_SIZE, sort));
+        return threadRepository.findFilteredThread(gameName, YearReleased, startPostDate, endPostDate, tag, PageRequest.of(page, Constants.PAGE_SIZE, sort));
 
+    }
+
+    public ThreadInfoDTO getThread(String threadId) {
+        // Verifica se il thread esiste
+        ThreadMongo thread = threadRepository.findById(threadId)
+                .orElseThrow(() -> new IllegalArgumentException("Thread not found with ID: " + threadId));
+
+        int messagesCount = thread.getMessages() != null ? thread.getMessages().size() : 0;
+
+        return new ThreadInfoDTO(thread.getAuthorUsername(), thread.getPostDate(), thread.getContent(), thread.getTag(), thread.getGame(), thread.getLastPostDate(), thread.getMessages(), messagesCount);
     }
 
 

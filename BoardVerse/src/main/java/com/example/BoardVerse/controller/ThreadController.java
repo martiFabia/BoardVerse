@@ -3,6 +3,7 @@ package com.example.BoardVerse.controller;
 
 import com.example.BoardVerse.DTO.Thread.MessageCreationDTO;
 import com.example.BoardVerse.DTO.Thread.ThreadCreationDTO;
+import com.example.BoardVerse.DTO.Thread.ThreadInfoDTO;
 import com.example.BoardVerse.DTO.Thread.ThreadPreviewDTO;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.ThreadService;
@@ -31,13 +32,12 @@ public class ThreadController {
 
 
     //aggiungi thread
-    @PostMapping("/{gameId}/{gameName}/{gameYearReleased}/thread/add")
-        public ResponseEntity<String> addThread (@PathVariable String gameId, @PathVariable String gameName,
-        @PathVariable int gameYearReleased, @Valid @RequestBody ThreadCreationDTO addThreadDTO)
+    @PostMapping("/{gameId}/thread/add")
+        public ResponseEntity<String> addThread (@PathVariable String gameId, @Valid @RequestBody ThreadCreationDTO addThreadDTO)
         {
             try {
                 UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-                threadService.addThread(user.getUser(), gameId, gameName, gameYearReleased, addThreadDTO);
+                threadService.addThread(user.getUser(), gameId, addThreadDTO);
                 return ResponseEntity.ok("Thread successfully added!");
             } catch (IllegalArgumentException e) {
                 return ResponseEntity.badRequest().body(e.getMessage());
@@ -92,9 +92,22 @@ public class ThreadController {
         }
     }
 
+    @PatchMapping("/{threadId}/messages/{messageId}/edit")
+    public ResponseEntity<String> editMessage(@PathVariable String threadId, @PathVariable String messageId, @Valid @RequestBody MessageCreationDTO editDTO) {
+        try {
+            UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            threadService.editMessage(user.getUser(), threadId, messageId, editDTO);
+            return ResponseEntity.ok("Message successfully edited!");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
+        }
+    }
 
-    @PatchMapping("/{threadId}/messages/delete")
-    public ResponseEntity<String> deleteMessage(@PathVariable String threadId, @Valid @RequestBody String messageId) {
+
+    @PatchMapping("/{threadId}/messages/{messageId}/delete")
+    public ResponseEntity<String> deleteMessage(@PathVariable String threadId, @PathVariable String messageId) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             threadService.deleteMessage(user.getUser(), threadId, messageId);
@@ -110,15 +123,27 @@ public class ThreadController {
     public ResponseEntity<Slice<ThreadPreviewDTO>> filterThreads(
             @RequestParam(required = false) String gameName,
             @RequestParam(required = false) Integer yearReleased,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startPostDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endPostDate,
             @RequestParam(required = false) String tag,
             @RequestParam(defaultValue = "lastPostDate") String sortBy,
             @RequestParam(defaultValue = "desc") String order,
             @RequestParam(defaultValue = "0") int page
     ) {
         return ResponseEntity.ok(threadService.getFilteredThreads(
-                gameName,yearReleased,startDate,endDate,tag, sortBy, order, page));
+                gameName,yearReleased,startPostDate,endPostDate,tag, sortBy, order, page));
+    }
+
+    //restituisce il thread
+    @GetMapping("/{threadId}/thread")
+    public ResponseEntity<?> getThread(@PathVariable String threadId) {
+        try {
+            return ResponseEntity.ok(threadService.getThread(threadId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
+        }
     }
 
 }
