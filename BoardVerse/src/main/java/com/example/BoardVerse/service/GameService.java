@@ -6,7 +6,7 @@ import com.example.BoardVerse.config.GlobalExceptionHandler;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.repository.GameMongoRepository;
 import com.example.BoardVerse.repository.ReviewRepository;
-import com.example.BoardVerse.repository.ThreadRepository;
+import com.example.BoardVerse.repository.TournamentMongoRepository;
 import com.example.BoardVerse.utils.Constants;
 import com.example.BoardVerse.utils.MongoGameMapper;
 import org.springframework.data.domain.*;
@@ -14,6 +14,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -26,12 +27,12 @@ public class GameService {
 
     private final GameMongoRepository gameMongoRepository;
     private final ReviewRepository reviewRepository;
-    private final ThreadRepository threadRepository;
+    private final TournamentMongoRepository tournamentMongoRepository;
 
-    public GameService(GameMongoRepository gameMongoRepository, ReviewRepository reviewRepository, ThreadRepository threadRepository) {
+    public GameService(GameMongoRepository gameMongoRepository, ReviewRepository reviewRepository, TournamentMongoRepository tournamentMongoRepository) {
         this.gameMongoRepository = gameMongoRepository;
         this.reviewRepository = reviewRepository;
-        this.threadRepository = threadRepository;
+        this.tournamentMongoRepository = tournamentMongoRepository;
     }
 
     // Operazione di creazione
@@ -131,10 +132,6 @@ public class GameService {
         GameMongo game = gameMongoRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
         gameMongoRepository.delete(game);
-
-        //Si eliminano anche i thread associati al game
-        threadRepository.deleteAllByGameId(gameId);
-
         return "Game with id " + gameId + " deleted successfully";
 
         //ELIMINARE DAL GRAPH, DALLA LISTA DEI GIOCHI DEGLI UTENTI, DALLE REVIEW, DAI THREADS, DAI TORNEI
@@ -190,11 +187,19 @@ public class GameService {
         return reviewRepository.findAverageRatingByPostDateLocation(startDate, endDate, country, state, city, pageable);
     }
 
-    /*
+    public List<MostPlayedGameDTO> getMostPlayedGames() {
+        Calendar calendar = Calendar.getInstance();
+        Date endDate = new Date();
+        calendar.add(Calendar.YEAR, -1);
+        Date startDate = calendar.getTime();
+
+        return tournamentMongoRepository.findTop10GamesWithHighestAverageParticipation(startDate, endDate);
+    }
+
+
     public List<BestGameAgeDTO> bestGamesByAge() {
         return reviewRepository.findBestGameByAgeBrackets();
     }
 
-     */
 
 }

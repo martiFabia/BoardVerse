@@ -8,7 +8,7 @@ import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.subentities.Location;
 import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.repository.ReviewRepository;
-import com.example.BoardVerse.repository.UserRepository;
+import com.example.BoardVerse.repository.UserMongoRepository;
 import com.example.BoardVerse.security.jwt.JwtUtils;
 import com.example.BoardVerse.utils.Constants;
 import com.example.BoardVerse.utils.UserMapper;
@@ -29,7 +29,7 @@ public class UserService {
     @Autowired
     private JwtUtils jwtUtils;
     @Autowired
-    private UserRepository userMongoRepository;
+    private UserMongoRepository userMongoRepository;
     private ReviewRepository reviewRepository;
     @Autowired
     PasswordEncoder encoder;
@@ -37,7 +37,7 @@ public class UserService {
     private AuthService authService;
 
     @Autowired
-    public UserService(AuthenticationManager authManager, JwtUtils jwtUtils, UserRepository userMongoRepository, ReviewRepository reviewRepository) {
+    public UserService(AuthenticationManager authManager, JwtUtils jwtUtils, UserMongoRepository userMongoRepository, ReviewRepository reviewRepository) {
         this.authenticationManager = authManager;
         this.jwtUtils = jwtUtils;
         this.userMongoRepository = userMongoRepository;
@@ -107,8 +107,8 @@ public class UserService {
             if (updates.location().getCountry() != null) {
                 userMongo.getLocation().setCountry(updates.location().getCountry());
             }
-            if (updates.location().getState() != null) {
-                userMongo.getLocation().setState(updates.location().getState());
+            if (updates.location().getStateOrProvince() != null) {
+                userMongo.getLocation().setStateOrProvince(updates.location().getStateOrProvince());
             }
             if (updates.location().getCity() != null) {
                 userMongo.getLocation().setCity(updates.location().getCity());

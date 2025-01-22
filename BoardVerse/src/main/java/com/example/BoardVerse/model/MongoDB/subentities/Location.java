@@ -10,7 +10,7 @@ public class Location {
     private String country;
 
     @Schema(description = "State", example = " ")
-    private String state;
+    private String stateOrProvince;
 
     @Schema(description = "City", example = " ")
     private String city;

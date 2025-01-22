@@ -10,7 +10,7 @@ import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.model.MongoDB.subentities.GameReview;
 import com.example.BoardVerse.repository.GameMongoRepository;
 import com.example.BoardVerse.repository.ReviewRepository;
-import com.example.BoardVerse.repository.UserRepository;
+import com.example.BoardVerse.repository.UserMongoRepository;
 import com.example.BoardVerse.utils.Constants;
 import com.example.BoardVerse.utils.ReviewMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +27,11 @@ import java.util.List;
 public class ReviewService {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserMongoRepository userRepository;
     private final GameMongoRepository gameRepository;
     private final ReviewRepository reviewRepository;
 
-    public ReviewService(UserRepository userRepository, GameMongoRepository gameRepository, ReviewRepository reviewRepository) {
+    public ReviewService(UserMongoRepository userRepository, GameMongoRepository gameRepository, ReviewRepository reviewRepository) {
         this.userRepository = userRepository;
         this.gameRepository = gameRepository;
         this.reviewRepository = reviewRepository;

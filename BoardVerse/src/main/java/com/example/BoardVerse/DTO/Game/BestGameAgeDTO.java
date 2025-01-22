@@ -9,8 +9,8 @@ public class BestGameAgeDTO {
     // "_id" corrisponde alla fascia di età (es. "10-19")
     @Field("_id")
     private String ageBracket;
-    private String gameId;
-    private String gameName;
+    private String game;
+    private String name;
     private Integer yearReleased;
     private Double bestAvgRating;
 

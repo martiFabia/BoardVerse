@@ -5,7 +5,6 @@ import com.example.BoardVerse.DTO.Thread.MessageCreationDTO;
 import com.example.BoardVerse.DTO.Thread.ThreadCreationDTO;
 import com.example.BoardVerse.DTO.Thread.ThreadInfoDTO;
 import com.example.BoardVerse.DTO.Thread.ThreadPreviewDTO;
-import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.model.MongoDB.ThreadMongo;
 import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.model.MongoDB.subentities.GameThread;
@@ -13,10 +12,8 @@ import com.example.BoardVerse.model.MongoDB.subentities.Message;
 import com.example.BoardVerse.model.MongoDB.subentities.ReplyTo;
 import com.example.BoardVerse.repository.GameMongoRepository;
 import com.example.BoardVerse.repository.ThreadRepository;
-import com.example.BoardVerse.repository.UserRepository;
+import com.example.BoardVerse.repository.UserMongoRepository;
 import com.example.BoardVerse.utils.Constants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -35,12 +32,12 @@ public class ThreadService {
 
     @Autowired
     private final ThreadRepository threadRepository;
-    private final UserRepository userRepository;
+    private final UserMongoRepository userMongoRepository;
     private final GameMongoRepository gameRepository;
 
-    public ThreadService(ThreadRepository threadRepository, UserRepository userRepository, GameMongoRepository gameRepository) {
+    public ThreadService(ThreadRepository threadRepository, UserMongoRepository userMongoRepository, GameMongoRepository gameRepository) {
         this.threadRepository = threadRepository;
-        this.userRepository = userRepository;
+        this.userMongoRepository = userMongoRepository;
         this.gameRepository = gameRepository;
     }
 
@@ -111,7 +108,6 @@ public class ThreadService {
         newMessage.setAuthorUsername(user.getUsername());
         newMessage.setPostDate(new Date()); // Imposta la data corrente
         newMessage.setContent(newMessageDTO.getMessageContent());
-
 
         // Aggiungi il messaggio alla lista dei messaggi del thread
         thread.getMessages().add(newMessage);

@@ -30,7 +30,6 @@ public class ThreadController {
 
     /* ================================ THREAD CRUD ================================ */
 
-
     //aggiungi thread
     @PostMapping("/{gameId}/thread/add")
         public ResponseEntity<String> addThread (@PathVariable String gameId, @Valid @RequestBody ThreadCreationDTO addThreadDTO)

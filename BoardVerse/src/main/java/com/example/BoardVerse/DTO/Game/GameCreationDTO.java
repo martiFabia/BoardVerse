@@ -23,7 +23,6 @@ public class GameCreationDTO {
     @NotNull(message = "Year released cannot be blank")
     @Positive(message = "Year released must be a positive integer")
     @Min(value = 1900, message = "Year released must be after 1900")
-    @PastOrPresent
     private Integer yearReleased;
 
     @NotNull(message = "Minimum number of players cannot be blank")

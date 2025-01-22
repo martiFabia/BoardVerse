@@ -5,7 +5,8 @@ import com.example.BoardVerse.DTO.User.LoginRequest;
 import com.example.BoardVerse.DTO.User.UserRegDTO;
 import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.model.MongoDB.subentities.Role;
-import com.example.BoardVerse.repository.UserRepository;
+import com.example.BoardVerse.model.MongoDB.subentities.TournamentsUser;
+import com.example.BoardVerse.repository.UserMongoRepository;
 import com.example.BoardVerse.security.jwt.JwtUtils;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
 
@@ -28,12 +29,12 @@ public class AuthService {
     @Autowired
     private JwtUtils jwtUtils;
     @Autowired
-    private UserRepository userMongoRepository;
+    private UserMongoRepository userMongoRepository;
     @Autowired
     PasswordEncoder encoder;
 
     @Autowired
-    public AuthService(AuthenticationManager authManager, JwtUtils jwtUtils, UserRepository userMongoRepository) {
+    public AuthService(AuthenticationManager authManager, JwtUtils jwtUtils, UserMongoRepository userMongoRepository) {
         this.authenticationManager = authManager;
         this.jwtUtils = jwtUtils;
         this.userMongoRepository = userMongoRepository;
@@ -89,6 +90,11 @@ public class AuthService {
         userNeo4jRepository.save(newUserNeo4j);
         */
 
+        TournamentsUser newUserTournaments = new TournamentsUser();
+        newUserTournaments.setCreated(0);
+        newUserTournaments.setPartecipated(0);
+        newUserTournaments.setWon(0);
+
         // Crea un nuovo utente con ruolo fisso
         User newUserMongo = new User();
         newUserMongo.setId(userId);
@@ -98,10 +104,10 @@ public class AuthService {
         newUserMongo.setFirstName(signUpRequest.firstName());
         newUserMongo.setLastName(signUpRequest.lastName());
         newUserMongo.setLocation(signUpRequest.location());
-        newUserMongo.setBirthdayDate(signUpRequest.birthDate());
+        newUserMongo.setBirthDate(signUpRequest.birthDate());
         newUserMongo.setFollowers(0);
         newUserMongo.setFollowing(0);
-        newUserMongo.setTournaments(null); // Non ci sono tornei associati
+        newUserMongo.setTournaments(newUserTournaments); // Non ci sono tornei associati
         newUserMongo.setRole(Role.ROLE_USER);
         newUserMongo.setRegisteredDate(new Date());
 

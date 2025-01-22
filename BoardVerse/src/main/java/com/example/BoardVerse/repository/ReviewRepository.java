@@ -45,7 +45,7 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
                     + "    ] }, "
                     + "  { '$or': [ "
                     + "      { '$expr': { '$eq': [ :#{#state}, null ] } }, "
-                    + "      { 'location.state': :#{#state} } "
+                    + "      { 'location.stateOrProvince': :#{#state} } "
                     + "    ] }, "
                     + "  { '$or': [ "
                     + "      { '$expr': { '$eq': [ :#{#city}, null ] } }, "
@@ -71,79 +71,18 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
     Slice<GamePreviewDTO> findAverageRatingByPostDateLocation(Date startDate, Date endDate, String country, String state, String city, Pageable pageable);
 
 
-/*
     @Aggregation(pipeline = {
-            // (1) Calcolo dell'età con $dateDiff (MongoDB 5.0+)
-            "{ $addFields: { " +
-                    "    age: { " +
-                    "      $dateDiff: { " +
-                    "        startDate: \"$authorBirthDate\", " +
-                    "        endDate: \"$$NOW\", " +
-                    "        unit: \"year\" " +
-                    "      } " +
-                    "    } " +
-                    "} }",
-
-            // (2) Filtro per età [10..99]
-            "{ $match: { " +
-                    "    age: { $gte: 10, $lte: 99 } " +
-                    "} }",
-
-            // (3) Creiamo il campo 'ageBracket' (es. "10-19", "20-29", etc.)
-            "{ $addFields: { " +
-                    "    ageBracket: { " +
-                    "      $concat: [ " +
-                    "        { $toString: { $multiply: [ 10, { $floor: { $divide: [\"$age\", 10] } } ] } }, " +
-                    "        \"-\", " +
-                    "        { $toString: { " +
-                    "          $add: [ " +
-                    "            { $multiply: [ 10, { $floor: { $divide: [\"$age\", 10] } } ] }, " +
-                    "            9 " +
-                    "          ] " +
-                    "        } } " +
-                    "      ] " +
-                    "    } " +
-                    "} }",
-
-            // (4) Proiettiamo i campi su nomi "puliti" (senza punti)
-            //     gameId, gameName, yearReleased.
-            "{ $project: { " +
-                    "    ageBracket: 1, " +       // ci serve dopo
-                    "    rating: 1, " +           // ci serve per calcolare la media
-                    "    gameId: \"$game._id\", " +
-                    "    gameName: \"$game.name\", " +
-                    "    yearReleased: \"$game.yearReleased\" " +
-                    "} }",
-
-            // (5) Raggruppiamo per (ageBracket, gameId) e calcoliamo la media rating
-            "{ $group: { " +
-                    "    _id: { " +
-                    "      ageBracket: \"$ageBracket\", " +
-                    "      gameId: \"$gameId\", " +
-                    "      gameName: \"$gameName\", " +
-                    "      yearReleased: \"$yearReleased\" " +
-                    "    }, " +
-                    "    averageRating: { $avg: \"$rating\" } " +
-                    "} }",
-
-            // (6) Ordiniamo per fascia d'età asc, poi per averageRating disc
+            "{ $addFields: { age: { $dateDiff: { startDate: \"$authorBirthDate\", endDate: \"$$NOW\", unit: \"year\" } } } }",
+            "{ $match: { age: { $gte: 10, $lte: 99 } } }",
+            "{ $addFields: { ageBracket: { $concat: [ { $toString: { $multiply: [10, { $floor: { $divide: [\"$age\", 10] } }] } }, \"-\", { $toString: { $add: [ { $multiply: [10, { $floor: { $divide: [\"$age\", 10] } }] }, 9 ] } } ] } } }",
+            "{ $project: { ageBracket: 1, rating: 1, game: \"$game._id\", name: \"$game.name\", yearReleased: \"$game.yearReleased\" } }",
+            "{ $group: { _id: { ageBracket: \"$ageBracket\", game: \"$game\", name: \"$name\", yearReleased: \"$yearReleased\" }, averageRating: { $avg: \"$rating\" } } }",
             "{ $sort: { \"_id.ageBracket\": 1, \"averageRating\": -1 } }",
-
-            // (7) Per ogni fascia d'età, prendiamo il "primo" (miglior) gioco
-            "{ $group: { " +
-                    "    _id: \"$_id.ageBracket\", " +
-                    "    gameId: { $first: \"$_id.gameId\" }, " +
-                    "    gameName: { $first: \"$_id.gameName\" }, " +
-                    "    yearReleased: { $first: \"$_id.yearReleased\" }, " +
-                    "    bestAvgRating: { $first: \"$averageRating\" } " +
-                    "} }",
-
-            // (8) (Facoltativo) Ordine finale per fascia di età
+            "{ $group: { _id: \"$_id.ageBracket\", game: { $first: \"$_id.game\" }, name: { $first: \"$_id.name\" }, yearReleased: { $first: \"$_id.yearReleased\" }, bestAvgRating: { $first: \"$averageRating\" } } }",
             "{ $sort: { \"_id\": 1 } }"
     })
     List<BestGameAgeDTO> findBestGameByAgeBrackets();
 
- */
 
 
 

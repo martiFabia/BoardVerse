@@ -2,8 +2,10 @@ package com.example.BoardVerse.controller;
 
 import com.example.BoardVerse.DTO.Game.GameInfoDTO;
 import com.example.BoardVerse.DTO.Game.GamePreviewDTO;
+import com.example.BoardVerse.DTO.Game.MostPlayedGameDTO;
 import com.example.BoardVerse.DTO.User.UserInfoDTO;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
+import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.GameService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -73,6 +76,21 @@ public class GameController {
             @RequestParam(defaultValue = "0") int page){
 
         return ResponseEntity.ok(gameService.getRanking(startDate, endDate, country, state, city, page));
+    }
+
+
+    @GetMapping("/mostPlayed")
+    public ResponseEntity<?> getMostPlayedGames(){
+        try {
+            List<MostPlayedGameDTO> games = gameService.getMostPlayedGames();
+            return ResponseEntity.ok(games);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            // Log dell'eccezione
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred: " + e.getMessage());
+        }
     }
 
 

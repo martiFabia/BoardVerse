@@ -11,7 +11,7 @@ public class UserMapper {
 
     public static UserInfoDTO toInfoDTO(User user) {
         return new UserInfoDTO(user.getUsername(), user.getEmail(), user.getFirstName(),
-                user.getLastName(), user.getRegisteredDate(), user.getLocation(), user.getBirthdayDate(),
+                user.getLastName(), user.getRegisteredDate(), user.getLocation(), user.getBirthDate(),
                 user.getFollowers(), user.getFollowing(), user.getTournaments(), user.getMostRecentReviews());
     }
 

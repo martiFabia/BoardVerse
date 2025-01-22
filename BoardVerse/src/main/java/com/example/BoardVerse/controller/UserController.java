@@ -3,7 +3,7 @@ package com.example.BoardVerse.controller;
 import com.example.BoardVerse.DTO.User.UserDTO;
 import com.example.BoardVerse.DTO.User.UserInfoDTO;
 import com.example.BoardVerse.DTO.User.UserUpdateDTO;
-import com.example.BoardVerse.repository.UserRepository;
+import com.example.BoardVerse.repository.UserMongoRepository;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
-    private final UserRepository userRepository;
+    private final UserMongoRepository userMongoRepository;
 
-    public UserController(UserService userService, UserRepository userRepository) {
+    public UserController(UserService userService, UserMongoRepository userMongoRepository) {
         this.userService = userService;
-        this.userRepository = userRepository;
+        this.userMongoRepository = userMongoRepository;
     }
 
     /* ================================ USERS CRUD ================================ */

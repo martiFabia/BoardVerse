@@ -12,17 +12,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.BoardVerse.model.MongoDB.User;
-import com.example.BoardVerse.repository.UserRepository;
+import com.example.BoardVerse.repository.UserMongoRepository;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
     @Autowired
-    UserRepository userRepository;
+    UserMongoRepository userMongoRepository;
 
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
+        User user = userMongoRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
 
         return UserDetailsImpl.build(user);
@@ -32,7 +32,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     // Nuovo metodo per caricare l'utente usando l'ID
     @Transactional
     public UserDetails loadUserById(String id) throws UsernameNotFoundException {
-        User user = userRepository.findById(id)
+        User user = userMongoRepository.findById(id)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with ID: " + id));
 
         return UserDetailsImpl.build(user);
