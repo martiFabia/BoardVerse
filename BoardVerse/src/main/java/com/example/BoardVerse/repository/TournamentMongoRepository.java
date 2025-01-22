@@ -36,7 +36,7 @@ public interface TournamentMongoRepository extends MongoRepository<Tournament, S
             "{ $addFields: { 'averageWeightedParticipants': { '$divide': ['$totalWeightedParticipants', '$totalWeight'] } } }",
             "{ $sort: { 'averageWeightedParticipants': -1 } }",
             "{ $limit: 10 }",
-            "{ $project: { '_id': 0, 'gameId': '$_id', 'name': 1, 'yearReleased': 1, 'averageWeightedParticipants': 1 } }"
+            "{ $project: { '_id': 0, 'gameID': '$_id', 'name': 1, 'yearReleased': 1, 'averageWeightedParticipants': 1 } }"
     })
     List<MostPlayedGameDTO> findTop10GamesWithHighestAverageParticipation(Date startDate, Date endDate);
 

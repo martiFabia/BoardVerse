@@ -5,6 +5,7 @@ import com.example.BoardVerse.DTO.Thread.MessageCreationDTO;
 import com.example.BoardVerse.DTO.Thread.ThreadCreationDTO;
 import com.example.BoardVerse.DTO.Thread.ThreadInfoDTO;
 import com.example.BoardVerse.DTO.Thread.ThreadPreviewDTO;
+import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.model.MongoDB.ThreadMongo;
 import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.model.MongoDB.subentities.GameThread;

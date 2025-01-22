@@ -95,7 +95,7 @@ public class UserService {
         }
 
         if (updates.birthDate() != null) {
-            userMongo.setBirthdayDate(updates.birthDate());
+            userMongo.setBirthDate(updates.birthDate());
         }
 
         if(updates.location() != null) {

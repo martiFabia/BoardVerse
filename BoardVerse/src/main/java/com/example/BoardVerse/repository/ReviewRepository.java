@@ -78,7 +78,7 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
             "{ $project: { ageBracket: 1, rating: 1, game: \"$game._id\", name: \"$game.name\", yearReleased: \"$game.yearReleased\" } }",
             "{ $group: { _id: { ageBracket: \"$ageBracket\", game: \"$game\", name: \"$name\", yearReleased: \"$yearReleased\" }, averageRating: { $avg: \"$rating\" } } }",
             "{ $sort: { \"_id.ageBracket\": 1, \"averageRating\": -1 } }",
-            "{ $group: { _id: \"$_id.ageBracket\", game: { $first: \"$_id.game\" }, name: { $first: \"$_id.name\" }, yearReleased: { $first: \"$_id.yearReleased\" }, bestAvgRating: { $first: \"$averageRating\" } } }",
+            "{ $group: { _id: \"$_id.ageBracket\", gameID: { $first: \"$_id.game\" }, name: { $first: \"$_id.name\" }, yearReleased: { $first: \"$_id.yearReleased\" }, bestAvgRating: { $first: \"$averageRating\" } } }",
             "{ $sort: { \"_id\": 1 } }"
     })
     List<BestGameAgeDTO> findBestGameByAgeBrackets();

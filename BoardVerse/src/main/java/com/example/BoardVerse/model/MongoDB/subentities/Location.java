@@ -22,7 +22,7 @@ public class Location {
     // Costruttore con parametri
     public Location(String country, String state, String city) {
         this.country = country;
-        this.state = state;
+        this.stateOrProvince = state;
         this.city = city;
     }
 }

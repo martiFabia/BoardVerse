@@ -39,7 +39,7 @@ public class User {
     private Date registeredDate;
 
     @Past(message = "Birthdate must be in the past")
-    private Date birthdayDate;
+    private Date birthDate;
     @Schema(description = "User Location (Country, State, City)")
     private Location location;
     private int followers;

@@ -45,7 +45,7 @@ public class ReviewService {
         // Crea la recensione
         Review review = new Review();
         review.setAuthorUsername(user.getUsername());
-        review.setAuthorBirthDate(user.getBirthdayDate());
+        review.setAuthorBirthDate(user.getBirthDate());
         review.setLocation(user.getLocation());
         review.setGame(new GameReview(game.getId(), game.getName(), game.getYearReleased(), game.getShortDescription()));
         review.setContent(addReviewDTO.getComment());

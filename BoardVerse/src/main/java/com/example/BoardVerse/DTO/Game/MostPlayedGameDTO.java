@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class MostPlayedGameDTO {
-    private String gameId;
+    private String gameID;
     private String name;
     private Integer yearReleased;
     private double averageWeightedParticipants;
