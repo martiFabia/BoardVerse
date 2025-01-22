@@ -6,6 +6,7 @@ import com.example.BoardVerse.config.GlobalExceptionHandler;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.repository.GameMongoRepository;
 import com.example.BoardVerse.repository.ReviewRepository;
+import com.example.BoardVerse.repository.ThreadRepository;
 import com.example.BoardVerse.repository.TournamentMongoRepository;
 import com.example.BoardVerse.utils.Constants;
 import com.example.BoardVerse.utils.MongoGameMapper;
@@ -28,11 +29,13 @@ public class GameService {
     private final GameMongoRepository gameMongoRepository;
     private final ReviewRepository reviewRepository;
     private final TournamentMongoRepository tournamentMongoRepository;
+    private final ThreadRepository threadRepository;
 
-    public GameService(GameMongoRepository gameMongoRepository, ReviewRepository reviewRepository, TournamentMongoRepository tournamentMongoRepository) {
+    public GameService(GameMongoRepository gameMongoRepository, ReviewRepository reviewRepository, TournamentMongoRepository tournamentMongoRepository, ThreadRepository threadRepository) {
         this.gameMongoRepository = gameMongoRepository;
         this.reviewRepository = reviewRepository;
         this.tournamentMongoRepository = tournamentMongoRepository;
+        this.threadRepository = threadRepository;
     }
 
     // Operazione di creazione
@@ -62,6 +65,8 @@ public class GameService {
                 throw new NotFoundException("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
             }
             game.setName(updateGameDTO.getName());
+            //aggiornamento nome in THREAD
+            threadRepository.updateGameByGameId(gameId, updateGameDTO.getName());
         }
 
         if(updateGameDTO.getYearReleased() != null) {
@@ -70,6 +75,8 @@ public class GameService {
                 throw new NotFoundException("Game " + game.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
             }
             game.setYearReleased(updateGameDTO.getYearReleased());
+            //aggiornamento anno in THREAD
+            threadRepository.updateYearByGameId(gameId, updateGameDTO.getYearReleased());
         }
 
         if (updateGameDTO.getShortDescription()!=null) {
@@ -119,10 +126,12 @@ public class GameService {
         if(updateGameDTO.getMechanics()!=null)
             game.setMechanics(updateGameDTO.getMechanics());
 
+
+
         gameMongoRepository.save(game);
         return "Game " + game.getId() + " updated successfully";
 
-        //SE VENGONO MODIFICATI NAME E YEAR  MODIFICARE TOURNAMENT E THREAD
+        //SE VENGONO MODIFICATI NAME E YEAR  MODIFICARE TOURNAMENT
         //SE VENGONO MODIFICATI NAME, YEAR, SHORTDESC MODIFICARE REVIEW
     }
 
@@ -132,9 +141,11 @@ public class GameService {
         GameMongo game = gameMongoRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
         gameMongoRepository.delete(game);
+
+        threadRepository.deleteAllByGameId(gameId);
         return "Game with id " + gameId + " deleted successfully";
 
-        //ELIMINARE DAL GRAPH, DALLA LISTA DEI GIOCHI DEGLI UTENTI, DALLE REVIEW, DAI THREADS, DAI TORNEI
+        //ELIMINARE DAL GRAPH, DALLA LISTA DEI GIOCHI DEGLI UTENTI, DALLE REVIEW, DAI TORNEI
 
     }
 
