@@ -7,6 +7,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.mongodb.repository.Update;
 
 import java.util.Date;
 
@@ -47,7 +48,26 @@ public interface ThreadRepository extends MongoRepository<ThreadMongo, String> {
     @Query("{ 'game.id': ?0 }")
     void deleteAllByGameId(String gameId);
 
-    void deleteAllByAuthorUsername(String authorUsername);
+    @Query("{'game.id': ?0}")
+    @Update("{ '$set': { 'game.name': ?1 } }")
+    void updateGameByGameId(String gameId, String gameName);
+
+    @Query("{'game.id': ?0}")
+    @Update("{ '$set': { 'game.yearReleased': ?1 } }")
+    void updateYearByGameId(String gameId, Integer yearReleased);
+
+    @Query("{ 'authorUsername': ?0 }")
+    @Update("{ '$set': { 'authorUsername': ?1 } }")
+    void updateThreadAuthorUsername(String username, String newUsername);
+
+    @Query("{ 'messages.authorUsername': ?0 }")
+    @Update("{ '$set': { 'messages.$[].authorUsername': ?1 } }")
+    void updateMessageAuthorUsername(String username, String newUsername);
+
+    @Query("{ 'messages.replyTo': { $exists: true } , 'messages.replyTo.username': ?0 }")
+    @Update("{ '$set': { 'messages.$[].replyTo.username': ?1 } }")
+    void updateReplyToUsername(String username, String newUsername);
+
 
 }
 

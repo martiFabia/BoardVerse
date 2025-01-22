@@ -8,6 +8,7 @@ import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.subentities.Location;
 import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.repository.ReviewRepository;
+import com.example.BoardVerse.repository.ThreadRepository;
 import com.example.BoardVerse.repository.UserMongoRepository;
 import com.example.BoardVerse.security.jwt.JwtUtils;
 import com.example.BoardVerse.utils.Constants;
@@ -31,17 +32,19 @@ public class UserService {
     @Autowired
     private UserMongoRepository userMongoRepository;
     private ReviewRepository reviewRepository;
+    private ThreadRepository threadRepository;
     @Autowired
     PasswordEncoder encoder;
     @Autowired
     private AuthService authService;
 
     @Autowired
-    public UserService(AuthenticationManager authManager, JwtUtils jwtUtils, UserMongoRepository userMongoRepository, ReviewRepository reviewRepository) {
+    public UserService(AuthenticationManager authManager, JwtUtils jwtUtils, UserMongoRepository userMongoRepository, ReviewRepository reviewRepository, ThreadRepository threadRepository) {
         this.authenticationManager = authManager;
         this.jwtUtils = jwtUtils;
         this.userMongoRepository = userMongoRepository;
         this.reviewRepository = reviewRepository;
+        this.threadRepository = threadRepository;
     }
 
     public Slice<UserDTO> getUserByUsername(String username, int page) {
@@ -72,7 +75,14 @@ public class UserService {
             }
             reviewRepository.updateUsernameInReviews(userMongo.getUsername(), updates.username());
 
-            //AGGIORNARE THREADS, MESSAGGI E TORNEI
+            //Si aggiorna l'username dell'utente nei thread e nei messaggi e nelle risposte
+            threadRepository.updateThreadAuthorUsername(userMongo.getUsername(), updates.username());
+            threadRepository.updateMessageAuthorUsername(userMongo.getUsername(), updates.username());
+            threadRepository.updateReplyToUsername(userMongo.getUsername(), updates.username());
+
+            //AGGIORNARE TORNEI
+
+
 
             userMongo.setUsername(updates.username());
             //userNeo4j.setUsername(userMongo.getUsername());
@@ -132,7 +142,15 @@ public class UserService {
         reviewRepository.deleteByAuthorUsername(username);
         //CORREGGERE RATING NEL GIOCO
 
-        //ELIMINARE THREADS, MESSAGGI E TORNEI
+        //Si aggiorna l'username dell'utente nei thread e nei messaggi e nelle risposte
+        //impostandolo a null (l'utente è stato eliminato)
+        threadRepository.updateThreadAuthorUsername(username, null);
+        threadRepository.updateMessageAuthorUsername(username, null);
+        threadRepository.updateReplyToUsername(username, null);
+
+        //ELIMINARE TORNEI
+
+
 
         //eliminare utente dal graph
         //eliminare utente dai followers
