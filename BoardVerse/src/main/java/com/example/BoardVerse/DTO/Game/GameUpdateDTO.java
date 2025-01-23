@@ -9,8 +9,6 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-@ValidMaxPlayers
-@ValidMaxPlayTime
 public class GameUpdateDTO {
 
     @Size(max = 50, message = "Name must be 50 characters or less")
@@ -21,8 +19,7 @@ public class GameUpdateDTO {
 
     private String description;
 
-    @PositiveOrZero(message = "Year released must be a positive integer (0 if unknown)")
-    @PastOrPresent
+    @Positive(message = "Year released must be a positive integer (0 if unknown)")
     private Integer yearReleased;
 
     @Positive(message = "Minimum number of players must be a positive integer")

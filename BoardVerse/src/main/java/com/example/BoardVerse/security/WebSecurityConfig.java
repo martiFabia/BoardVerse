@@ -69,10 +69,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Consenti l'accesso agli endpoint Swagger
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        // Consenti l'accesso agli endpoint di autenticazione e test
-                        .requestMatchers("/api/auth/**", "/api/test/**", "/api/games/**").permitAll()
-                        //.requestMatchers("/api/users/").authenticated() // Solo chi è registrato puo accedervi (user o admin)
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        //.requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll() // Tutti gli altri endpoint richiedono l'autenticazione
                 );
 
