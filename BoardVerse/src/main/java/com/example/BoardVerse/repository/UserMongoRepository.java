@@ -2,6 +2,7 @@ package com.example.BoardVerse.repository;
 
 import com.example.BoardVerse.DTO.User.UserDTO;
 import com.example.BoardVerse.DTO.User.aggregation.CountryAggregation;
+import com.example.BoardVerse.DTO.User.aggregation.MonthlyReg;
 import com.example.BoardVerse.model.MongoDB.User;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -10,6 +11,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.Update;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserMongoRepository extends MongoRepository<User, String> {
@@ -39,8 +41,6 @@ public interface UserMongoRepository extends MongoRepository<User, String> {
     void deleteGameFromMostRecentReviews(String gameId);
 
 
-
-
     @Aggregation(pipeline = {
             "{ '$match': { 'location.country': { '$ne': null }, 'location.stateOrProvince': { '$ne': null }} }",
             "{ '$group': { '_id': { 'country': '$location.country', 'state': '$location.stateOrProvince'}, 'count': { '$sum': 1 } } }",
@@ -49,6 +49,15 @@ public interface UserMongoRepository extends MongoRepository<User, String> {
             "{ '$project': { '_id': 0, 'country': '$_id', 'states': 1 } }"
     })
     Slice<CountryAggregation> countUsersByLocationHierarchy(Pageable pageable);
+
+
+    @Aggregation(pipeline = {
+            "{ '$match': { '$expr': { '$eq': [ { '$year': '$registeredDate' }, ?0 ] } } }",
+            "{ '$group': { '_id': { '$month': '$registeredDate' }, 'registrations': { '$sum': 1 } } }",
+            "{ '$sort': { '_id': 1 } }"
+    })
+    List<MonthlyReg> monthlyRegistrations(Integer year);
+
 
 
 }

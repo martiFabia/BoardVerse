@@ -68,14 +68,24 @@ public class AdminController {
         }
     }
 
-
-
     //utenti per location
     @GetMapping("/analytics/usersByLocation")
     public ResponseEntity<?> usersByLocation(@RequestParam(defaultValue = "0") int page) {
         try {
             return ResponseEntity.ok(analyticsService.usersByLocation(page));
 
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
+        }
+    }
+
+    //registrazioni mensili utenti
+    @GetMapping("/analytics/monthlyRegistrations")
+    public ResponseEntity<?> monthlyRegistrations(@RequestParam(required = false) Integer year) {
+        try {
+            return ResponseEntity.ok(analyticsService.monthlyRegistrations(year));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {

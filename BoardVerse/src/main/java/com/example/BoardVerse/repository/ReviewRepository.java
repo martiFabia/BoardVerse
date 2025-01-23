@@ -2,6 +2,7 @@ package com.example.BoardVerse.repository;
 
 import com.example.BoardVerse.DTO.Game.BestGameAgeDTO;
 import com.example.BoardVerse.DTO.Game.GamePreviewDTO;
+import com.example.BoardVerse.DTO.Game.RatingDetails;
 import com.example.BoardVerse.model.MongoDB.Review;
 import com.mongodb.lang.Nullable;
 import org.springframework.data.domain.Pageable;
@@ -47,6 +48,18 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
     @Update("{ '$set': { 'game.shortDescription': ?1 } }")
     void updateGameShortDescInReviews(String gameId, String shortDesc);
 
+
+    @Aggregation(pipeline = {
+            "{ '$match': { 'game._id': ?0 } }",
+            "{ '$project': { 'roundedRating': { '$round': ['$rating', 0] } } }",
+            "{ '$group': { '_id': '$roundedRating', 'count': { '$sum': 1 } } }",
+            "{ '$sort': { '_id': 1 } }",
+            "{ '$group': { " +
+                    "'_id': null, " +
+                    "'distribution': { '$push': { 'rating': '$_id', 'count': '$count' } }, " +
+                    "'stdDevRating': { '$stdDevPop': '$_id' } } }"
+    })
+    RatingDetails findRatingDetailsByGameId(String gameId);
 
 
     //classifica giochi filtrati per postDate e location e aggregati per gameId

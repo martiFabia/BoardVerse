@@ -185,6 +185,13 @@ public class GameService {
         return MongoGameMapper.toDTO(game);
     }
 
+
+    public RatingDetails getRatingsDetails(String gameId) {
+        GameMongo game = gameMongoRepository.findById(gameId)
+                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
+        return reviewRepository.findRatingDetailsByGameId(gameId);
+    }
+
     public Slice<GamePreviewDTO> getFilteredGames(Integer yearReleased, String categories,
                                                   String mechanics, String sortBy, String order, int page) {
         //Determina su quale campo ordinare

@@ -39,9 +39,11 @@ public interface TournamentMongoRepository extends MongoRepository<Tournament, S
 
 
 
-    @Query(value = "{ 'game._id': ?0 }", sort = "{ 'startingTime': -1 }",
-            fields = "{ '_id':1, 'name': 1, 'type':1, 'startingTime': 1, 'numParticipants': 1, 'minParticipants': 1, 'maxParticipants': 1, 'administrator':1,'winner': 1 }")
+    @Query(value = "{ '$or': [ { 'visibility': 'PUBLIC' }, { 'visibility': 'PRIVATE', 'allowed': ?1 } ], 'game._id': ?0 }",
+            sort = "{ 'startingTime': -1 }",
+            fields = "{ '_id':1, 'name': 1, 'type':1, 'startingTime': 1, 'numParticipants': 1, 'minParticipants': 1, 'maxParticipants': 1, 'administrator':1, 'winner': 1 }")
     Slice<TournPreview> findByGameOrderByStartingTimeDesc(String gameId, String username, Pageable pageable);
+
 
     @Aggregation(pipeline = {
             "{ $match: { 'startingTime': { $gte: ?0, $lt: ?1 }, 'numParticipants': { $gt: 10 } } }",

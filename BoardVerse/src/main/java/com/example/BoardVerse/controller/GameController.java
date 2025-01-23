@@ -51,6 +51,19 @@ public class GameController {
         return ResponseEntity.ok(gameInfo);
     }
 
+    @GetMapping("{gameId}/ratingsDetail")
+    public ResponseEntity<?> getRatingsDetail(@PathVariable String gameId){
+        try {
+            return ResponseEntity.ok(gameService.getRatingsDetails(gameId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            // Log dell'eccezione
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred: " + e.getMessage());
+        }
+    }
+
 
     @GetMapping("/filter")
     public ResponseEntity<Slice<GamePreviewDTO>> filterGames(
@@ -93,6 +106,8 @@ public class GameController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred: " + e.getMessage());
         }
     }
+
+
 
 
 
