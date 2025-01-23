@@ -69,6 +69,7 @@ public interface TournamentMongoRepository extends MongoRepository<Tournament, S
 
 
 
+    TournamentInfo findBy_id(String id, String userId);
 
 
 
