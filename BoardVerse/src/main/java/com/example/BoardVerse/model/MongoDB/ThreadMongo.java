@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.List;
 
 
-//@Document(collection = "threads")
+@Document(collection = "threads")
 @Data
 public class ThreadMongo extends Post {
     private String id;

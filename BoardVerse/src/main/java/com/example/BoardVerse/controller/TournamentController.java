@@ -71,7 +71,8 @@ public class TournamentController {
     @GetMapping("/{gameId}/tournaments")
     public ResponseEntity<?> getTournaments(@PathVariable String gameId, @RequestParam(defaultValue = "0") int page) {
         try {
-            return ResponseEntity.ok(tournamentService.getTournaments(gameId, page));
+            UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            return ResponseEntity.ok(tournamentService.getTournaments(gameId, user.getUsername(), page));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {

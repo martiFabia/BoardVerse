@@ -144,11 +144,11 @@ public class TournamentService {
     }
 
 
-    public Slice<TournPreview> getTournaments(String gameId, int page) {
+    public Slice<TournPreview> getTournaments(String gameId, String username, int page) {
         GameMongo game = gameMongoRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found with ID: " + gameId));
 
-        return tournamentMongoRepository.findByGameOrderByStartingTimeDesc(gameId, PageRequest.of(page, Constants.PAGE_SIZE));
+        return tournamentMongoRepository.findByGameOrderByStartingTimeDesc(gameId, username, PageRequest.of(page, Constants.PAGE_SIZE));
     }
 
 

@@ -25,6 +25,7 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
     List<Review> findByAuthorUsername(String authorUsername);
 
     void deleteByAuthorUsername(String username);
+    void deleteByGameId(String gameId);
 
     // Trova la prossima recensione più recente per un utente
     Optional<Review> findFirstByAuthorUsernameOrderByPostDateDesc(String username);
@@ -33,6 +34,19 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
     @Query("{ 'authorUsername': ?0 }")
     @Update("{ '$set': { 'authorUsername': ?1 } }")
     void updateUsernameInReviews(String oldUsername, String newUsername);
+
+    @Query("{'game.id': ?0}")
+    @Update("{ '$set': { 'game.name': ?1 } }")
+    void updateGameNameInReviews(String gameId, String gameName);
+
+    @Query("{'game.id': ?0}")
+    @Update("{ '$set': { 'game.yearReleased': ?1 } }")
+    void updateGameYearInReviews(String gameId, Integer gameYear);
+
+    @Query("{'game.id': ?0}")
+    @Update("{ '$set': { 'game.shortDescription': ?1 } }")
+    void updateGameShortDescInReviews(String gameId, String shortDesc);
+
 
 
     //classifica giochi filtrati per postDate e location e aggregati per gameId
@@ -82,8 +96,5 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
             "{ $sort: { \"_id\": 1 } }"
     })
     List<BestGameAgeDTO> findBestGameByAgeBrackets();
-
-
-
 
 }

@@ -8,15 +8,40 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.mongodb.repository.Update;
 
 import java.util.Date;
 import java.util.List;
 
 public interface TournamentMongoRepository extends MongoRepository<Tournament, String> {
 
+    @Query("{ 'administrator': ?0 }")
+    @Update("{ '$set': { 'administrator': ?1 } }")
+    void updateAdministratorInTournaments(String oldUsername, String newUsername);
+
+    @Query("{ 'winner': ?0 }")
+    @Update("{ '$set': { 'winner': ?1 } }")
+    void updateWinnerInTournaments(String oldUsername, String newUsername);
+
+    //void updateAllowedInTournaments(String oldUsername, String newUsername);
+
+    @Query("{'game.id': ?0}")
+    @Update("{ '$set': { 'game.name': ?1 } }")
+    void updateGameNameInTournaments(String gameId, String gameName);
+
+    @Query("{'game.id': ?0}")
+    @Update("{ '$set': { 'game.yearReleased': ?1 } }")
+    void updateGameYearInTournaments(String gameId, Integer gameYear);
+
+
+    void deleteByAdministrator(String username);
+    void deleteByGameId(String gameId);
+
+
+
     @Query(value = "{ 'game._id': ?0 }", sort = "{ 'startingTime': -1 }",
             fields = "{ '_id':1, 'name': 1, 'type':1, 'startingTime': 1, 'numParticipants': 1, 'minParticipants': 1, 'maxParticipants': 1, 'administrator':1,'winner': 1 }")
-    Slice<TournPreview> findByGameOrderByStartingTimeDesc(String gameId, Pageable pageable);
+    Slice<TournPreview> findByGameOrderByStartingTimeDesc(String gameId, String username, Pageable pageable);
 
     @Aggregation(pipeline = {
             "{ $match: { 'startingTime': { $gte: ?0, $lt: ?1 }, 'numParticipants': { $gt: 10 } } }",

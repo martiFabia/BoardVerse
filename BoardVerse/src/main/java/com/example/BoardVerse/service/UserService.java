@@ -9,6 +9,7 @@ import com.example.BoardVerse.model.MongoDB.subentities.Location;
 import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.repository.ReviewRepository;
 import com.example.BoardVerse.repository.ThreadRepository;
+import com.example.BoardVerse.repository.TournamentMongoRepository;
 import com.example.BoardVerse.repository.UserMongoRepository;
 import com.example.BoardVerse.security.jwt.JwtUtils;
 import com.example.BoardVerse.utils.Constants;
@@ -37,14 +38,17 @@ public class UserService {
     PasswordEncoder encoder;
     @Autowired
     private AuthService authService;
+    @Autowired
+    private TournamentMongoRepository tournamentMongoRepository;
 
     @Autowired
-    public UserService(AuthenticationManager authManager, JwtUtils jwtUtils, UserMongoRepository userMongoRepository, ReviewRepository reviewRepository, ThreadRepository threadRepository) {
+    public UserService(AuthenticationManager authManager, JwtUtils jwtUtils, UserMongoRepository userMongoRepository, ReviewRepository reviewRepository, ThreadRepository threadRepository, TournamentMongoRepository tournamentMongoRepository) {
         this.authenticationManager = authManager;
         this.jwtUtils = jwtUtils;
         this.userMongoRepository = userMongoRepository;
         this.reviewRepository = reviewRepository;
         this.threadRepository = threadRepository;
+        this.tournamentMongoRepository = tournamentMongoRepository;
     }
 
     public Slice<UserDTO> getUserByUsername(String username, int page) {
@@ -73,6 +77,7 @@ public class UserService {
             if (userMongoRepository.existsByUsername(updates.username())) {
                 throw new IllegalArgumentException("Username already exists");
             }
+            //aggiorno reviews
             reviewRepository.updateUsernameInReviews(userMongo.getUsername(), updates.username());
 
             //Si aggiorna l'username dell'utente nei thread e nei messaggi e nelle risposte
@@ -80,8 +85,12 @@ public class UserService {
             threadRepository.updateMessageAuthorUsername(userMongo.getUsername(), updates.username());
             threadRepository.updateReplyToUsername(userMongo.getUsername(), updates.username());
 
-            //AGGIORNARE TORNEI
+            //aggiorno tornei
+            tournamentMongoRepository.updateAdministratorInTournaments(userMongo.getUsername(), updates.username());
+            tournamentMongoRepository.updateWinnerInTournaments(userMongo.getUsername(), updates.username());
 
+            //AGGIORNARE LISTA ALLOWED
+            //tournamentMongoRepository.updateAllowedInTournaments(userMongo.getUsername(), updates.username());
 
 
             userMongo.setUsername(updates.username());
@@ -148,12 +157,13 @@ public class UserService {
         threadRepository.updateMessageAuthorUsername(username, null);
         threadRepository.updateReplyToUsername(username, null);
 
-        //ELIMINARE TORNEI
+        //elimino tornei creati dall'utente
+        tournamentMongoRepository.deleteByAdministrator(username);
 
 
 
-        //eliminare utente dal graph
-        //eliminare utente dai followers
+        //ELIMINARE UTENTE DAL GRAPH (E TUTTE LE RELAZIONI)
+
 
     }
 }

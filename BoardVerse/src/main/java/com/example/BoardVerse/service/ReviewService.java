@@ -83,7 +83,7 @@ public class ReviewService {
             throw new IllegalStateException("Error adding review to the user: " + e.getMessage(), e);
         }
 
-        //AGGIUNGERE RAMO AL GRAPH
+        //AGGIUNGERE RAMO AL GRAPH (FORSE)
     }
 
     public void addReviewUser(User user, ReviewUser review) {
@@ -156,7 +156,7 @@ public class ReviewService {
         //rimuove review dalla lista
         list.removeIf(reviewUser -> reviewUser.id().equals(reviewId));
 
-        // Se la lista ha meno di 5 elementi, aggiungi la prossima recensione più recente
+        // Se la lista ha meno di 3 elementi, aggiungi la prossima recensione più recente
         if (list.size() < Constants.RECENT_SIZE) {
             Review nextRecentReviewForUser = reviewRepository.findFirstByAuthorUsernameOrderByPostDateDesc(review.getAuthorUsername())
                     .orElse(null);

@@ -4,10 +4,7 @@ import com.example.BoardVerse.DTO.Game.*;
 import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.config.GlobalExceptionHandler;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
-import com.example.BoardVerse.repository.GameMongoRepository;
-import com.example.BoardVerse.repository.ReviewRepository;
-import com.example.BoardVerse.repository.ThreadRepository;
-import com.example.BoardVerse.repository.TournamentMongoRepository;
+import com.example.BoardVerse.repository.*;
 import com.example.BoardVerse.utils.Constants;
 import com.example.BoardVerse.utils.MongoGameMapper;
 import org.springframework.data.domain.*;
@@ -30,12 +27,14 @@ public class GameService {
     private final ReviewRepository reviewRepository;
     private final TournamentMongoRepository tournamentMongoRepository;
     private final ThreadRepository threadRepository;
+    private final UserMongoRepository userMongoRepository;
 
-    public GameService(GameMongoRepository gameMongoRepository, ReviewRepository reviewRepository, TournamentMongoRepository tournamentMongoRepository, ThreadRepository threadRepository) {
+    public GameService(GameMongoRepository gameMongoRepository, ReviewRepository reviewRepository, TournamentMongoRepository tournamentMongoRepository, ThreadRepository threadRepository, UserMongoRepository userMongoRepository) {
         this.gameMongoRepository = gameMongoRepository;
         this.reviewRepository = reviewRepository;
         this.tournamentMongoRepository = tournamentMongoRepository;
         this.threadRepository = threadRepository;
+        this.userMongoRepository = userMongoRepository;
     }
 
     // Operazione di creazione
@@ -59,6 +58,13 @@ public class GameService {
         //Se è presente un gioco con lo stesso nome e anno di rilascio,
         // ma questo gioco non è quello che si sta cercando di aggiornare
         // allora lancia un'eccezione
+        if(updateGameDTO.getName() != null && updateGameDTO.getYearReleased() != null) {
+            Optional<GameMongo> existingGame = gameMongoRepository.findByNameAndYearReleased(updateGameDTO.getName(), updateGameDTO.getYearReleased());
+            if (existingGame.isPresent() && !existingGame.get().getId().equals(gameId)) {
+                throw new NotFoundException("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
+            }
+        }
+
         if(updateGameDTO.getName() != null) {
             Optional<GameMongo> existingGame = gameMongoRepository.findByNameAndYearReleased(updateGameDTO.getName(), game.getYearReleased());
             if (existingGame.isPresent() && !existingGame.get().getId().equals(gameId)) {
@@ -67,6 +73,12 @@ public class GameService {
             game.setName(updateGameDTO.getName());
             //aggiornamento nome in THREAD
             threadRepository.updateGameByGameId(gameId, updateGameDTO.getName());
+            //aggiornamento nome in review
+            reviewRepository.updateGameNameInReviews(gameId, updateGameDTO.getName());
+            //aggiornamento nome in tournament
+            tournamentMongoRepository.updateGameNameInTournaments(gameId, updateGameDTO.getName());
+            //aggiornamento nome in user.mostRecentReviews
+            userMongoRepository.updateGameNameInMostRecentReviews(gameId, updateGameDTO.getName());
         }
 
         if(updateGameDTO.getYearReleased() != null) {
@@ -77,10 +89,18 @@ public class GameService {
             game.setYearReleased(updateGameDTO.getYearReleased());
             //aggiornamento anno in THREAD
             threadRepository.updateYearByGameId(gameId, updateGameDTO.getYearReleased());
+            //aggiornamento anno in REVIEWS
+            reviewRepository.updateGameYearInReviews(gameId, updateGameDTO.getYearReleased());
+            //aggiornamento anno in TOURNAMENTS
+            tournamentMongoRepository.updateGameYearInTournaments(gameId, updateGameDTO.getYearReleased());
+            //aggiornamento anno in user.mostRecentReviews
+            userMongoRepository.updateGameYearInMostRecentReviews(gameId, updateGameDTO.getYearReleased());
         }
 
         if (updateGameDTO.getShortDescription()!=null) {
             game.setShortDescription(updateGameDTO.getShortDescription());
+            //aggiornamento shortDescription in review
+            reviewRepository.updateGameShortDescInReviews(gameId, updateGameDTO.getShortDescription());
         }
 
         if(updateGameDTO.getDescription() != null){
@@ -120,19 +140,16 @@ public class GameService {
             game.setCategories(updateGameDTO.getCategories());
         }
 
-        if(updateGameDTO.getFamily()!=null)
-            game.setFamily(updateGameDTO.getFamily());
-
         if(updateGameDTO.getMechanics()!=null)
             game.setMechanics(updateGameDTO.getMechanics());
 
-
+        if(updateGameDTO.getFamily()!=null)
+            game.setFamily(updateGameDTO.getFamily());
 
         gameMongoRepository.save(game);
         return "Game " + game.getId() + " updated successfully";
 
-        //SE VENGONO MODIFICATI NAME E YEAR  MODIFICARE TOURNAMENT
-        //SE VENGONO MODIFICATI NAME, YEAR, SHORTDESC MODIFICARE REVIEW
+        //SE MODIFICATA SHORT DESC MODIFICARE GRAPH
     }
 
 
@@ -143,9 +160,16 @@ public class GameService {
         gameMongoRepository.delete(game);
 
         threadRepository.deleteAllByGameId(gameId);
+        //eliminare reviews
+        reviewRepository.deleteByGameId(gameId);
+        //eliminare tornei
+        tournamentMongoRepository.deleteByGameId(gameId);
+        //eliminare dai mostRecentReviews degli utenti
+        userMongoRepository.deleteGameFromMostRecentReviews(gameId);
+
         return "Game with id " + gameId + " deleted successfully";
 
-        //ELIMINARE DAL GRAPH, DALLA LISTA DEI GIOCHI DEGLI UTENTI, DALLE REVIEW, DAI TORNEI
+        //ELIMINARE DAL GRAPH (E TUTTE LE RELAZIONI)
 
     }
 

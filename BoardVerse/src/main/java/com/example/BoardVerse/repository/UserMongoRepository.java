@@ -8,6 +8,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.mongodb.repository.Update;
 
 import java.util.Optional;
 
@@ -21,8 +22,24 @@ public interface UserMongoRepository extends MongoRepository<User, String> {
     Slice<UserDTO> findByUsernameContaining(String username, Pageable pageable);
 
     Boolean existsByUsername(String username);
-
     Boolean existsByEmail(String email);
+
+
+    @Query(value = "{ 'mostRecentReviews.game._id': ?0 }")
+    @Update("{ '$set': { 'mostRecentReviews.$.game.name': ?1 } }")
+    void updateGameNameInMostRecentReviews(String gameId, String gameName);
+
+    @Query(value = "{ 'mostRecentReviews.game._id': ?0 }")
+    @Update("{ '$set': { 'mostRecentReviews.$.game.yearReleased': ?1 } }")
+    void updateGameYearInMostRecentReviews(String gameId, Integer gameYear);
+
+
+    @Query(value = "{'mostRecentReviews.game._id': ?0 }")
+    @Update("{ '$pull': { 'mostRecentReviews': { 'game._id': ?0 } } }")
+    void deleteGameFromMostRecentReviews(String gameId);
+
+
+
 
     @Aggregation(pipeline = {
             "{ '$match': { 'location.country': { '$ne': null }, 'location.stateOrProvince': { '$ne': null }} }",

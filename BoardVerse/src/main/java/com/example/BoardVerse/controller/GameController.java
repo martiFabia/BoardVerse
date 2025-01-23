@@ -43,6 +43,7 @@ public class GameController {
         return ResponseEntity.ok(games);  // Restituisci i giochi trovati
     }
 
+
     //restituisce pagina gioco
     @GetMapping("/{gameId}")
     public ResponseEntity<GameInfoDTO> getUserInfoByUsername(@PathVariable String gameId) {
