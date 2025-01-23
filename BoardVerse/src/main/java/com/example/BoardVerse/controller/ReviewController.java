@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,11 +27,12 @@ public class ReviewController {
     /* ================================ REVIEW CRUD ================================ */
 
     //aggiungi review
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PostMapping("/{gameId}/review")
     public ResponseEntity<String> addReview(@PathVariable String gameId, @Valid @RequestBody AddReviewDTO addReviewDTO) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            reviewService.addReview(user.getUser(), gameId, addReviewDTO);
+            reviewService.addReview(user.getId(), gameId, addReviewDTO);
             return ResponseEntity.ok("Review successfully added!");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -40,6 +42,7 @@ public class ReviewController {
     }
 
     //elimina review
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @DeleteMapping("/{gameId}/review/{reviewId}")
     public ResponseEntity<String> deleteReview(@PathVariable String gameId, @PathVariable String reviewId) {
         try {
@@ -68,10 +71,12 @@ public class ReviewController {
     }
 
     //aggiorna review
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/{gameId}/review/{reviewId}")
     public ResponseEntity<String> updateReview(@PathVariable String gameId, @PathVariable String reviewId, @Valid @RequestBody AddReviewDTO addReviewDTO) {
         try {
-            reviewService.updateReview(gameId, reviewId, addReviewDTO);
+            UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            reviewService.updateReview(gameId, user.getUsername(), reviewId, addReviewDTO);
             return ResponseEntity.ok("Review successfully updated!");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

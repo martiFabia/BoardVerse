@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +28,7 @@ public class TournamentController {
     /* ================================ TOURNAMENT CRUD ================================ */
 
     //crea torneo
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PostMapping("/{gameId}/tournament")
     public ResponseEntity<String> createTournament(@PathVariable String gameId, @RequestBody @Valid AddTournDTO addTournDTO) {
         try {
@@ -41,6 +43,7 @@ public class TournamentController {
     }
 
     //elimina torneo
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @DeleteMapping("/{gameId}/tournament/{tournamentId}")
     public ResponseEntity<String> deleteTournament(@PathVariable String gameId, @PathVariable String tournamentId) {
         try {
@@ -55,6 +58,7 @@ public class TournamentController {
     }
 
     //aggiorna torneo
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/{gameId}/tournament/{tournamentId}")
     public ResponseEntity<String> updateTournament(@PathVariable String gameId, @PathVariable String tournamentId, @RequestBody @Valid UpdateTournDTO updateTournDTO) {
         try {
@@ -69,10 +73,11 @@ public class TournamentController {
     }
 
     @GetMapping("/{gameId}/tournaments")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> getTournaments(@PathVariable String gameId, @RequestParam(defaultValue = "0") int page) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            return ResponseEntity.ok(tournamentService.getTournaments(gameId, user.getUsername(), page));
+            return ResponseEntity.ok(tournamentService.getTournaments(gameId, user.getId(), page));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {

@@ -8,6 +8,7 @@ import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.model.MongoDB.Review;
 import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.model.MongoDB.subentities.GameReview;
+import com.example.BoardVerse.model.MongoDB.subentities.Role;
 import com.example.BoardVerse.repository.GameMongoRepository;
 import com.example.BoardVerse.repository.ReviewRepository;
 import com.example.BoardVerse.repository.UserMongoRepository;
@@ -37,10 +38,13 @@ public class ReviewService {
         this.reviewRepository = reviewRepository;
     }
 
-    public void addReview(User user, String gameId, AddReviewDTO addReviewDTO) {
-        // Verifica se il gioco esiste
+    public void addReview(String userId, String gameId, AddReviewDTO addReviewDTO) {
+
         GameMongo game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found with ID: " + gameId));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with username: " + userId));
 
         // Crea la recensione
         Review review = new Review();
@@ -134,11 +138,15 @@ public class ReviewService {
     public void deleteReview(String reviewId, String gameId, String username) {
         GameMongo game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
-        // Verifica se la recensione esiste
+
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("Review not found with ID: " + reviewId));
 
-        if(!username.equals(review.getAuthorUsername())){
+        User user = userRepository.findByUsername(review.getAuthorUsername())
+                .orElseThrow(() -> new NotFoundException("User not found with username: " + review.getAuthorUsername()));
+
+        // Verifica se l'utente è l'autore della recensione o un admin
+        if(!username.equals(review.getAuthorUsername()) || !user.getRole().equals(Role.ROLE_ADMIN)) {
             throw new IllegalArgumentException("You can delete only your reviews");
         }
         // Elimina la recensione dalle review
@@ -149,9 +157,7 @@ public class ReviewService {
             removeRating(game, review.getRating());
         }
 
-        //rimuove la review dall'utente
-        User user = userRepository.findByUsername(review.getAuthorUsername())
-                .orElseThrow(() -> new NotFoundException("User not found with username: " + review.getAuthorUsername()));
+        //rimuovo la review dall'utente
         List<ReviewUser> list= user.getMostRecentReviews();
         //rimuove review dalla lista
         list.removeIf(reviewUser -> reviewUser.id().equals(reviewId));
@@ -189,19 +195,22 @@ public class ReviewService {
 
     }
 
-    public void updateReview(String gameId, String reviewId, AddReviewDTO addReviewDTO) {
-        GameMongo game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
-
-        // Verifica se la recensione esiste
+    public void updateReview(String gameId, String username, String reviewId, AddReviewDTO addReviewDTO) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("Review not found with ID: " + reviewId));
+
+        // Verifica se l'utente è l'autore della recensione
+        if(!username.equals(review.getAuthorUsername())) {
+            throw new IllegalArgumentException("You can update only your reviews");
+        }
 
         // Aggiorna la recensione
         if(addReviewDTO.getComment() != null){
             review.setContent(addReviewDTO.getComment());
         }
         if(addReviewDTO.getRating() != null){
+            GameMongo game = gameRepository.findById(gameId)
+                    .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
             //rimuovere il rating vecchio dal game
             removeRating(game, review.getRating());
             //aggiungere il nuovo rating al game

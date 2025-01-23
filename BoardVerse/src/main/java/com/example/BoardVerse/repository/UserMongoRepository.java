@@ -26,6 +26,9 @@ public interface UserMongoRepository extends MongoRepository<User, String> {
     Boolean existsByUsername(String username);
     Boolean existsByEmail(String email);
 
+    @Query(value = "{ 'username': { '$in': ?0 } }", fields = "{ '_id': 1, 'username': 1 }")
+    List<User> findUsersByUsernames(List<String> usernames);
+
 
     @Query(value = "{ 'mostRecentReviews.game._id': ?0 }")
     @Update("{ '$set': { 'mostRecentReviews.$.game.name': ?1 } }")
@@ -57,6 +60,8 @@ public interface UserMongoRepository extends MongoRepository<User, String> {
             "{ '$sort': { '_id': 1 } }"
     })
     List<MonthlyReg> monthlyRegistrations(Integer year);
+
+
 
 
 

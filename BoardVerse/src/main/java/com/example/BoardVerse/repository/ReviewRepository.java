@@ -57,6 +57,7 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
             "{ '$group': { " +
                     "'_id': null, " +
                     "'distribution': { '$push': { 'rating': '$_id', 'count': '$count' } }, " +
+                    "avgRating: { '$avg': '$_id' }, " +
                     "'stdDevRating': { '$stdDevPop': '$_id' } } }"
     })
     RatingDetails findRatingDetailsByGameId(String gameId);

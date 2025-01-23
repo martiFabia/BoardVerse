@@ -9,6 +9,7 @@ import com.example.BoardVerse.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -46,6 +47,7 @@ public class UserController {
     }
 
     //restituisce pagina profilo utente loggato
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @GetMapping("/myProfile")
     public ResponseEntity<UserInfoDTO> getMyInfo() {
         //id utente loggato
@@ -55,6 +57,7 @@ public class UserController {
     }
 
     //aggiorna i dati dell'utente
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/myProfile")
     public ResponseEntity<UserInfoDTO> updateUser(@RequestBody @Validated UserUpdateDTO userUpdateDTO) {
         //utente loggato
@@ -66,6 +69,7 @@ public class UserController {
     }
 
     //elimina l'utente loggato
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @DeleteMapping("/myProfile")
     public ResponseEntity<String> deleteUser() {
         //cerco username utente loggato

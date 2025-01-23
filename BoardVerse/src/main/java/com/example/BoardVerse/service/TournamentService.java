@@ -4,10 +4,12 @@ package com.example.BoardVerse.service;
 import com.example.BoardVerse.DTO.Tournament.AddTournDTO;
 import com.example.BoardVerse.DTO.Tournament.TournPreview;
 import com.example.BoardVerse.DTO.Tournament.UpdateTournDTO;
+import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.model.MongoDB.Tournament;
 import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.model.MongoDB.subentities.GameThread;
+import com.example.BoardVerse.model.MongoDB.subentities.Role;
 import com.example.BoardVerse.model.MongoDB.subentities.TournamentsUser;
 import com.example.BoardVerse.model.MongoDB.subentities.VisibilityTournament;
 import com.example.BoardVerse.repository.GameMongoRepository;
@@ -19,7 +21,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class TournamentService {
@@ -39,13 +43,13 @@ public class TournamentService {
         GameMongo game = gameMongoRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found with ID: " + gameId));
 
-        User user = userMongoRepository.findById(userId)
+        User userMongo = userMongoRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
 
         Tournament tournament = new Tournament();
         tournament.setId(UUID.randomUUID().toString());
         tournament.setGame(new GameThread(game.getId(), game.getName(), game.getYearReleased()));
-        tournament.setAdministrator(user.getUsername());
+        tournament.setAdministrator(userMongo.getUsername());
         tournament.setName(addTournDTO.getName());
         tournament.setType(addTournDTO.getType());
         tournament.setTypeDescription(addTournDTO.getTypeDescription());
@@ -60,12 +64,30 @@ public class TournamentService {
         if (addTournDTO.getVisibility() == VisibilityTournament.PUBLIC || addTournDTO.getVisibility() == VisibilityTournament.INVITE) {
             tournament.setAllowed(null);
         } else {
-            tournament.setAllowed(addTournDTO.getAllowed());
-        }
-        //Aumentare tournaments.created dell'user di uno
-        user.getTournaments().setCreated(user.getTournaments().getCreated() + 1);
+            List<String> allowedUsernames = addTournDTO.getAllowed();
+            // Recupera dalla collection `user` gli ID corrispondenti agli username
+            List<User> users = userMongoRepository.findUsersByUsernames(allowedUsernames);
+            // Mappa gli ID degli utenti
+            List<String> allowedIds = users.stream()
+                    .map(User::getId) // Ottieni solo gli ID
+                    .collect(Collectors.toList());
 
-        userMongoRepository.save(user);
+            // Trova gli username che non esistono
+            List<String> nonExistingUsernames = allowedUsernames.stream()
+                    .filter(username -> users.stream().noneMatch(user -> user.getUsername().equals(username)))
+                    .collect(Collectors.toList());
+
+            if (!nonExistingUsernames.isEmpty()) {
+                throw new NotFoundException("The following usernames do not exist: " + nonExistingUsernames);
+            }
+
+            tournament.setAllowed(allowedIds);
+        }
+
+        //Aumentare tournaments.created dell'user di uno
+        userMongo.getTournaments().setCreated(userMongo.getTournaments().getCreated() + 1);
+
+        userMongoRepository.save(userMongo);
         tournamentMongoRepository.save(tournament);
 
         //AGGIUNGERE ANCHE SU GRAPH
@@ -79,8 +101,9 @@ public class TournamentService {
         User user = userMongoRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
 
-        if (!tournament.getAdministrator().equals(user.getUsername())) {
-            throw new IllegalArgumentException("You are not the administrator of this tournament");
+        //Verificare che l'utente sia l'amministratore del torneo o sia un admin
+        if (!tournament.getAdministrator().equals(user.getUsername()) || !user.getRole().equals(Role.ROLE_ADMIN)) {
+            throw new IllegalArgumentException("You are not the administrator of this tournament and you are not an admin");
         }
         tournamentMongoRepository.deleteById(tournamentId);
 
@@ -96,8 +119,9 @@ public class TournamentService {
         Tournament tournament = tournamentMongoRepository.findById(tournamentId)
                 .orElseThrow(() -> new IllegalArgumentException("Tournament not found with ID: " + tournamentId));
 
-        if (!tournament.getAdministrator().equals(username)) {
-            throw new IllegalArgumentException("You are not the administrator of this tournament");
+        //Verificare che l'utente sia l'amministratore del torneo o sia un admin
+        if (!tournament.getAdministrator().equals(username) || !userMongoRepository.findByUsername(username).get().getRole().equals(Role.ROLE_ADMIN)) {
+            throw new IllegalArgumentException("You are not the administrator of this tournament and you are not an admin");
         }
 
         if(updateTournDTO.getName() != null){
@@ -144,11 +168,8 @@ public class TournamentService {
     }
 
 
-    public Slice<TournPreview> getTournaments(String gameId, String username, int page) {
-        GameMongo game = gameMongoRepository.findById(gameId)
-                .orElseThrow(() -> new IllegalArgumentException("Game not found with ID: " + gameId));
-
-        return tournamentMongoRepository.findByGameOrderByStartingTimeDesc(gameId, username, PageRequest.of(page, Constants.PAGE_SIZE));
+    public Slice<TournPreview> getTournaments(String gameId, String userId, int page) {
+        return tournamentMongoRepository.findByGameOrderByStartingTimeDesc(gameId, userId, PageRequest.of(page, Constants.PAGE_SIZE));
     }
 
 

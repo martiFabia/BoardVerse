@@ -89,10 +89,6 @@ public class UserService {
             tournamentMongoRepository.updateAdministratorInTournaments(userMongo.getUsername(), updates.username());
             tournamentMongoRepository.updateWinnerInTournaments(userMongo.getUsername(), updates.username());
 
-            //AGGIORNARE LISTA ALLOWED
-            //tournamentMongoRepository.updateAllowedInTournaments(userMongo.getUsername(), updates.username());
-
-
             userMongo.setUsername(updates.username());
             //userNeo4j.setUsername(userMongo.getUsername());
 

@@ -187,8 +187,6 @@ public class GameService {
 
 
     public RatingDetails getRatingsDetails(String gameId) {
-        GameMongo game = gameMongoRepository.findById(gameId)
-                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
         return reviewRepository.findRatingDetailsByGameId(gameId);
     }
 

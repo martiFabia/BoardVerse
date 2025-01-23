@@ -8,6 +8,7 @@ import com.example.BoardVerse.DTO.User.aggregation.CountryAggregation;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.AnalyticsService;
 import com.example.BoardVerse.service.GameService;
+import com.example.BoardVerse.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Slice;
@@ -26,10 +27,12 @@ public class AdminController {
 
     private final GameService gameService;
     private final AnalyticsService analyticsService;
+    private final UserService userService;
 
-    public AdminController(GameService gameService, AnalyticsService analyticsService) {
+    public AdminController(GameService gameService, AnalyticsService analyticsService, UserService userService) {
         this.gameService = gameService;
         this.analyticsService = analyticsService;
+        this.userService = userService;
     }
 
     /*--------------------------------GAME CRUD ---------------------------------*/
@@ -38,20 +41,30 @@ public class AdminController {
     //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> addNewGame(@RequestBody @Valid GameCreationDTO gameCreationDTO) {
 
-        // Restituisce una risposta HTTP 201 Created passando il DTO al servizio
         return ResponseEntity.status(HttpStatus.CREATED).body(gameService.addNewGame(gameCreationDTO));
     }
 
 
+    //modifica gioco
     @PatchMapping("/games/{id}")
     public ResponseEntity<String> updateGame(@PathVariable String id, @RequestBody @Valid GameUpdateDTO gameUpdateDTO) {
         return ResponseEntity.status(HttpStatus.OK).body(gameService.updateGame(id, gameUpdateDTO));
     }
 
+    //elimina gioco
     @DeleteMapping("/games/{id}")
     public ResponseEntity<String> deleteGame(@PathVariable String id) {
         return ResponseEntity.status(HttpStatus.OK).body(gameService.deleteGame(id));
     }
+
+    /*--------------------------------USER ---------------------------------*/
+
+    @DeleteMapping("/users/{username}")
+    public ResponseEntity<String> deleteUserByAdmin(@PathVariable String username) {
+        userService.deleteUser(username);
+        return ResponseEntity.ok("User deleted successfully by admin");
+    }
+
 
     /*--------------------------------ADMIN ANALYTICS ---------------------------------*/
 

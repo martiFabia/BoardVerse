@@ -13,6 +13,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,12 +32,13 @@ public class ThreadController {
     /* ================================ THREAD CRUD ================================ */
 
     //aggiungi thread
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PostMapping("/{gameId}/thread/add")
         public ResponseEntity<String> addThread (@PathVariable String gameId, @Valid @RequestBody ThreadCreationDTO addThreadDTO)
         {
             try {
                 UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-                threadService.addThread(user.getUser(), gameId, addThreadDTO);
+                threadService.addThread(user.getUsername(), gameId, addThreadDTO);
                 return ResponseEntity.ok("Thread successfully added!");
             } catch (IllegalArgumentException e) {
                 return ResponseEntity.badRequest().body(e.getMessage());
@@ -47,11 +49,12 @@ public class ThreadController {
         }
 
     //elimina thread
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @DeleteMapping("/{threadId}")
     public ResponseEntity<String> deleteThread(@PathVariable String threadId) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            threadService.deleteThread(user.getUser(),threadId);
+            threadService.deleteThread(user.getUsername(), user.getUser().getRole(), threadId);
             return ResponseEntity.ok("Thread successfully deleted!");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -61,11 +64,12 @@ public class ThreadController {
     }
 
     //aggiungi un messaggio
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/{threadId}/messages/add")
     public ResponseEntity<String> addMessage(@PathVariable String threadId, @Valid @RequestBody MessageCreationDTO newMessageDTO) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            threadService.addMessage(user.getUser(), threadId, newMessageDTO);
+            threadService.addMessage(user.getUsername(), threadId, newMessageDTO);
             return ResponseEntity.ok("Message successfully added!");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -75,6 +79,7 @@ public class ThreadController {
     }
 
     //rispondi a un messaggio
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/{threadId}/messages/{messageId}/reply")
     public ResponseEntity<String> replyToMessage(
             @PathVariable String threadId,
@@ -82,7 +87,7 @@ public class ThreadController {
             @Valid @RequestBody MessageCreationDTO replyDTO) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            threadService.replyToMessage(user.getUser(), threadId, messageId, replyDTO);
+            threadService.replyToMessage(user.getUsername(), threadId, messageId, replyDTO);
             return ResponseEntity.ok("Reply successfully added to message!");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -91,11 +96,12 @@ public class ThreadController {
         }
     }
 
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/{threadId}/messages/{messageId}/edit")
     public ResponseEntity<String> editMessage(@PathVariable String threadId, @PathVariable String messageId, @Valid @RequestBody MessageCreationDTO editDTO) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            threadService.editMessage(user.getUser(), threadId, messageId, editDTO);
+            threadService.editMessage(user.getUsername(), threadId, messageId, editDTO);
             return ResponseEntity.ok("Message successfully edited!");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -105,11 +111,12 @@ public class ThreadController {
     }
 
 
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/{threadId}/messages/{messageId}/delete")
     public ResponseEntity<String> deleteMessage(@PathVariable String threadId, @PathVariable String messageId) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            threadService.deleteMessage(user.getUser(), threadId, messageId);
+            threadService.deleteMessage(user.getUsername(), user.getUser().getRole(), threadId, messageId);
             return ResponseEntity.ok("Message successfully deleted!");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -134,6 +141,7 @@ public class ThreadController {
     }
 
     //restituisce il thread
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @GetMapping("/{threadId}/thread")
     public ResponseEntity<?> getThread(@PathVariable String threadId) {
         try {
