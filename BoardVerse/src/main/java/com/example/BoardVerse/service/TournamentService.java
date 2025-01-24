@@ -3,6 +3,7 @@ package com.example.BoardVerse.service;
 
 import com.example.BoardVerse.DTO.Tournament.AddTournDTO;
 import com.example.BoardVerse.DTO.Tournament.TournPreview;
+import com.example.BoardVerse.DTO.Tournament.TournamentDTO;
 import com.example.BoardVerse.DTO.Tournament.UpdateTournDTO;
 import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
@@ -167,9 +168,17 @@ public class TournamentService {
         //MODIFICARE IL GRAFO
     }
 
-
     public Slice<TournPreview> getTournaments(String gameId, String userId, int page) {
         return tournamentMongoRepository.findByGameOrderByStartingTimeDesc(gameId, userId, PageRequest.of(page, Constants.PAGE_SIZE));
+    }
+
+    public TournamentDTO getTournament(String tournamentId) {
+
+        return tournamentMongoRepository.findById(tournamentId)
+                .map(elem -> new TournamentDTO(elem.getName(), elem.getGame(),elem.getType(), elem.getTypeDescription(),
+                        elem.getStartingTime(), elem.getLocation(), elem.getNumParticipants(), elem.getMinParticipants(),
+                        elem.getMaxParticipants(), elem.getAdministrator(), elem.getWinner(), elem.getVisibility(),  elem.getOptions()))
+                .orElseThrow(() -> new NotFoundException("Tournament not found with ID: " + tournamentId));
     }
 
 

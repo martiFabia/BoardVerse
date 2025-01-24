@@ -84,4 +84,17 @@ public class TournamentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
         }
     }
+
+
+    @GetMapping("/tournaments/{tournamentId}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<?> getTournament(@PathVariable String tournamentId) {
+        try {
+            return ResponseEntity.ok(tournamentService.getTournament(tournamentId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
+        }
+    }
 }

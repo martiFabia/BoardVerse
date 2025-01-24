@@ -61,6 +61,7 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
                     "'stdDevRating': { '$stdDevPop': '$_id' } } }"
     })
     RatingDetails findRatingDetailsByGameId(String gameId);
+    //sistemare avrRating
 
 
     //classifica giochi filtrati per postDate e location e aggregati per gameId
@@ -110,5 +111,6 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
             "{ $sort: { \"_id\": 1 } }"
     })
     List<BestGameAgeDTO> findBestGameByAgeBrackets();
+    //aggiungere numero recensioni per fascia età
 
 }
