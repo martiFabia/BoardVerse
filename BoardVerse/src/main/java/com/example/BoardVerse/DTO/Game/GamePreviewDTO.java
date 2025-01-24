@@ -6,6 +6,5 @@ public record GamePreviewDTO(
         Integer yearReleased,
         String shortDescription,
         Double averageRating
-
 ) {
 }

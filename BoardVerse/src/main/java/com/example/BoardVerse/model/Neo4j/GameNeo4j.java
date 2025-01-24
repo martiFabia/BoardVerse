@@ -1,9 +1,6 @@
 package com.example.BoardVerse.model.Neo4j;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -23,7 +20,7 @@ public class GameNeo4j {
 
     @Property("yearReleased")
     @NotNull
-    @Positive
+    @PositiveOrZero
     private int yearReleased;
 
     @Property("shortDescription")
