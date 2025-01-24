@@ -20,12 +20,12 @@ public interface GameNeo4jRepository  extends Neo4jRepository<GameNeo4jRepositor
     void addGame(String gameId, String name, int yearReleased, String shortDescription, List<String> categories);
 
     /**
-     *  Removes a game
+     *  Removes a game and all related tournaments
      *
      *  @param gameId the ID of the game to be removed
      */
-    @Query("MATCH (g:Game {gameId: $gameId})" +
-            "DETACH DELETE g")
+    @Query("MATCH (g:Game {gameId: $gameId})<-[:IS_RELATED_TO]-(t:Tournament)" +
+            "DETACH DELETE g, t")
     void removeGame(String gameId);
 
     /**

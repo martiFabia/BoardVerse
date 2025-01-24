@@ -19,7 +19,7 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4jRepository
      *
      * @param username the username of the user
      */
-    @Query("CREATE (u:User {username: $username})")
+    @Query("MATCH (u:User {username: $username})")
     void addUser(String username);
 
     /**
@@ -117,7 +117,7 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4jRepository
             maxParticipants: $maxParticipants,
             startingTime: datetime($startingTime)
         })
-        CREATE (u)-[:CREATES {timestamp: datetime()}]->(t)
+        CREATE (u)-[:CREATED {timestamp: datetime()}]->(t)
         CREATE (t)-[:RELATED_TO]->(g)
         """)
     void createTournament(String username, String tournamentId, String name, String visibility, int maxParticipants, String startingTime, String gameId);
@@ -155,33 +155,6 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4jRepository
             "MATCH (t:Tournament {tournamentId: $tournamentId}) " +
             "MERGE (u)-[:WON {timestamp: datetime()}]->(t)")
     void winTournament(String username, String tournamentId);
-
-    /**
-     * Updates  a tournament.
-     *
-     * @param tournamentId the ID of the tournament
-     * @param newName the new name of the tournament
-     * @param newVisibility the new visibility of the tournament
-     * @param newMaxParticipants the new maximum number of participants in the tournament
-     * @param newStartingTime the new starting time of the tournament
-     */
-    @Query("""
-        MATCH (t:Tournament {id: $tournamentId})
-        SET t.name = $newName,
-            t.visibility = $newVisibility,
-            t.maxParticipants = $newMaxParticipants,
-            t.startingTime = datetime($newStartingTime)
-        """)
-    void updateTournament(String tournamentId, String newName, String newVisibility, int newMaxParticipants, String newStartingTime);
-
-    /**
-     * Removes a tournament.
-     *
-     * @param tournamentId the ID of the tournament to be removed
-     */
-    @Query("MATCH (t:Tournament {id: $tournamentId}) " +
-            "DETACH DELETE t")
-    void removeTournament(String tournamentId);
 
 
     /*============================ FINDS ==============================*/
