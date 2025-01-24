@@ -1,23 +1,13 @@
 package com.example.BoardVerse.repository;
 
+import com.example.BoardVerse.model.Neo4j.GameNeo4j;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 
 import java.util.List;
 
 
-public interface GameNeo4jRepository  extends Neo4jRepository<GameNeo4jRepository, String> {
-
-    /**
-     *  Adds a game
-     *
-     *  @param gameId the ID of the game to be added
-     *  @param name the name of the game
-     *  @param yearReleased the year the game was released
-     *  @param shortDescription the description of the game
-     *  @param categories the categories of the game
-     */
-    void addGame(String gameId, String name, int yearReleased, String shortDescription, List<String> categories);
+public interface GameNeo4jRepository  extends Neo4jRepository<GameNeo4j, String> {
 
     /**
      *  Removes a game and all related tournaments

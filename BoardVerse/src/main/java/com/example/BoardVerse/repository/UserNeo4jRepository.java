@@ -12,15 +12,7 @@ import java.util.List;
  * Repository interface for UserNeo4j entities.
  * Provides methods to perform various actions and queries related to users, games, and tournaments.
  */
-public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4jRepository, String> {
-
-    /**
-     * Adds a user to the database.
-     *
-     * @param username the username of the user
-     */
-    @Query("MATCH (u:User {username: $username})")
-    void addUser(String username);
+public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> {
 
     /**
      * Removes a user from the database.
@@ -30,16 +22,6 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4jRepository
     @Query("MATCH (u:User {username: $username}) " +
             "DETACH DELETE u")
     void removeUser(String username);
-
-    /**
-     * Updates the username of a user.
-     *
-     * @param oldUsername the old username of the user
-     * @param newUsername the new username of the user
-     */
-    @Query("MATCH (u:User {username: $oldUsername}) " +
-            "SET u.username = $newUsername")
-    void updateUsername(String oldUsername, String newUsername);
 
 
     /*============================ USER-GAME ACTIONS ==============================*/
@@ -73,13 +55,14 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4jRepository
     /**
      * Follows another user.
      *
-     * @param username the username of the user who wants to follow
-     * @param usernameToFollow the username of the user to be followed
+     * @param followerId the ID of the user who wants to follow
+     * @param followedId the ID of the user to be followed
+     * @return true if the follow operation was successful, false otherwise
      */
-    @Query("MATCH (u:User {username: $username}) " +
-            "MATCH (u2:User {username: $usernameToFollow}) " +
-            "MERGE (u)-[:FOLLOWS {timestamp: datetime()}]->(u2)")
-    void followUser(String username, String usernameToFollow);
+    @Query("MATCH (follower:User {username: $followerId}), MATCH (followed:User {username: $followedId}) " +
+            "MERGE (follower)-[:FOLLOWS {since: datetime()}]->(followed)" +
+            "RETURN count(follower) > 0")
+    boolean followUser(String followerId, String followedId);
 
     /**
      * Unfollows another user.
@@ -218,6 +201,10 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4jRepository
     @Query("MATCH (u:User {username: $username})-[:WON]->(t:Tournament) " +
             "RETURN t")
     List<TournamentNeo4j> findWonTournaments(String username);
+
+    /*================================ FEED =================================*/
+
+
 
 
     /*============================ SUGGESTIONS ==============================*/

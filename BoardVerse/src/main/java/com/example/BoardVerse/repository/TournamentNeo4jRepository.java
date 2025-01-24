@@ -1,10 +1,11 @@
 package com.example.BoardVerse.repository;
 
+import com.example.BoardVerse.model.Neo4j.TournamentNeo4j;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 
 
-public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo4jRepository, String> {
+public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo4j, String> {
 
     /**
      * Updates  a tournament.
