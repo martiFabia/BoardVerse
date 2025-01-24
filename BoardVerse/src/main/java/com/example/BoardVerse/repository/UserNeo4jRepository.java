@@ -3,7 +3,10 @@ package com.example.BoardVerse.repository;
 import com.example.BoardVerse.DTO.FollowersActivityDTO;
 import com.example.BoardVerse.DTO.GameReccomendationDTO;
 import com.example.BoardVerse.DTO.PersonalActivityDTO;
+import com.example.BoardVerse.DTO.Tournament.TournamentSuggestionDTO;
 import com.example.BoardVerse.DTO.TournamentNeo4jDTO;
+import com.example.BoardVerse.DTO.User.UserSimilarityDTO;
+import com.example.BoardVerse.DTO.User.UserSuggestionDTO;
 import com.example.BoardVerse.model.Neo4j.GameNeo4j;
 import com.example.BoardVerse.model.Neo4j.TournamentNeo4j;
 import com.example.BoardVerse.model.Neo4j.UserNeo4j;
@@ -11,12 +14,15 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository interface for UserNeo4j entities.
  * Provides methods to perform various actions and queries related to users, games, and tournaments.
  */
 public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> {
+
+    Optional<UserNeo4j> findByUsername(String username);
 
     /**
      * Removes a user from the database.
@@ -348,26 +354,90 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
     List<GameReccomendationDTO> getRecommendedGames(String username, int limit);
 
     /**
-     * TODO Suggests users to a user based on the users they follow.
+     * Suggerire utenti in base a quelli che segui. In particolare si prendono i follower dei follower
+     * che non l'utente non segue già e si ordina per numero di follower in comune.
      *
      * @param username the username of the user
      * @return a list of users suggested to the user
      */
-    @Query("MATCH (u:User {username: $username})-[:FOLLOWS]->(u2:User)-[:FOLLOWS]->(u3:User) " +
-            "WHERE NOT (u)-[:FOLLOWS]->(u3) " +
-            "RETURN u3")
-    List<UserNeo4j> suggestUsers(String username);
+    @Query("MATCH (currentUser:User {username: $username})-[:FOLLOWS]->(followedUser:User)-[:FOLLOWS]->(suggestedUser:User)"+
+            "WHERE NOT (currentUser)-[:FOLLOWS]->(suggestedUser) AND suggestedUser.username <> $username"+
+            "RETURN suggestedUser.username AS username, COUNT(suggestedUser) AS commonFollowers"+
+            "ORDER BY commonFollowers DESC"+
+            "LIMIT 10")
+    List<UserSuggestionDTO> suggestUsers(String username);
 
-    /**
-     * TODO Suggests tournaments to a user based on the tournaments they participate in.
-     *
-     * @param username the username of the user
-     * @return a list of tournaments suggested to the user
-     */
-    @Query("MATCH (u:User {username: $username})-[:PARTICIPATES]->(t:Tournament)<-[:PARTICIPATES]-(u2:User)-[:PARTICIPATES]->(t2:Tournament) " +
-            "WHERE NOT (u)-[:PARTICIPATES]->(t2) " +
-            "RETURN t2")
-    List<TournamentNeo4j> suggestTournaments(String username);
+    //    Suggerimento di utenti che hanno gusti in comune con l'utente corrente
+    @Query("CALL { " +
+            "    MATCH (currentUser:User {username: $username})-[:LIKES]->(g:Game)<-[:LIKES]-(otherUser:User) " +
+            "    WHERE NOT (currentUser)-[:FOLLOWS]->(otherUser) AND currentUser.username <> otherUser.username " +
+            "    WITH collect(currentUser) + collect(otherUser) AS sourceNodes, collect(g) AS targetNodes " +
+            "    CALL gds.graph.project( " +
+            "      'userGameGraph', " +
+            "      sourceNodes, " +
+            "      targetNodes, " +
+            "      { " +
+            "        LIKES: { " +
+            "          type: 'LIKES' " +
+            "        } " +
+            "      } " +
+            "    ) " +
+            "    YIELD graphName " +
+            "} " +
+            "CALL gds.nodeSimilarity.stream('userGameGraph') " +
+            "YIELD node1, node2, similarity " +
+            "WITH gds.util.asNode(node2) AS otherUser, similarity " +
+            "WHERE gds.util.asNode(node1).username = $username " +
+            "RETURN otherUser.username AS username, similarity " +
+            "ORDER BY similarity DESC " +
+            "LIMIT 10 " +
+            "CALL gds.graph.drop('userGameGraph') YIELD graphName")
+    List<UserSimilarityDTO> findSimilarUsersByGameTaste(String username);
+
+
+
+    //Suggerimento di tornei
+    //Tre livelli di suggerimento:
+    //Alta Priorità: Tornei di giochi che piacciono all'utente e che sono organizzati  o partecipati da amici
+    //Media Priorità: Tornei di giochi che piacciono all'utente
+    //Bassa Priorità: Tornei a cui partecipano o sono amministrati da amici
+    @Query("MATCH (user:User {username: $username})-[:FOLLOWS]->(friend:User)-[:PARTICIPATES|ADMINISTRATES]->(tournament:Tournament)-[:RELATED_TO]->(game:Game) " +
+            "WHERE (user)-[:LIKES]->(game) " +
+            "  AND tournament.visibility = 'Public' " +
+            "  AND tournament.startingTime > datetime() " +
+            "  AND NOT (user)-[:PARTICIPATES|ADMINISTRATES]->(tournament) " +
+            "WITH tournament, 'HP' AS priority " +
+            "UNION " +
+            "MATCH (user:User {username: $username})-[:LIKES]->(game:Game)<-[:RELATED_TO]-(tournament:Tournament) " +
+            "WHERE tournament.visibility = 'Public' " +
+            "  AND tournament.startingTime > datetime() " +
+            "  AND NOT (user)-[:PARTICIPATES|ADMINISTRATES]->(tournament) " +
+            "WITH tournament, 'MP' AS priority " +
+            "UNION " +
+            "MATCH (user:User {username: $username})-[:FOLLOWS]->(friend:User)-[:PARTICIPATES|ADMINISTRATES]->(tournament:Tournament) " +
+            "WHERE tournament.visibility = 'Public' " +
+            "  AND tournament.startingTime > datetime() " +
+            "  AND NOT (user)-[:PARTICIPATES|ADMINISTRATES]->(tournament) " +
+            "WITH tournament, 'LP' AS priority " +
+            "RETURN DISTINCT " +
+            "  tournament.id AS id, " +
+            "  tournament.name AS name, " +
+            "  size((:User)-[:PARTICIPATES]->(tournament)) AS participantsCount, " +
+            "  tournament.maxParticipants AS maxParticipants, " +
+            "  tournament.visibility AS visibility, " +
+            "  tournament.startingTime AS startingTime, " +
+            "  head([(admin:User)-[:ADMINISTRATES]->(tournament) | admin.username]) AS administrator, " +
+            "  priority " +
+            "ORDER BY " +
+            "  CASE priority " +
+            "    WHEN 'HP' THEN 1 " +
+            "    WHEN 'MP' THEN 2 " +
+            "    WHEN 'LP' THEN 3 " +
+            "  END " +
+            "LIMIT 10")
+    List<TournamentSuggestionDTO> suggestTournaments(String username);
+
+
 
 
     /*============================ ANALYTICS ==============================*/
