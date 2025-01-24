@@ -13,5 +13,6 @@ public class BestGameAgeDTO {
     private String name;
     private Integer yearReleased;
     private Double bestAvgRating;
+    private Integer totalReviews;
 
 }

@@ -7,6 +7,7 @@ import com.example.BoardVerse.DTO.User.UserInfoDTO;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.GameService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -32,7 +33,7 @@ public class GameController {
         this.gameService = gameService;
     }
 
-
+    @Operation(summary = "Browse games")
     @GetMapping("/browse")
     public ResponseEntity<Slice<GamePreviewDTO>> getGamesByName(@RequestParam(defaultValue = "") String gameName,
                                                                   @RequestParam(defaultValue = "0") int page) {
@@ -44,13 +45,14 @@ public class GameController {
     }
 
 
-    //restituisce pagina gioco
+    @Operation(summary = "Get game page")
     @GetMapping("/{gameId}")
     public ResponseEntity<GameInfoDTO> getUserInfoByUsername(@PathVariable String gameId) {
         GameInfoDTO gameInfo= gameService.getInfo(gameId);
         return ResponseEntity.ok(gameInfo);
     }
 
+    @Operation(summary = "Get game ratings detail")
     @GetMapping("{gameId}/ratingsDetail")
     public ResponseEntity<?> getRatingsDetail(@PathVariable String gameId){
         try {
@@ -65,6 +67,7 @@ public class GameController {
     }
 
 
+    @Operation(summary = "Find games by filter")
     @GetMapping("/filter")
     public ResponseEntity<Slice<GamePreviewDTO>> filterGames(
             @RequestParam(required = false) Integer yearReleased,
@@ -80,6 +83,7 @@ public class GameController {
     }
 
 
+    @Operation(summary = "Get games ranking")
     @GetMapping("/ranking")
     public ResponseEntity<Slice<GamePreviewDTO>> getRanking(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
@@ -93,6 +97,7 @@ public class GameController {
     }
 
 
+    @Operation(summary = "Get the best 10 most played games")
     @GetMapping("/mostPlayed")
     public ResponseEntity<?> getMostPlayedGames(){
         try {

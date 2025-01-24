@@ -18,7 +18,6 @@ public class Review extends Post {
 
     @Id
     private String id;
-    //private Date posDate;
 
     private Date authorBirthDate;
     private Location location;
@@ -27,27 +26,11 @@ public class Review extends Post {
     @Min(1) @Max(value = 10, message = "Rating must be between 1 and 10")
     @NotNull
     private Double rating;
-    //private String content;
-
-
+    private boolean isAuthorDeleted;
 
     // Costruttore vuoto per Spring e MongoDB
     public Review() {
     }
-
-    /*
-    // Costruttore con parametri
-    public Review(String id, String gameId, String authorUsername, Location authorLocation, double rating, String comment, Date reviewDate) {
-        this.id = id;
-        this.gameId = gameId;
-        this.authorUsername = authorUsername;
-        this.authorLocation = authorLocation;
-        this.rating = rating;
-        this.content = comment;
-        this.reviewDate = reviewDate;
-    }
-
-     */
 
     public Review get() {
         return this;

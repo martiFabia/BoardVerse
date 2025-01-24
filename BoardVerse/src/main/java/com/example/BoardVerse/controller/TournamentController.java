@@ -5,6 +5,7 @@ import com.example.BoardVerse.DTO.Tournament.AddTournDTO;
 import com.example.BoardVerse.DTO.Tournament.UpdateTournDTO;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.TournamentService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,7 @@ public class TournamentController {
 
     /* ================================ TOURNAMENT CRUD ================================ */
 
-    //crea torneo
+    @Operation(summary = "Add a new tournament")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PostMapping("/{gameId}/tournament")
     public ResponseEntity<String> createTournament(@PathVariable String gameId, @RequestBody @Valid AddTournDTO addTournDTO) {
@@ -42,7 +43,7 @@ public class TournamentController {
         }
     }
 
-    //elimina torneo
+    @Operation(summary = "Delete a tournament")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @DeleteMapping("/{gameId}/tournament/{tournamentId}")
     public ResponseEntity<String> deleteTournament(@PathVariable String gameId, @PathVariable String tournamentId) {
@@ -57,7 +58,7 @@ public class TournamentController {
         }
     }
 
-    //aggiorna torneo
+    @Operation(summary = "Update a tournament")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/{gameId}/tournament/{tournamentId}")
     public ResponseEntity<String> updateTournament(@PathVariable String gameId, @PathVariable String tournamentId, @RequestBody @Valid UpdateTournDTO updateTournDTO) {
@@ -72,6 +73,7 @@ public class TournamentController {
         }
     }
 
+    @Operation(summary = "Get game tournaments")
     @GetMapping("/{gameId}/tournaments")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> getTournaments(@PathVariable String gameId, @RequestParam(defaultValue = "0") int page) {
@@ -85,7 +87,7 @@ public class TournamentController {
         }
     }
 
-
+    @Operation(summary = "Get tournament detail")
     @GetMapping("/tournaments/{tournamentId}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> getTournament(@PathVariable String tournamentId) {

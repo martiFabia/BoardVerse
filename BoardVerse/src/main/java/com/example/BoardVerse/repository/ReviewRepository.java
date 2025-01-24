@@ -22,10 +22,6 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
     // Trova tutte le recensioni di un gioco
     Slice<Review> findByGameId(String gameId, Pageable pageable);
 
-    // Trova tutte le recensioni di un utente
-    List<Review> findByAuthorUsername(String authorUsername);
-
-    void deleteByAuthorUsername(String username);
     void deleteByGameId(String gameId);
 
     // Trova la prossima recensione più recente per un utente
@@ -50,6 +46,7 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
 
 
     @Aggregation(pipeline = {
+            "{ '$match': { 'rating': { '$ne': null } } }",
             "{ '$match': { 'game._id': ?0 } }",
             "{ '$project': { 'roundedRating': { '$round': ['$rating', 0] } } }",
             "{ '$group': { '_id': '$roundedRating', 'count': { '$sum': 1 } } }",
@@ -57,11 +54,10 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
             "{ '$group': { " +
                     "'_id': null, " +
                     "'distribution': { '$push': { 'rating': '$_id', 'count': '$count' } }, " +
-                    "avgRating: { '$avg': '$_id' }, " +
+                    "'avgRating': { '$avg': '$_id' }, " +
                     "'stdDevRating': { '$stdDevPop': '$_id' } } }"
     })
     RatingDetails findRatingDetailsByGameId(String gameId);
-    //sistemare avrRating
 
 
     //classifica giochi filtrati per postDate e location e aggregati per gameId
@@ -101,16 +97,16 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
 
 
     @Aggregation(pipeline = {
+            "{ $match: { rating: { $ne: null } } }", // Escludi recensioni con rating null
             "{ $addFields: { age: { $dateDiff: { startDate: \"$authorBirthDate\", endDate: \"$$NOW\", unit: \"year\" } } } }",
             "{ $match: { age: { $gte: 10, $lte: 99 } } }",
             "{ $addFields: { ageBracket: { $concat: [ { $toString: { $multiply: [10, { $floor: { $divide: [\"$age\", 10] } }] } }, \"-\", { $toString: { $add: [ { $multiply: [10, { $floor: { $divide: [\"$age\", 10] } }] }, 9 ] } } ] } } }",
             "{ $project: { ageBracket: 1, rating: 1, game: \"$game._id\", name: \"$game.name\", yearReleased: \"$game.yearReleased\" } }",
-            "{ $group: { _id: { ageBracket: \"$ageBracket\", game: \"$game\", name: \"$name\", yearReleased: \"$yearReleased\" }, averageRating: { $avg: \"$rating\" } } }",
+            "{ $group: { _id: { ageBracket: \"$ageBracket\", game: \"$game\", name: \"$name\", yearReleased: \"$yearReleased\" }, averageRating: { $avg: \"$rating\" }, totalReviews: { $sum: 1 } } }",
             "{ $sort: { \"_id.ageBracket\": 1, \"averageRating\": -1 } }",
-            "{ $group: { _id: \"$_id.ageBracket\", gameID: { $first: \"$_id.game\" }, name: { $first: \"$_id.name\" }, yearReleased: { $first: \"$_id.yearReleased\" }, bestAvgRating: { $first: \"$averageRating\" } } }",
+            "{ $group: { _id: \"$_id.ageBracket\", gameID: { $first: \"$_id.game\" }, name: { $first: \"$_id.name\" }, yearReleased: { $first: \"$_id.yearReleased\" }, bestAvgRating: { $first: \"$averageRating\" }, totalReviews: { $sum: \"$totalReviews\" } } }", // Somma il numero di recensioni totali
             "{ $sort: { \"_id\": 1 } }"
     })
     List<BestGameAgeDTO> findBestGameByAgeBrackets();
-    //aggiungere numero recensioni per fascia età
 
 }

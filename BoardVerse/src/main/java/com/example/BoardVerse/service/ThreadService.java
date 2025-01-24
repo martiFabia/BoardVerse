@@ -1,10 +1,7 @@
 package com.example.BoardVerse.service;
 
 
-import com.example.BoardVerse.DTO.Thread.MessageCreationDTO;
-import com.example.BoardVerse.DTO.Thread.ThreadCreationDTO;
-import com.example.BoardVerse.DTO.Thread.ThreadInfoDTO;
-import com.example.BoardVerse.DTO.Thread.ThreadPreviewDTO;
+import com.example.BoardVerse.DTO.Thread.*;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.model.MongoDB.ThreadMongo;
 import com.example.BoardVerse.model.MongoDB.User;
@@ -18,6 +15,7 @@ import com.example.BoardVerse.repository.UserMongoRepository;
 import com.example.BoardVerse.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -268,6 +266,28 @@ public class ThreadService {
         int messagesCount = thread.getMessages() != null ? thread.getMessages().size() : 0;
 
         return new ThreadInfoDTO(thread.getAuthorUsername(), thread.getPostDate(), thread.getContent(), thread.getTag(), thread.getGame(), thread.getLastPostDate(), thread.getMessages(), messagesCount);
+    }
+
+    public Slice<ThreadPreviewGameDTO> getThreadsByGame(String gameId,String sortBy, String order,int page) {
+
+        Sort sort;
+        if("creationDate".equalsIgnoreCase(sortBy)) {
+            sort = "asc".equalsIgnoreCase(order)
+                    ? Sort.by("postDate").ascending()
+                    : Sort.by("postDate").descending();
+        } else if ("messageCount".equalsIgnoreCase(sortBy)) {
+            sort = "asc".equalsIgnoreCase(order)
+                    ? Sort.by("messageCount").ascending()
+                    : Sort.by("messageCount").descending();
+        }
+        else {
+            sort = "asc".equalsIgnoreCase(order)
+                    ? Sort.by("lastPostDate").ascending()
+                    : Sort.by("lastPostDate").descending();
+        }
+
+        Pageable pageable = PageRequest.of(page, Constants.PAGE_SIZE, sort);
+        return threadRepository.findByGameId(gameId, pageable);
     }
 
 

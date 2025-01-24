@@ -6,6 +6,7 @@ import com.example.BoardVerse.DTO.User.UserUpdateDTO;
 import com.example.BoardVerse.repository.UserMongoRepository;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +32,7 @@ public class UserController {
 
     /* ================================ USERS CRUD ================================ */
 
-    //restitusice solo username ed email
+    @Operation(summary = "Browse users")
     @GetMapping("/browse")
     public ResponseEntity<Slice<UserDTO>> getUserByUsername( @RequestParam(defaultValue = "") String username,
                                                              @RequestParam(defaultValue = "0") int page) {
@@ -39,14 +40,14 @@ public class UserController {
         return ResponseEntity.ok(userDto);
     }
 
-    //restituisce tutti i dati dell'utente tranne la password
+    @Operation(summary = "Get user info")
     @GetMapping("/{username}")
     public ResponseEntity<UserInfoDTO> getUserInfoByUsername(@PathVariable String username) {
         UserInfoDTO userInfoDto = userService.getInfo(username);
         return ResponseEntity.ok(userInfoDto);
     }
 
-    //restituisce pagina profilo utente loggato
+    @Operation(summary = "Get user profile")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @GetMapping("/myProfile")
     public ResponseEntity<UserInfoDTO> getMyInfo() {
@@ -56,7 +57,7 @@ public class UserController {
         return ResponseEntity.ok(userInfoDto);
     }
 
-    //aggiorna i dati dell'utente
+    @Operation(summary = "Update user profile")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/myProfile")
     public ResponseEntity<UserInfoDTO> updateUser(@RequestBody @Validated UserUpdateDTO userUpdateDTO) {
@@ -68,7 +69,7 @@ public class UserController {
         return ResponseEntity.ok(updatedUser);
     }
 
-    //elimina l'utente loggato
+    @Operation(summary = "Delete user profile")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @DeleteMapping("/myProfile")
     public ResponseEntity<String> deleteUser() {
@@ -77,11 +78,5 @@ public class UserController {
         userService.deleteUser(user.getUsername());
         return ResponseEntity.ok("User deleted successfully");
     }
-
-
-
-
-
-
 
 }

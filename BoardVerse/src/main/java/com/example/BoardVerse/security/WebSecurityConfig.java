@@ -70,7 +70,7 @@ public class WebSecurityConfig {
                         // Consenti l'accesso agli endpoint Swagger
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         //.requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .anyRequest().permitAll() // Tutti gli altri endpoint richiedono l'autenticazione
+                        .anyRequest().permitAll()
                 );
 
         // Configura il provider di autenticazione e il filtro JWT

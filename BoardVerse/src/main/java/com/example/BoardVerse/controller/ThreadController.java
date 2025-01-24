@@ -1,12 +1,10 @@
 package com.example.BoardVerse.controller;
 
 
-import com.example.BoardVerse.DTO.Thread.MessageCreationDTO;
-import com.example.BoardVerse.DTO.Thread.ThreadCreationDTO;
-import com.example.BoardVerse.DTO.Thread.ThreadInfoDTO;
-import com.example.BoardVerse.DTO.Thread.ThreadPreviewDTO;
+import com.example.BoardVerse.DTO.Thread.*;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.ThreadService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Slice;
@@ -31,7 +29,8 @@ public class ThreadController {
 
     /* ================================ THREAD CRUD ================================ */
 
-    //aggiungi thread
+
+    @Operation(summary = "Add a new thread")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PostMapping("/{gameId}/thread/add")
         public ResponseEntity<String> addThread (@PathVariable String gameId, @Valid @RequestBody ThreadCreationDTO addThreadDTO)
@@ -48,7 +47,8 @@ public class ThreadController {
 
         }
 
-    //elimina thread
+
+    @Operation(summary = "Delete a thread")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @DeleteMapping("/{threadId}")
     public ResponseEntity<String> deleteThread(@PathVariable String threadId) {
@@ -63,7 +63,7 @@ public class ThreadController {
         }
     }
 
-    //aggiungi un messaggio
+    @Operation(summary = "Add a new message to a thread")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/{threadId}/messages/add")
     public ResponseEntity<String> addMessage(@PathVariable String threadId, @Valid @RequestBody MessageCreationDTO newMessageDTO) {
@@ -78,7 +78,7 @@ public class ThreadController {
         }
     }
 
-    //rispondi a un messaggio
+    @Operation(summary = "Reply to a message")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/{threadId}/messages/{messageId}/reply")
     public ResponseEntity<String> replyToMessage(
@@ -96,6 +96,7 @@ public class ThreadController {
         }
     }
 
+    @Operation(summary = "Edit a message")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/{threadId}/messages/{messageId}/edit")
     public ResponseEntity<String> editMessage(@PathVariable String threadId, @PathVariable String messageId, @Valid @RequestBody MessageCreationDTO editDTO) {
@@ -111,6 +112,7 @@ public class ThreadController {
     }
 
 
+    @Operation(summary = "Delete a message")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/{threadId}/messages/{messageId}/delete")
     public ResponseEntity<String> deleteMessage(@PathVariable String threadId, @PathVariable String messageId) {
@@ -125,6 +127,7 @@ public class ThreadController {
         }
     }
 
+    @Operation(summary = "Find threads by filter")
     @GetMapping("/filter")
     public ResponseEntity<Slice<ThreadPreviewDTO>> filterThreads(
             @RequestParam(required = false) String gameName,
@@ -140,8 +143,19 @@ public class ThreadController {
                 gameName,yearReleased,startPostDate,endPostDate,tag, sortBy, order, page));
     }
 
-    //restituisce il thread
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @Operation(summary = "Get game threads")
+    @GetMapping("/{gameId}/threads")
+    public ResponseEntity<Slice<ThreadPreviewGameDTO>> getThreadsByGame(
+            @PathVariable String gameId,
+            @RequestParam(defaultValue = "lastPostDate") String sortBy,
+            @RequestParam(defaultValue = "desc") String order,
+            @RequestParam(defaultValue = "0") int page
+    ) {
+        return ResponseEntity.ok(threadService.getThreadsByGame(gameId, sortBy, order, page));
+    }
+
+
+    @Operation(summary = "Get a thread")
     @GetMapping("/{threadId}/thread")
     public ResponseEntity<?> getThread(@PathVariable String threadId) {
         try {

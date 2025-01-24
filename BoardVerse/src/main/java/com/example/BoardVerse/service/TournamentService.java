@@ -40,12 +40,12 @@ public class TournamentService {
 
     }
 
-    public void addTournament (String gameId, String userId, AddTournDTO addTournDTO) {
+    public void addTournament (String gameId, String userIdMongo, AddTournDTO addTournDTO) {
         GameMongo game = gameMongoRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found with ID: " + gameId));
 
-        User userMongo = userMongoRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+        User userMongo = userMongoRepository.findById(userIdMongo)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userIdMongo));
 
         Tournament tournament = new Tournament();
         tournament.setId(UUID.randomUUID().toString());
@@ -65,24 +65,22 @@ public class TournamentService {
         if (addTournDTO.getVisibility() == VisibilityTournament.PUBLIC || addTournDTO.getVisibility() == VisibilityTournament.INVITE) {
             tournament.setAllowed(null);
         } else {
-            List<String> allowedUsernames = addTournDTO.getAllowed();
-            // Recupera dalla collection `user` gli ID corrispondenti agli username
-            List<User> users = userMongoRepository.findUsersByUsernames(allowedUsernames);
-            // Mappa gli ID degli utenti
-            List<String> allowedIds = users.stream()
-                    .map(User::getId) // Ottieni solo gli ID
+            List<String> allowed = addTournDTO.getAllowed(); // L'utente inserisce direttamente gli ID degli utenti
+
+            // Recupera dalla collection `user` solo gli ID che corrispondono agli utenti esistenti
+            List<String> existingIds = userMongoRepository.findUsersById(allowed);
+
+            // Trova gli ID che non esistono confrontandoli con la lista degli ID forniti
+            List<String> nonExistingIds = allowed.stream()
+                    .filter(userId -> existingIds.stream().noneMatch(existingId -> existingId.equals(userId)))
                     .collect(Collectors.toList());
 
-            // Trova gli username che non esistono
-            List<String> nonExistingUsernames = allowedUsernames.stream()
-                    .filter(username -> users.stream().noneMatch(user -> user.getUsername().equals(username)))
-                    .collect(Collectors.toList());
-
-            if (!nonExistingUsernames.isEmpty()) {
-                throw new NotFoundException("The following usernames do not exist: " + nonExistingUsernames);
+            // Se ci sono ID che non esistono, lancia un'eccezione
+            if (!nonExistingIds.isEmpty()) {
+                throw new NotFoundException("The following user IDs do not exist: " + nonExistingIds);
             }
 
-            tournament.setAllowed(allowedIds);
+            tournament.setAllowed(existingIds);
         }
 
         //Aumentare tournaments.created dell'user di uno
@@ -91,7 +89,7 @@ public class TournamentService {
         userMongoRepository.save(userMongo);
         tournamentMongoRepository.save(tournament);
 
-        //AGGIUNGERE ANCHE SU GRAPH
+        // TODO AGGIUNGERE ANCHE SU GRAPH
 
     }
 
@@ -113,7 +111,7 @@ public class TournamentService {
 
         userMongoRepository.save(user);
 
-        //RIMUOVERE ANCHE SU GRAPH
+        //TODO RIMUOVERE ANCHE SU GRAPH
     }
 
     public void updateTournament(String gameId, String tournamentId, String username, UpdateTournDTO updateTournDTO){
@@ -165,7 +163,7 @@ public class TournamentService {
 
         tournamentMongoRepository.save(tournament);
 
-        //MODIFICARE IL GRAFO
+        //TODO MODIFICARE IL GRAFO
     }
 
     public Slice<TournPreview> getTournaments(String gameId, String userId, int page) {

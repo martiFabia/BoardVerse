@@ -26,8 +26,8 @@ public interface UserMongoRepository extends MongoRepository<User, String> {
     Boolean existsByUsername(String username);
     Boolean existsByEmail(String email);
 
-    @Query(value = "{ 'username': { '$in': ?0 } }", fields = "{ '_id': 1, 'username': 1 }")
-    List<User> findUsersByUsernames(List<String> usernames);
+    @Query(value = "{ '_id': { '$in': ?0 } }", fields = "{ '_id': 1 }")
+    List<String> findUsersById(List<String> ids);
 
 
     @Query(value = "{ 'mostRecentReviews.game._id': ?0 }")

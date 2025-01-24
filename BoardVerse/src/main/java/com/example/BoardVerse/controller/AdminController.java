@@ -37,20 +37,22 @@ public class AdminController {
     }
 
     /*--------------------------------GAME CRUD ---------------------------------*/
-    // Endpoint per aggiungere un nuovo gioco
+
     @Operation(summary = "Add a new game")
     @PostMapping("/games")
     public ResponseEntity<String> addNewGame(@RequestBody @Valid GameCreationDTO gameCreationDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(gameService.addNewGame(gameCreationDTO));
     }
 
-    //modifica gioco
+
+    @Operation(summary = "Update a game")
     @PatchMapping("/games/{id}")
     public ResponseEntity<String> updateGame(@PathVariable String id, @RequestBody @Valid GameUpdateDTO gameUpdateDTO) {
         return ResponseEntity.status(HttpStatus.OK).body(gameService.updateGame(id, gameUpdateDTO));
     }
 
-    //elimina gioco
+
+    @Operation(summary = "Delete a game")
     @DeleteMapping("/games/{id}")
     public ResponseEntity<String> deleteGame(@PathVariable String id) {
         return ResponseEntity.status(HttpStatus.OK).body(gameService.deleteGame(id));
@@ -58,6 +60,7 @@ public class AdminController {
 
     /*--------------------------------USER ---------------------------------*/
 
+    @Operation(summary = "Delete a user")
     @DeleteMapping("/users/{username}")
     public ResponseEntity<String> deleteUserByAdmin(@PathVariable String username) {
         userService.deleteUser(username);
@@ -67,8 +70,7 @@ public class AdminController {
 
     /*--------------------------------ADMIN ANALYTICS ---------------------------------*/
 
-
-    // best giochi per fascia di età
+    @Operation(summary = "Get best games by age")
     @GetMapping("/analytics/bestGamesByAge")
     public ResponseEntity<?> bestGamesByAge() {
         try {
@@ -80,7 +82,7 @@ public class AdminController {
         }
     }
 
-    //utenti per location
+    @Operation(summary = "Get number of users by country")
     @GetMapping("/analytics/usersByLocation")
     public ResponseEntity<?> usersByLocation(@RequestParam(defaultValue = "0") int page) {
         try {
@@ -93,7 +95,7 @@ public class AdminController {
         }
     }
 
-    //registrazioni mensili utenti
+    @Operation(summary = "Get monthly registrations by year")
     @GetMapping("/analytics/monthlyRegistrations")
     public ResponseEntity<?> monthlyRegistrations(@RequestParam(required = false) Integer year) {
         try {

@@ -5,6 +5,7 @@ import com.example.BoardVerse.DTO.Review.AddReviewDTO;
 import com.example.BoardVerse.DTO.Review.ReviewInfo;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.ReviewService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Slice;
@@ -26,7 +27,7 @@ public class ReviewController {
 
     /* ================================ REVIEW CRUD ================================ */
 
-    //aggiungi review
+    @Operation(summary = "Add a new review")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PostMapping("/{gameId}/review")
     public ResponseEntity<String> addReview(@PathVariable String gameId, @Valid @RequestBody AddReviewDTO addReviewDTO) {
@@ -41,7 +42,7 @@ public class ReviewController {
         }
     }
 
-    //elimina review
+    @Operation(summary = "Delete a review")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @DeleteMapping("/{gameId}/review/{reviewId}")
     public ResponseEntity<String> deleteReview(@PathVariable String gameId, @PathVariable String reviewId) {
@@ -56,7 +57,7 @@ public class ReviewController {
         }
     }
 
-    //restituisce review del gioco
+    @Operation(summary = "Get game reviews")
     @GetMapping("/{gameId}/review")
     public ResponseEntity<?> getReview(@PathVariable String gameId,
                                        @RequestParam(defaultValue = "postDate") String sortBy, @RequestParam(defaultValue = "0") int page) {
@@ -70,7 +71,7 @@ public class ReviewController {
         }
     }
 
-    //aggiorna review
+    @Operation(summary = "Update a review")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/{gameId}/review/{reviewId}")
     public ResponseEntity<String> updateReview(@PathVariable String gameId, @PathVariable String reviewId, @Valid @RequestBody AddReviewDTO addReviewDTO) {

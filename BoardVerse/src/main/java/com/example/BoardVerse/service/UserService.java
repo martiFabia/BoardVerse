@@ -134,6 +134,8 @@ public class UserService {
         userMongoRepository.save(userMongo);
 
         return UserMapper.toInfoDTO(userMongo.get());
+
+        //TODO AGGIORNARE ANCHE SU GRAPH
     }
 
 
@@ -143,9 +145,10 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
         // Cancella l'utente
         userMongoRepository.delete(user);
-        //elimina recensioni
-        reviewRepository.deleteByAuthorUsername(username);
-        //CORREGGERE RATING NEL GIOCO
+
+        //nelle recensioni imposto autore a null
+        reviewRepository.updateUsernameInReviews(username, null);
+
 
         //Si aggiorna l'username dell'utente nei thread e nei messaggi e nelle risposte
         //impostandolo a null (l'utente è stato eliminato)

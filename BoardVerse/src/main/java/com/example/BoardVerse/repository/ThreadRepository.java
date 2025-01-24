@@ -1,6 +1,7 @@
 package com.example.BoardVerse.repository;
 
 import com.example.BoardVerse.DTO.Thread.ThreadPreviewDTO;
+import com.example.BoardVerse.DTO.Thread.ThreadPreviewGameDTO;
 import com.example.BoardVerse.model.MongoDB.ThreadMongo;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -67,6 +68,12 @@ public interface ThreadRepository extends MongoRepository<ThreadMongo, String> {
     @Query("{ 'messages.replyTo': { '$exists': true }, 'messages.replyTo.username': ?0 }")
     @Update("{ '$set': { 'messages.$[].replyTo.username': ?1 } }")
     void updateReplyToUsername(String username, String newUsername);
+
+
+    @Query(value = "{ 'game.id': ?0 }",
+            fields = "{ 'id': 1, 'tag': 1, 'lastPostDate': 1, " +
+                    "'authorUsername': 1, 'postDate': 1, 'content': 1, 'messageCount': 1 }")
+    Slice<ThreadPreviewGameDTO> findByGameId(String gameId, Pageable pageable);
 
 
 }

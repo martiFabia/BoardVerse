@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.List;
 
 public record UserInfoDTO (
+
+        String id,
     @NotBlank String username,
     @NotBlank String email,
     String firstName,
