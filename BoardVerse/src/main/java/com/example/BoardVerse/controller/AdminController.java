@@ -9,6 +9,7 @@ import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.AnalyticsService;
 import com.example.BoardVerse.service.GameService;
 import com.example.BoardVerse.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Slice;
@@ -37,13 +38,11 @@ public class AdminController {
 
     /*--------------------------------GAME CRUD ---------------------------------*/
     // Endpoint per aggiungere un nuovo gioco
+    @Operation(summary = "Add a new game")
     @PostMapping("/games")
-    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> addNewGame(@RequestBody @Valid GameCreationDTO gameCreationDTO) {
-
         return ResponseEntity.status(HttpStatus.CREATED).body(gameService.addNewGame(gameCreationDTO));
     }
-
 
     //modifica gioco
     @PatchMapping("/games/{id}")

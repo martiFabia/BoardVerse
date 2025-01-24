@@ -23,8 +23,6 @@ public interface TournamentMongoRepository extends MongoRepository<Tournament, S
     @Update("{ '$set': { 'winner': ?1 } }")
     void updateWinnerInTournaments(String oldUsername, String newUsername);
 
-    //void updateAllowedInTournaments(String oldUsername, String newUsername);
-
     @Query("{'game.id': ?0}")
     @Update("{ '$set': { 'game.name': ?1 } }")
     void updateGameNameInTournaments(String gameId, String gameName);
@@ -36,7 +34,6 @@ public interface TournamentMongoRepository extends MongoRepository<Tournament, S
 
     void deleteByAdministrator(String username);
     void deleteByGameId(String gameId);
-
 
 
     @Query(value = "{ '$or': [ { 'visibility': 'PUBLIC' }, { 'visibility': 'PRIVATE', 'allowed': ?1 } ], 'game._id': ?0 }",
@@ -69,7 +66,6 @@ public interface TournamentMongoRepository extends MongoRepository<Tournament, S
 
 
 
-    TournamentInfo findBy_id(String id, String userId);
 
 
 

@@ -64,7 +64,7 @@ public interface ThreadRepository extends MongoRepository<ThreadMongo, String> {
     @Update("{ '$set': { 'messages.$[].authorUsername': ?1 } }")
     void updateMessageAuthorUsername(String username, String newUsername);
 
-    @Query("{ 'messages.replyTo': { $exists: true } , 'messages.replyTo.username': ?0 }")
+    @Query("{ 'messages.replyTo': { '$exists': true }, 'messages.replyTo.username': ?0 }")
     @Update("{ '$set': { 'messages.$[].replyTo.username': ?1 } }")
     void updateReplyToUsername(String username, String newUsername);
 
