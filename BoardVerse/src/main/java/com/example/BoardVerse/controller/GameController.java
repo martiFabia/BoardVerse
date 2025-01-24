@@ -35,13 +35,16 @@ public class GameController {
 
     @Operation(summary = "Browse games")
     @GetMapping("/browse")
-    public ResponseEntity<Slice<GamePreviewDTO>> getGamesByName(@RequestParam(defaultValue = "") String gameName,
+    public ResponseEntity<?> getGamesByName(@RequestParam(defaultValue = "") String gameName,
                                                                   @RequestParam(defaultValue = "0") int page) {
-        Slice<GamePreviewDTO> games = gameService.findByName(gameName, page); // Trova i giochi per nome
-        if (games.isEmpty()) {
-            return ResponseEntity.notFound().build();  // Nessun gioco trovato
+        try {
+            return ResponseEntity.ok(gameService.findByName(gameName, page));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred: " + e.getMessage());
         }
-        return ResponseEntity.ok(games);  // Restituisci i giochi trovati
     }
 
 

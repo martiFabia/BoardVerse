@@ -46,16 +46,23 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
 
 
     @Aggregation(pipeline = {
-            "{ '$match': { 'rating': { '$ne': null } } }",
-            "{ '$match': { 'game._id': ?0 } }",
-            "{ '$project': { 'roundedRating': { '$round': ['$rating', 0] } } }",
-            "{ '$group': { '_id': '$roundedRating', 'count': { '$sum': 1 } } }",
-            "{ '$sort': { '_id': 1 } }",
-            "{ '$group': { " +
-                    "'_id': null, " +
-                    "'distribution': { '$push': { 'rating': '$_id', 'count': '$count' } }, " +
-                    "'avgRating': { '$avg': '$_id' }, " +
-                    "'stdDevRating': { '$stdDevPop': '$_id' } } }"
+            "{ '$match': { 'game._id': ?0, 'rating': { '$ne': null } } }", // Filtra per game._id e rating non null
+            "{ '$project': { 'rating': 1, 'roundedRating': { '$round': ['$rating', 0] } } }", // Mantieni rating e calcola roundedRating
+            "{ '$facet': { " +
+                    "'stats': [ " +
+                    "{ '$group': { '_id': null, 'avgRating': { '$avg': '$rating' }, 'stdDeviation': { '$stdDevPop': '$rating' } } } " +
+                    "], " +
+                    "'distribution': [ " +
+                    "{ '$group': { '_id': '$roundedRating', 'count': { '$sum': 1 } } }, " +
+                    "{ '$sort': { '_id': 1 } }, " +
+                    "{ '$project': { 'rating': '$_id', 'count': 1, '_id': 0 } } " +
+                    "] " +
+                    "} }",
+            "{ '$project': { " +
+                    "'avgRating': { '$arrayElemAt': ['$stats.avgRating', 0] }, " +
+                    "'stdDeviation': { '$arrayElemAt': ['$stats.stdDeviation', 0] }, " +
+                    "'distribution': '$distribution' " +
+                    "} }"
     })
     RatingDetails findRatingDetailsByGameId(String gameId);
 
@@ -108,5 +115,6 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
             "{ $sort: { \"_id\": 1 } }"
     })
     List<BestGameAgeDTO> findBestGameByAgeBrackets();
+    //TODO aggiungere num minimo recensioni per considerare un gioco
 
 }

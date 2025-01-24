@@ -6,7 +6,7 @@ import java.util.List;
 
 @Data
 public class RatingDetails {
-    private List<RatingDistribution> distribution;
     private Double avgRating;
-    private Double stdDevRating;
+    private Double stdDeviation;
+    private List<RatingDistribution> distribution;
 }

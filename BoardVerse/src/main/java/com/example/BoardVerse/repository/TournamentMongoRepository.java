@@ -65,9 +65,4 @@ public interface TournamentMongoRepository extends MongoRepository<Tournament, S
     List<MostPlayedGameDTO> findTop10GamesWithHighestAverageParticipation(Date startDate, Date endDate);
 
 
-
-
-
-
-
 }
