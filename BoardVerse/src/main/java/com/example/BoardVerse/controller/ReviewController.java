@@ -16,7 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/game/")
+@RequestMapping("/api/games/")
 @Tag(name = "Review", description = "Operations related to reviews")
 public class ReviewController {
     private final ReviewService reviewService;
@@ -29,7 +29,7 @@ public class ReviewController {
 
     @Operation(summary = "Add a new review")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    @PostMapping("/{gameId}/review")
+    @PostMapping("/{gameId}/reviews")
     public ResponseEntity<String> addReview(@PathVariable String gameId, @Valid @RequestBody AddReviewDTO addReviewDTO) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -44,7 +44,7 @@ public class ReviewController {
 
     @Operation(summary = "Delete a review")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    @DeleteMapping("/{gameId}/review/{reviewId}")
+    @DeleteMapping("/{gameId}/reviews/{reviewId}")
     public ResponseEntity<String> deleteReview(@PathVariable String gameId, @PathVariable String reviewId) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -58,7 +58,7 @@ public class ReviewController {
     }
 
     @Operation(summary = "Get game reviews")
-    @GetMapping("/{gameId}/review")
+    @GetMapping("/{gameId}/reviews")
     public ResponseEntity<?> getReview(@PathVariable String gameId,
                                        @RequestParam(defaultValue = "postDate") String sortBy, @RequestParam(defaultValue = "0") int page) {
         try {
@@ -73,7 +73,7 @@ public class ReviewController {
 
     @Operation(summary = "Update a review")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    @PatchMapping("/{gameId}/review/{reviewId}")
+    @PatchMapping("/{gameId}/reviews/{reviewId}")
     public ResponseEntity<String> updateReview(@PathVariable String gameId, @PathVariable String reviewId, @Valid @RequestBody AddReviewDTO addReviewDTO) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

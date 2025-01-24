@@ -15,7 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/game/")
+@RequestMapping("/api/games/")
 @Tag(name = "Tournament", description = "Operations related to tournaments")
 public class TournamentController {
 
@@ -90,7 +90,7 @@ public class TournamentController {
     @Operation(summary = "Get tournament detail")
     @GetMapping("/tournaments/{tournamentId}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<?> getTournament(@PathVariable String tournamentId) {
+    public ResponseEntity<?> getTournament(@PathVariable String gameId, @PathVariable String tournamentId) {
         try {
             return ResponseEntity.ok(tournamentService.getTournament(tournamentId));
         } catch (IllegalArgumentException e) {

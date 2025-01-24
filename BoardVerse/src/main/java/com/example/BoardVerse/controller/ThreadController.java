@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Date;
 
 @RestController
-@RequestMapping("/api/thread")
+@RequestMapping("/api")
 @Tag(name = "Thread", description = "Operations related to threads")
 public class ThreadController {
     private final ThreadService threadService;
@@ -32,7 +32,7 @@ public class ThreadController {
 
     @Operation(summary = "Add a new thread")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    @PostMapping("/{gameId}/thread/add")
+    @PostMapping("/games/{gameId}/threads")
         public ResponseEntity<String> addThread (@PathVariable String gameId, @Valid @RequestBody ThreadCreationDTO addThreadDTO)
         {
             try {
@@ -50,7 +50,7 @@ public class ThreadController {
 
     @Operation(summary = "Delete a thread")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    @DeleteMapping("/{threadId}")
+    @DeleteMapping("threads/{threadId}")
     public ResponseEntity<String> deleteThread(@PathVariable String threadId) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -65,7 +65,7 @@ public class ThreadController {
 
     @Operation(summary = "Add a new message to a thread")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    @PatchMapping("/{threadId}/messages/add")
+    @PatchMapping("/threads/{threadId}/messages")
     public ResponseEntity<String> addMessage(@PathVariable String threadId, @Valid @RequestBody MessageCreationDTO newMessageDTO) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -80,7 +80,7 @@ public class ThreadController {
 
     @Operation(summary = "Reply to a message")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    @PatchMapping("/{threadId}/messages/{messageId}/reply")
+    @PatchMapping("/threads/{threadId}/messages/{messageId}/reply")
     public ResponseEntity<String> replyToMessage(
             @PathVariable String threadId,
             @PathVariable String messageId,
@@ -98,7 +98,7 @@ public class ThreadController {
 
     @Operation(summary = "Edit a message")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    @PatchMapping("/{threadId}/messages/{messageId}/edit")
+    @PatchMapping("/threads/{threadId}/messages/{messageId}/edit")
     public ResponseEntity<String> editMessage(@PathVariable String threadId, @PathVariable String messageId, @Valid @RequestBody MessageCreationDTO editDTO) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -114,7 +114,7 @@ public class ThreadController {
 
     @Operation(summary = "Delete a message")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    @PatchMapping("/{threadId}/messages/{messageId}/delete")
+    @PatchMapping("/threads/{threadId}/messages/{messageId}/delete")
     public ResponseEntity<String> deleteMessage(@PathVariable String threadId, @PathVariable String messageId) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -128,7 +128,7 @@ public class ThreadController {
     }
 
     @Operation(summary = "Find threads by filter")
-    @GetMapping("/filter")
+    @GetMapping("/threads/filter")
     public ResponseEntity<Slice<ThreadPreviewDTO>> filterThreads(
             @RequestParam(required = false) String gameName,
             @RequestParam(required = false) Integer yearReleased,
@@ -144,7 +144,7 @@ public class ThreadController {
     }
 
     @Operation(summary = "Get game threads")
-    @GetMapping("/{gameId}/threads")
+    @GetMapping("/games/{gameId}/threads")
     public ResponseEntity<Slice<ThreadPreviewGameDTO>> getThreadsByGame(
             @PathVariable String gameId,
             @RequestParam(defaultValue = "lastPostDate") String sortBy,
@@ -156,7 +156,7 @@ public class ThreadController {
 
 
     @Operation(summary = "Get a thread")
-    @GetMapping("/{threadId}/thread")
+    @GetMapping("/threads/{threadId}")
     public ResponseEntity<?> getThread(@PathVariable String threadId) {
         try {
             return ResponseEntity.ok(threadService.getThread(threadId));
