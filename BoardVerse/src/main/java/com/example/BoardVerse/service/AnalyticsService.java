@@ -10,6 +10,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Service
@@ -27,11 +28,19 @@ public class AnalyticsService {
     }
 
     public List<MonthlyReg> monthlyRegistrations(Integer year) {
-        if(year == null){
-            //current year
+        if (year == null) {
             year = LocalDate.now().getYear();
         }
 
-        return userMongoRepository.monthlyRegistrations(year);
+        // Inizio e fine dell'anno specificato
+        LocalDate startDate = LocalDate.of(year, 1, 1);
+        LocalDate endDate = LocalDate.of(year + 1, 1, 1);
+
+        // Passa i valori al repository
+        return userMongoRepository.monthlyRegistrations(
+                startDate.atStartOfDay().toInstant(ZoneOffset.UTC), // Converti in Instant
+                endDate.atStartOfDay().toInstant(ZoneOffset.UTC)    // Converti in Instant
+        );
     }
+
 }

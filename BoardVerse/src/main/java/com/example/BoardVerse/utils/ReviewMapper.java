@@ -10,8 +10,4 @@ public class ReviewMapper {
         return new ReviewUser(review.getId(),review.getPostDate(), review.getGame(), review.getRating(), review.getContent() );
     }
 
-    public static ReviewInfo toInfo(Review review) {
-        return new ReviewInfo(review.getId(), review.getAuthorUsername(), review.getRating(), review.getContent(), review.getPostDate());
-    }
-
 }

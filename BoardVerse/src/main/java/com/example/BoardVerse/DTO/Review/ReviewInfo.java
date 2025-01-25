@@ -6,7 +6,7 @@ public record ReviewInfo(
         String id,
         String authorUsername,
         Double rating,
-        String comment,
-        Date createdAt
+        String content,
+        Date postDate
 ) {
 }

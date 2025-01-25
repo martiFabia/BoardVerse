@@ -3,6 +3,7 @@ package com.example.BoardVerse.repository;
 import com.example.BoardVerse.DTO.Game.BestGameAgeDTO;
 import com.example.BoardVerse.DTO.Game.GamePreviewDTO;
 import com.example.BoardVerse.DTO.Game.RatingDetails;
+import com.example.BoardVerse.DTO.Review.ReviewInfo;
 import com.example.BoardVerse.model.MongoDB.Review;
 import com.mongodb.lang.Nullable;
 import org.springframework.data.domain.Pageable;
@@ -20,7 +21,10 @@ import java.util.Optional;
 
 public interface ReviewRepository extends MongoRepository<Review, String> {
     // Trova tutte le recensioni di un gioco
-    Slice<Review> findByGameId(String gameId, Pageable pageable);
+    @Query(value = "{ 'game.id': ?0 }",
+            fields = "{ 'id': 1, 'authorUsername': 1, 'rating': 1, 'content': 1, 'postDate': 1 }")
+    Slice<ReviewInfo> findByGameId(String gameId, Pageable pageable);
+
 
     void deleteByGameId(String gameId);
 
@@ -115,6 +119,5 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
             "{ $sort: { \"_id\": 1 } }"
     })
     List<BestGameAgeDTO> findBestGameByAgeBrackets();
-    //TODO aggiungere num minimo recensioni per considerare un gioco
 
 }

@@ -11,6 +11,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.Update;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,11 +57,12 @@ public interface UserMongoRepository extends MongoRepository<User, String> {
 
 
     @Aggregation(pipeline = {
-            "{ '$match': { '$expr': { '$eq': [ { '$year': '$registeredDate' }, ?0 ] } } }",
-            "{ '$group': { '_id': { '$month': '$registeredDate' }, 'registrations': { '$sum': 1 } } }",
+            "{ '$match': { 'registeredDate': { '$gte': ?0, '$lt': ?1 } } }",
+            "{ '$group': { '_id': { '$month': '$registeredDate'  }, 'registrations': { '$sum': 1 } } }",
             "{ '$sort': { '_id': 1 } }"
     })
-    List<MonthlyReg> monthlyRegistrations(Integer year);
+    List<MonthlyReg> monthlyRegistrations(Instant startDate, Instant endDate);
+
 
 
 

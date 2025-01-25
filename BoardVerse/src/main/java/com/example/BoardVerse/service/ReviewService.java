@@ -190,8 +190,7 @@ public class ReviewService {
         }
 
         Pageable pageable = PageRequest.of(page, Constants.PAGE_SIZE, sort);
-        return reviewRepository.findByGameId(gameId, pageable)
-                .map(elem -> new ReviewInfo(elem.getId(), elem.getAuthorUsername(), elem.getRating(), elem.getContent(), elem.getPostDate()));
+        return reviewRepository.findByGameId(gameId, pageable);
 
     }
 

@@ -39,9 +39,11 @@ public class GameService {
 
     // Operazione di creazione
     public String addNewGame(GameCreationDTO newGameDTO) {
+
         if (gameMongoRepository.findByNameAndYearReleased(newGameDTO.getName(), newGameDTO.getYearReleased()).isPresent()) {
             throw new NotFoundException("Game " + newGameDTO.getName() + " released in " + newGameDTO.getYearReleased() + " already exists");
         }
+
         GameMongo newGameMongo = mapDTOToGameMongo(newGameDTO);
         gameMongoRepository.save(newGameMongo);
         return "Game " + newGameMongo.getName() + " released in " + newGameDTO.getYearReleased() + " added successfully";

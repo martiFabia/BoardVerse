@@ -72,7 +72,7 @@ public interface ThreadRepository extends MongoRepository<ThreadMongo, String> {
 
     @Query(value = "{ 'game.id': ?0 }",
             fields = "{ 'id': 1, 'tag': 1, 'lastPostDate': 1, " +
-                    "'authorUsername': 1, 'postDate': 1, 'content': 1, 'messageCount': 1 }")
+                    "'authorUsername': 1, 'postDate': 1, 'content': 1, 'messageCount': { $size: '$messages' } }")
     Slice<ThreadPreviewGameDTO> findByGameId(String gameId, Pageable pageable);
 
 
