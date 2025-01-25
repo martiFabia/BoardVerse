@@ -1,10 +1,15 @@
 package com.example.BoardVerse.controller;
 
+import com.example.BoardVerse.DTO.Review.ReviewUserDTO;
 import com.example.BoardVerse.DTO.User.UserDTO;
 import com.example.BoardVerse.DTO.User.UserInfoDTO;
 import com.example.BoardVerse.DTO.User.UserUpdateDTO;
+import com.example.BoardVerse.model.MongoDB.Review;
+import com.example.BoardVerse.model.MongoDB.subentities.ReviewUser;
+import com.example.BoardVerse.repository.ReviewRepository;
 import com.example.BoardVerse.repository.UserMongoRepository;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
+import com.example.BoardVerse.service.ReviewService;
 import com.example.BoardVerse.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,11 +28,9 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
-    private final UserMongoRepository userMongoRepository;
 
     public UserController(UserService userService, UserMongoRepository userMongoRepository) {
         this.userService = userService;
-        this.userMongoRepository = userMongoRepository;
     }
 
     /* ================================ USERS CRUD ================================ */
@@ -77,6 +80,15 @@ public class UserController {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         userService.deleteUser(user.getUsername());
         return ResponseEntity.ok("User deleted successfully");
+    }
+
+    @Operation(summary = "Get user reviews")
+    @GetMapping("/myProfile/reviews")
+    public ResponseEntity<?> getMyReviews(@RequestParam(defaultValue = "0") int page) {
+        //utente loggato
+        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Slice<ReviewUserDTO> reviews = userService.getReviews(user.getUsername(), page);
+        return ResponseEntity.ok(reviews);
     }
 
 }

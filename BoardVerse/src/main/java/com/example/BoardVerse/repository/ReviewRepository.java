@@ -4,8 +4,8 @@ import com.example.BoardVerse.DTO.Game.BestGameAgeDTO;
 import com.example.BoardVerse.DTO.Game.GamePreviewDTO;
 import com.example.BoardVerse.DTO.Game.RatingDetails;
 import com.example.BoardVerse.DTO.Review.ReviewInfo;
+import com.example.BoardVerse.DTO.Review.ReviewUserDTO;
 import com.example.BoardVerse.model.MongoDB.Review;
-import com.mongodb.lang.Nullable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.mongodb.repository.Aggregation;
@@ -24,6 +24,20 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
     @Query(value = "{ 'game.id': ?0 }",
             fields = "{ 'id': 1, 'authorUsername': 1, 'rating': 1, 'content': 1, 'postDate': 1 }")
     Slice<ReviewInfo> findByGameId(String gameId, Pageable pageable);
+
+    @Aggregation(pipeline = {
+            "{ $match: { 'authorUsername': ?0 } }",
+            "{ $sort: { 'postDate': -1 } }",
+            "{ $project: { " +
+                    "id: 1, " +
+                    "game: '$game.name', " +
+                    "yearReleased: '$game.yearReleased', " +
+                    "rating: 1, " +
+                    "content: 1, " +
+                    "postDate: 1 " +
+                    "} }"
+    })
+    Slice<ReviewUserDTO> findByAuthorUsername(String username, Pageable pageable);
 
 
     void deleteByGameId(String gameId);

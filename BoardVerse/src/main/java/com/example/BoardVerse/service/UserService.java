@@ -1,6 +1,7 @@
 package com.example.BoardVerse.service;
 
 
+import com.example.BoardVerse.DTO.Review.ReviewUserDTO;
 import com.example.BoardVerse.DTO.User.UserDTO;
 import com.example.BoardVerse.DTO.User.UserInfoDTO;
 import com.example.BoardVerse.DTO.User.UserUpdateDTO;
@@ -164,5 +165,11 @@ public class UserService {
         //ELIMINARE UTENTE DAL GRAPH (E TUTTE LE RELAZIONI)
 
 
+    }
+
+    public Slice<ReviewUserDTO> getReviews(String username, int page) {
+        // Trova le recensioni dell'utente
+        Pageable pageable = PageRequest.of(page, Constants.PAGE_SIZE);
+        return reviewRepository.findByAuthorUsername(username, pageable);
     }
 }
