@@ -2,11 +2,11 @@ package com.example.BoardVerse.service;
 
 import com.example.BoardVerse.DTO.Review.AddReviewDTO;
 import com.example.BoardVerse.DTO.Review.ReviewInfo;
+import com.example.BoardVerse.model.MongoDB.ReviewMongo;
+import com.example.BoardVerse.model.MongoDB.UserMongo;
 import com.example.BoardVerse.model.MongoDB.subentities.ReviewUser;
 import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
-import com.example.BoardVerse.model.MongoDB.Review;
-import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.model.MongoDB.subentities.GameReview;
 import com.example.BoardVerse.model.MongoDB.subentities.Role;
 import com.example.BoardVerse.repository.GameMongoRepository;
@@ -61,62 +61,62 @@ public class ReviewService {
         GameMongo game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found with username: " + userId));
+        UserMongo userMongo = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("UserMongo not found with username: " + userId));
 
-        // Create the review
-        Review review = new Review();
-        review.setAuthorUsername(user.getUsername());
-        review.setAuthorBirthDate(user.getBirthDate());
-        review.setLocation(user.getLocation());
-        review.setGame(new GameReview(game.getId(), game.getName(), game.getYearReleased(), game.getShortDescription()));
-        review.setContent(addReviewDTO.getComment());
-        review.setRating(addReviewDTO.getRating());
-        review.setPostDate(new Date()); // Set the current date
+        // Create the reviewMongo
+        ReviewMongo reviewMongo = new ReviewMongo();
+        reviewMongo.setAuthorUsername(userMongo.getUsername());
+        reviewMongo.setAuthorBirthDate(userMongo.getBirthDate());
+        reviewMongo.setLocation(userMongo.getLocation());
+        reviewMongo.setGame(new GameReview(game.getId(), game.getName(), game.getYearReleased(), game.getShortDescription()));
+        reviewMongo.setContent(addReviewDTO.getComment());
+        reviewMongo.setRating(addReviewDTO.getRating());
+        reviewMongo.setPostDate(new Date()); // Set the current date
 
-        // Save the review in the Review collection
+        // Save the reviewMongo in the ReviewMongo collection
         try {
-            reviewRepository.save(review);
+            reviewRepository.save(reviewMongo);
         } catch (Exception e) {
-            throw new IllegalStateException("Error saving the review: " + e.getMessage(), e);
+            throw new IllegalStateException("Error saving the reviewMongo: " + e.getMessage(), e);
         }
 
-        ReviewUser reviewUser = ReviewMapper.toUser(review);
+        ReviewUser reviewUser = ReviewMapper.toUser(reviewMongo);
 
         // Add the rating to the game if present
         try {
-            // Check if the review's rating field is not empty (null)
-            if (review.getRating() != null) {
-                addRating(game, review.getRating());
+            // Check if the reviewMongo's rating field is not empty (null)
+            if (reviewMongo.getRating() != null) {
+                addRating(game, reviewMongo.getRating());
             }
         } catch (Exception e) {
-            // Rollback: delete the saved review
-            reviewRepository.deleteById(review.getId());
-            throw new IllegalStateException("Error adding review to the game: " + e.getMessage(), e);
+            // Rollback: delete the saved reviewMongo
+            reviewRepository.deleteById(reviewMongo.getId());
+            throw new IllegalStateException("Error adding reviewMongo to the game: " + e.getMessage(), e);
         }
 
-        // Add the review to the user
+        // Add the reviewMongo to the userMongo
         try {
-            addReviewUser(user, reviewUser);
+            addReviewUser(userMongo, reviewUser);
         } catch (Exception e) {
-            // Rollback: delete the review and remove it from the game
-            reviewRepository.deleteById(review.getId());
-            removeRating(game, review.getRating());
-            throw new IllegalStateException("Error adding review to the user: " + e.getMessage(), e);
+            // Rollback: delete the reviewMongo and remove it from the game
+            reviewRepository.deleteById(reviewMongo.getId());
+            removeRating(game, reviewMongo.getRating());
+            throw new IllegalStateException("Error adding reviewMongo to the userMongo: " + e.getMessage(), e);
         }
 
-        return "Review successfully added!";
+        return "ReviewMongo successfully added!";
     }
 
     /**
-     * Adds a review to the user's most recent reviews.
+     * Adds a review to the userMongo's most recent reviews.
      *
-     * @param user the user
+     * @param userMongo the userMongo
      * @param review the review
      */
-    public void addReviewUser(User user, ReviewUser review) {
+    public void addReviewUser(UserMongo userMongo, ReviewUser review) {
         // Get the list of recent reviews
-        List<ReviewUser> list = user.getMostRecentReviews();
+        List<ReviewUser> list = userMongo.getMostRecentReviews();
         // Add the new review to the top of the list
         list.add(0, review);
         // Limit the list to the maximum size defined by Constants.RECENT_SIZE
@@ -124,9 +124,9 @@ public class ReviewService {
             list.remove(list.size() - 1);
         }
 
-        user.setMostRecentReviews(list);
-        // Save the updated user in the database
-        userRepository.save(user);
+        userMongo.setMostRecentReviews(list);
+        // Save the updated userMongo in the database
+        userRepository.save(userMongo);
     }
 
     /**
@@ -180,42 +180,42 @@ public class ReviewService {
         GameMongo game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new NotFoundException("Review not found with ID: " + reviewId));
+        ReviewMongo reviewMongo = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new NotFoundException("ReviewMongo not found with ID: " + reviewId));
 
-        User user = userRepository.findByUsername(review.getAuthorUsername())
-                .orElseThrow(() -> new NotFoundException("User not found with username: " + review.getAuthorUsername()));
+        UserMongo userMongo = userRepository.findByUsername(reviewMongo.getAuthorUsername())
+                .orElseThrow(() -> new NotFoundException("UserMongo not found with username: " + reviewMongo.getAuthorUsername()));
 
-        // Check if the user is the author of the review or an admin
-        if(!username.equals(review.getAuthorUsername()) || !user.getRole().equals(Role.ROLE_ADMIN)) {
+        // Check if the userMongo is the author of the reviewMongo or an admin
+        if(!username.equals(reviewMongo.getAuthorUsername()) || !userMongo.getRole().equals(Role.ROLE_ADMIN)) {
             throw new AccessDeniedException("You can delete only your reviews");
         }
-        // Delete the review from reviews
-        reviewRepository.delete(review);
+        // Delete the reviewMongo from reviews
+        reviewRepository.delete(reviewMongo);
 
         // Remove the rating from the game
-        if(review.getRating() != null) {
-            removeRating(game, review.getRating());
+        if(reviewMongo.getRating() != null) {
+            removeRating(game, reviewMongo.getRating());
         }
 
-        // Remove the review from the user
-        List<ReviewUser> list= user.getMostRecentReviews();
-        // Remove review from the list
+        // Remove the reviewMongo from the userMongo
+        List<ReviewUser> list= userMongo.getMostRecentReviews();
+        // Remove reviewMongo from the list
         list.removeIf(reviewUser -> reviewUser.id().equals(reviewId));
 
-        // If the list has less than 3 items, add the next most recent review
+        // If the list has less than 3 items, add the next most recent reviewMongo
         if (list.size() < Constants.RECENT_SIZE) {
-            Review nextRecentReviewForUser = reviewRepository.findFirstByAuthorUsernameOrderByPostDateDesc(review.getAuthorUsername())
+            ReviewMongo nextRecentReviewForUserMongo = reviewRepository.findFirstByAuthorUsernameOrderByPostDateDesc(reviewMongo.getAuthorUsername())
                     .orElse(null);
-            if (nextRecentReviewForUser != null) {
-                ReviewUser mappnextRecentReviewUser =ReviewMapper.toUser(nextRecentReviewForUser);
+            if (nextRecentReviewForUserMongo != null) {
+                ReviewUser mappnextRecentReviewUser =ReviewMapper.toUser(nextRecentReviewForUserMongo);
                 list.add(mappnextRecentReviewUser);
             }
         }
-        user.setMostRecentReviews(list);
-        userRepository.save(user);
+        userMongo.setMostRecentReviews(list);
+        userRepository.save(userMongo);
 
-        return "Review successfully deleted!";
+        return "ReviewMongo successfully deleted!";
     }
 
     /**
@@ -251,30 +251,30 @@ public class ReviewService {
      * @param addReviewDTO the review update DTO
      */
     public String updateReview(String gameId, String username, String reviewId, AddReviewDTO addReviewDTO) {
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new NotFoundException("Review not found with ID: " + reviewId));
+        ReviewMongo reviewMongo = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new NotFoundException("ReviewMongo not found with ID: " + reviewId));
 
-        // Check if the user is the author of the review
-        if(!username.equals(review.getAuthorUsername())) {
+        // Check if the user is the author of the reviewMongo
+        if(!username.equals(reviewMongo.getAuthorUsername())) {
             throw new AccessDeniedException("You can update only your reviews");
         }
 
-        // Update the review
+        // Update the reviewMongo
         if(addReviewDTO.getComment() != null){
-            review.setContent(addReviewDTO.getComment());
+            reviewMongo.setContent(addReviewDTO.getComment());
         }
         if(addReviewDTO.getRating() != null){
             GameMongo game = gameRepository.findById(gameId)
                     .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
             // Remove the old rating from the game
-            removeRating(game, review.getRating());
+            removeRating(game, reviewMongo.getRating());
             // Add the new rating to the game
             addRating(game, addReviewDTO.getRating());
-            // Update the review's rating
-            review.setRating(addReviewDTO.getRating());
+            // Update the reviewMongo's rating
+            reviewMongo.setRating(addReviewDTO.getRating());
         }
 
-        reviewRepository.save(review);
-        return "Review successfully updated!";
+        reviewRepository.save(reviewMongo);
+        return "ReviewMongo successfully updated!";
     }
 }

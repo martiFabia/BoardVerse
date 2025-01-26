@@ -12,19 +12,19 @@ import java.util.List;
 public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo4j, String> {
 
     /**
-     * Creates a tournament.
+     * Creates a tournamentMongo.
      *
-     * @param username the username of the user creating the tournament
-     * @param tournamentId the ID of the tournament
-     * @param name the name of the tournament
-     * @param visibility the visibility of the tournament
-     * @param maxParticipants the maximum number of participants in the tournament
-     * @param startingTime the starting time of the tournament
-     * @param gameId the ID of the game related to the tournament
+     * @param username the username of the userMongo creating the tournamentMongo
+     * @param tournamentId the ID of the tournamentMongo
+     * @param name the name of the tournamentMongo
+     * @param visibility the visibility of the tournamentMongo
+     * @param maxParticipants the maximum number of participants in the tournamentMongo
+     * @param startingTime the starting time of the tournamentMongo
+     * @param gameId the ID of the game related to the tournamentMongo
      */
-    @Query("MATCH (u:User {username: $username}) " +
+    @Query("MATCH (u:UserMongo {username: $username}) " +
             "MATCH (g:Game {_id: $gameId}) " +
-            "MERGE (t:Tournament {_id: $tournamentId}) " +
+            "MERGE (t:TournamentMongo {_id: $tournamentId}) " +
             "ON CREATE SET t.name = $name, " +
             "              t.visibility = $visibility, " +
             "              t.maxParticipants = $maxParticipants, " +
@@ -35,17 +35,17 @@ public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo
     void save(String username, String tournamentId, String name, String visibility, int maxParticipants, String startingTime, String gameId);
 
     /**
-     * Updates  a tournament.
+     * Updates  a tournamentMongo.
      *
-     * @param tournamentId the ID of the tournament
-     * @param newName the new name of the tournament
-     * @param newVisibility the new visibility of the tournament
-     * @param newMaxParticipants the new maximum number of participants in the tournament
-     * @param newStartingTime the new starting time of the tournament
-     * @return true if the tournament was updated, false otherwise
+     * @param tournamentId the ID of the tournamentMongo
+     * @param newName the new name of the tournamentMongo
+     * @param newVisibility the new visibility of the tournamentMongo
+     * @param newMaxParticipants the new maximum number of participants in the tournamentMongo
+     * @param newStartingTime the new starting time of the tournamentMongo
+     * @return true if the tournamentMongo was updated, false otherwise
      */
     @Query(
-            "MATCH (t:Tournament {id: $tournamentId}) " +
+            "MATCH (t:TournamentMongo {id: $tournamentId}) " +
                     "WHERE t.startingTime > datetime() " +
                     "SET t.name = $newName, " +
                     "    t.visibility = $newVisibility, " +
@@ -56,12 +56,12 @@ public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo
     boolean updateTournament(String tournamentId, String newName, String newVisibility, int newMaxParticipants, String newStartingTime);
 
     /**
-     * Removes a tournament.
+     * Removes a tournamentMongo.
      *
-     * @param tournamentId the ID of the tournament to be removed
-     * @return true if the tournament was removed, false otherwise
+     * @param tournamentId the ID of the tournamentMongo to be removed
+     * @return true if the tournamentMongo was removed, false otherwise
      */
-    @Query("MATCH (t:Tournament {id: $tournamentId}) " +
+    @Query("MATCH (t:TournamentMongo {id: $tournamentId}) " +
             "DETACH DELETE t " +
             "RETURN count(t) > 0"
     )
@@ -69,17 +69,17 @@ public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo
 
 
     @Query("""
-            MATCH (tournament:Tournament {_id: $tournamentId})<-[p:PARTICIPATES]-(user:User)
+            MATCH (tournamentMongo:TournamentMongo {_id: $tournamentId})<-[p:PARTICIPATES]-(userMongo:UserMongo)
             RETURN
-              user.username AS username,
+              userMongo.username AS username,
               p.timestamp AS registrationTime
             ORDER BY
               CASE $sortBy
                 WHEN 'registrationTime' THEN p.timestamp
-                WHEN 'username' THEN user.username
+                WHEN 'username' THEN userMongo.username
               END ASC
             RETURN
-              user.username AS username,
+              userMongo.username AS username,
               p.timestamp AS registrationTime
     """)
     List<TournamentParticipantDTO> getParticipants(String tournamentId, String sortBy);
@@ -88,34 +88,34 @@ public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo
     /*====================================== ANALYTICS ======================================*/
 
     /**
-     * Returns the difficulty of a tournament.
+     * Returns the difficulty of a tournamentMongo.
      *
-     * @param tournamentId the ID of the tournament
-     * @return the number of participants in the tournament
+     * @param tournamentId the ID of the tournamentMongo
+     * @return the number of participants in the tournamentMongo
      */
     @Query("""
-        MATCH (tournament:Tournament {_id: "$tournamentId})<-[:PARTICIPATES]-(participant:User)
-        OPTIONAL MATCH (participant)-[:WON]->(wonTournament:Tournament)
-        WITH tournament, participant, COUNT(wonTournament) AS wonCount
-        OPTIONAL MATCH (participant)-[:PARTICIPATES]->(participatedTournament:Tournament)
-        WITH tournament, participant, wonCount, COUNT(participatedTournament) AS totalCount
-        WITH tournament, participant,
+        MATCH (tournamentMongo:TournamentMongo {_id: "$tournamentId})<-[:PARTICIPATES]-(participant:UserMongo)
+        OPTIONAL MATCH (participant)-[:WON]->(wonTournament:TournamentMongo)
+        WITH tournamentMongo, participant, COUNT(wonTournament) AS wonCount
+        OPTIONAL MATCH (participant)-[:PARTICIPATES]->(participatedTournament:TournamentMongo)
+        WITH tournamentMongo, participant, wonCount, COUNT(participatedTournament) AS totalCount
+        WITH tournamentMongo, participant,
              CASE WHEN totalCount > 0 THEN (1.0 * wonCount / totalCount) ELSE 0 END AS winPercentage
         RETURN
-          tournament._id AS tournamentId,
-          tournament.name AS tournamentName,
+          tournamentMongo._id AS tournamentId,
+          tournamentMongo.name AS tournamentName,
           AVG(winPercentage) AS competitionDifficulty
     """)
     double tournamentDifficulty(String tournamentId);
 
     @Query("""
-            MATCH (tournament:Tournament {_id: "03ef4779-92f9-4ea6-9e69-245f068d1860"})<-[:PARTICIPATES]-(participant:User)
-            OPTIONAL MATCH (participant)-[:FOLLOWS]->(otherParticipant:User)
-            WHERE (otherParticipant)-[:PARTICIPATES]->(tournament)
-            WITH tournament, COUNT(otherParticipant) AS followCount, COLLECT(DISTINCT participant) AS participants
-            WITH tournament, followCount, size(participants) AS participantCount,
+            MATCH (tournamentMongo:TournamentMongo {_id: "03ef4779-92f9-4ea6-9e69-245f068d1860"})<-[:PARTICIPATES]-(participant:UserMongo)
+            OPTIONAL MATCH (participant)-[:FOLLOWS]->(otherParticipant:UserMongo)
+            WHERE (otherParticipant)-[:PARTICIPATES]->(tournamentMongo)
+            WITH tournamentMongo, COUNT(otherParticipant) AS followCount, COLLECT(DISTINCT participant) AS participants
+            WITH tournamentMongo, followCount, size(participants) AS participantCount,
                  (size(participants) * (size(participants) - 1)) AS maxPossibleFollows
-            WITH tournament, followCount, participantCount, maxPossibleFollows,
+            WITH tournamentMongo, followCount, participantCount, maxPossibleFollows,
                  CASE WHEN maxPossibleFollows > 0 THEN (1.0 * followCount / maxPossibleFollows) ELSE 0 END AS compactness
             RETURN
               compactness

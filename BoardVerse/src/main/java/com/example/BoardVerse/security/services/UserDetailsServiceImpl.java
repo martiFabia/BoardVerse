@@ -11,7 +11,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.BoardVerse.model.MongoDB.User;
+import com.example.BoardVerse.model.MongoDB.UserMongo;
 import com.example.BoardVerse.repository.UserMongoRepository;
 
 @Service
@@ -22,20 +22,20 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userMongoRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
+        UserMongo userMongo = userMongoRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("UserMongo Not Found with username: " + username));
 
-        return UserDetailsImpl.build(user);
+        return UserDetailsImpl.build(userMongo);
     }
 
 
     // Nuovo metodo per caricare l'utente usando l'ID
     @Transactional
     public UserDetails loadUserById(String id) throws UsernameNotFoundException {
-        User user = userMongoRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with ID: " + id));
+        UserMongo userMongo = userMongoRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("UserMongo not found with ID: " + id));
 
-        return UserDetailsImpl.build(user);
+        return UserDetailsImpl.build(userMongo);
     }
 
 }

@@ -5,8 +5,7 @@ import com.example.BoardVerse.DTO.Thread.*;
 import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.model.MongoDB.ThreadMongo;
-import com.example.BoardVerse.model.MongoDB.User;
-import com.example.BoardVerse.model.MongoDB.subentities.GameThread;
+import com.example.BoardVerse.model.MongoDB.subentities.GamePreviewEssential;
 import com.example.BoardVerse.model.MongoDB.subentities.Message;
 import com.example.BoardVerse.model.MongoDB.subentities.ReplyTo;
 import com.example.BoardVerse.model.MongoDB.subentities.Role;
@@ -56,7 +55,7 @@ public class ThreadService {
         thread.setContent(addThreadDTO.getSubjectContent());
         thread.setId(threadId);
         thread.setTag(addThreadDTO.getTag());
-        thread.setGame(new GameThread(gameId, game.getName(), game.getYearReleased()));
+        thread.setGame(new GamePreviewEssential(gameId, game.getName(), game.getYearReleased()));
         thread.setLastPostDate(new Date());
         thread.setMessages(new ArrayList<>());
 

@@ -26,7 +26,7 @@ public interface GameNeo4jRepository  extends Neo4jRepository<GameNeo4j, String>
      *
      *  @param gameId the ID of the game to be removed
      */
-    @Query("MATCH (g:Game {_id: $gameId})<-[:IS_RELATED_TO]-(t:Tournament)" +
+    @Query("MATCH (g:Game {_id: $gameId})<-[:IS_RELATED_TO]-(t:TournamentMongo)" +
             "DETACH DELETE g, t")
     void deleteById(@NonNull String gameId);
 
@@ -40,19 +40,19 @@ public interface GameNeo4jRepository  extends Neo4jRepository<GameNeo4j, String>
      *  @return a list of GameAnalyticsDTO objects
      */
     @Query("""
-            MATCH (game:Game {_id: $gameId})<-[:LIKES]-(user:User)
-            WITH game, COUNT(user) AS likeCount
-            MATCH (game)<-[:IS_RELATED_TO]-(tournament:Tournament)
+            MATCH (game:Game {_id: $gameId})<-[:LIKES]-(userMongo:User)
+            WITH game, COUNT(userMongo) AS likeCount
+            MATCH (game)<-[:IS_RELATED_TO]-(tournamentMongo:TournamentMongo)
             WITH game, likeCount,
-                 COUNT(tournament) AS totalTournaments,
-                 COUNT(CASE WHEN EXISTS { MATCH (tournament)<-[:WINNER]-(:User) } THEN tournament END) AS finishedTournaments,
-                 COUNT(CASE WHEN tournament.startingTime <= datetime() THEN tournament END) AS ongoingTournaments,
-                 COUNT(CASE WHEN tournament.startingTime > datetime()
-                  AND NOT EXISTS { MATCH (tournament)<-[:WINNER]-(:User) }
-                  THEN tournament END) AS futureTournaments,
-                 COUNT(CASE WHEN tournament.visibility = 'PUBLIC' THEN tournament END) AS publicTournaments,
-                 COUNT(CASE WHEN tournament.visibility = 'PRIVATE' THEN tournament END) AS privateTournaments,
-                 COUNT(CASE WHEN tournament.visibility = 'INVITE' THEN tournament END) AS inviteTournaments
+                 COUNT(tournamentMongo) AS totalTournaments,
+                 COUNT(CASE WHEN EXISTS { MATCH (tournamentMongo)<-[:WINNER]-(:User) } THEN tournamentMongo END) AS finishedTournaments,
+                 COUNT(CASE WHEN tournamentMongo.startingTime <= datetime() THEN tournamentMongo END) AS ongoingTournaments,
+                 COUNT(CASE WHEN tournamentMongo.startingTime > datetime()
+                  AND NOT EXISTS { MATCH (tournamentMongo)<-[:WINNER]-(:User) }
+                  THEN tournamentMongo END) AS futureTournaments,
+                 COUNT(CASE WHEN tournamentMongo.visibility = 'PUBLIC' THEN tournamentMongo END) AS publicTournaments,
+                 COUNT(CASE WHEN tournamentMongo.visibility = 'PRIVATE' THEN tournamentMongo END) AS privateTournaments,
+                 COUNT(CASE WHEN tournamentMongo.visibility = 'INVITE' THEN tournamentMongo END) AS inviteTournaments
             RETURN
               game._id AS gameId,
               game.name AS gameName,

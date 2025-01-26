@@ -2,13 +2,12 @@ package com.example.BoardVerse.controller;
 
 
 import com.example.BoardVerse.DTO.Tournament.AddTournamentDTO;
-import com.example.BoardVerse.DTO.Tournament.UpdateTournDTO;
+import com.example.BoardVerse.DTO.Tournament.UpdateTournamentDTO;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.TournamentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/games/")
-@Tag(name = "Tournament", description = "Operations related to tournaments")
+@Tag(name = "TournamentMongo", description = "Operations related to tournaments")
 public class TournamentController {
 
 
@@ -31,10 +30,10 @@ public class TournamentController {
     @Operation(summary = "Add a new tournament")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PostMapping("/{gameId}/tournament")
-    public ResponseEntity<String> createTournament(@PathVariable String gameId, @RequestBody @Valid AddTournDTO addTournDTO) {
+    public ResponseEntity<String> createTournament(@PathVariable String gameId, @RequestBody @Valid AddTournamentDTO addTournamentDTO) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        return ResponseEntity.ok(tournamentService.addTournament(gameId, user.getId(), addTournDTO));
+        return ResponseEntity.ok(tournamentService.addTournament(gameId, user.getId(), addTournamentDTO));
     }
 
     @Operation(summary = "Delete a tournament")
@@ -50,10 +49,10 @@ public class TournamentController {
     @Operation(summary = "Update a tournament")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/{gameId}/tournament/{tournamentId}")
-    public ResponseEntity<String> updateTournament(@PathVariable String gameId, @PathVariable String tournamentId, @RequestBody @Valid UpdateTournDTO updateTournDTO) {
+    public ResponseEntity<String> updateTournament(@PathVariable String gameId, @PathVariable String tournamentId, @RequestBody @Valid UpdateTournamentDTO updateTournamentDTO) {
 
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(tournamentService.updateTournament(gameId, tournamentId, user.getUsername(), updateTournDTO));
+        return ResponseEntity.ok(tournamentService.updateTournament(gameId, tournamentId, user.getUsername(), updateTournamentDTO));
 
     }
 

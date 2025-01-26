@@ -14,7 +14,7 @@ import java.util.Date;
 
 @Document(collection = "reviews")
 @Data
-public class Review extends Post {
+public class ReviewMongo extends Post {
 
     @Id
     private String id;
@@ -29,10 +29,10 @@ public class Review extends Post {
     private boolean isAuthorDeleted;
 
     // Costruttore vuoto per Spring e MongoDB
-    public Review() {
+    public ReviewMongo() {
     }
 
-    public Review get() {
+    public ReviewMongo get() {
         return this;
     }
 

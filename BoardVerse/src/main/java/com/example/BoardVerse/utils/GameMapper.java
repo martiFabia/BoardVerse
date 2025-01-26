@@ -4,6 +4,7 @@ import com.example.BoardVerse.DTO.Game.GameCreationDTO;
 import com.example.BoardVerse.DTO.Game.GameInfoDTO;
 import com.example.BoardVerse.DTO.Game.GameRankPreviewDTO;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
+import com.example.BoardVerse.model.MongoDB.subentities.GamePreviewEssential;
 import com.example.BoardVerse.model.Neo4j.GameNeo4j;
 
 import java.util.Date;
@@ -72,7 +73,7 @@ public class GameMapper {
         );
     }
 
-    public static GameRankPreviewDTO toPreviewDTO(GameMongo gameMongo) {
+    public static GameRankPreviewDTO toGameRankPreviewDTO(GameMongo gameMongo) {
         return new GameRankPreviewDTO(
             gameMongo.getId(),
             gameMongo.getName(), gameMongo.getYearReleased(),
@@ -81,8 +82,13 @@ public class GameMapper {
         );
     }
 
-
-
+    public static GamePreviewEssential toPreviewEssential(GameMongo gameMongo) {
+        return new GamePreviewEssential(
+            gameMongo.getId(),
+            gameMongo.getName(),
+            gameMongo.getYearReleased()
+        );
+    }
 
 }
 

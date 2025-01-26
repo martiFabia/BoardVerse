@@ -1,13 +1,13 @@
 package com.example.BoardVerse.DTO.Thread;
 
-import com.example.BoardVerse.model.MongoDB.subentities.GameThread;
+import com.example.BoardVerse.model.MongoDB.subentities.GamePreviewEssential;
 
 import java.util.Date;
 
 public record ThreadPreviewDTO (
     String id,
     String tag,
-    GameThread game,
+    GamePreviewEssential game,
     String authorUsername,
     String content,
     Date postDate,

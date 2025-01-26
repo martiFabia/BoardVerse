@@ -2,8 +2,8 @@ package com.example.BoardVerse.controller;
 
 
 import com.example.BoardVerse.DTO.Tournament.TournamentSuggestionDTO;
-import com.example.BoardVerse.DTO.User.UserSimilarityDTO;
-import com.example.BoardVerse.DTO.User.UserSuggestionDTO;
+import com.example.BoardVerse.DTO.User.UserFollowRecommendationDTO;
+import com.example.BoardVerse.DTO.User.UserTastesSuggestionDTO;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.SuggestionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,16 +27,16 @@ public class SuggestionController {
     }
 
     @GetMapping("/suggestedUsers")
-    public ResponseEntity<List<UserSuggestionDTO>> getSuggestedUsers() {
+    public ResponseEntity<List<UserFollowRecommendationDTO>> getSuggestedUsers() {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<UserSuggestionDTO> suggestedUsers = suggestionService.getSuggestedUsers(user.getUsername());
+        List<UserFollowRecommendationDTO> suggestedUsers = suggestionService.getSuggestedUsers(user.getUsername());
         return ResponseEntity.ok(suggestedUsers);
     }
 
     @GetMapping("/similarUsers")
-    public ResponseEntity<List<UserSimilarityDTO>> getSimilarUsers() {
+    public ResponseEntity<List<UserTastesSuggestionDTO>> getSimilarUsers() {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<UserSimilarityDTO> similarUsers = suggestionService.getSimilarUsers(user.getUsername());
+        List<UserTastesSuggestionDTO> similarUsers = suggestionService.getSimilarUsers(user.getUsername());
         return ResponseEntity.ok(similarUsers);
     }
 

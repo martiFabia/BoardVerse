@@ -1,7 +1,5 @@
 package com.example.BoardVerse.DTO.Thread;
 
-import com.example.BoardVerse.model.MongoDB.subentities.GameThread;
-
 import java.util.Date;
 
 public record ThreadPreviewGameDTO(

@@ -8,7 +8,7 @@ import com.example.BoardVerse.DTO.User.UserUpdateDTO;
 import com.example.BoardVerse.exception.AlreadyExistsException;
 import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.subentities.Location;
-import com.example.BoardVerse.model.MongoDB.User;
+import com.example.BoardVerse.model.MongoDB.UserMongo;
 import com.example.BoardVerse.repository.ReviewRepository;
 import com.example.BoardVerse.repository.ThreadRepository;
 import com.example.BoardVerse.repository.TournamentMongoRepository;
@@ -62,20 +62,20 @@ public class UserService {
 
     public UserInfoDTO getInfo(String username) {
         // Trova l'utente nel database
-        Optional<User> user = userMongoRepository.findByUsername(username);
+        Optional<UserMongo> user = userMongoRepository.findByUsername(username);
         // Se l'utente non esiste, lancia un'eccezione
         if (user.isEmpty()) {
-            throw new NotFoundException("User not found with username: " + username);
+            throw new NotFoundException("UserMongo not found with username: " + username);
         }
-        // Converte l'entità User in un DTO
+        // Converte l'entità UserMongo in un DTO
         return UserMapper.toInfoDTO(user.get());
     }
 
 
     @Transactional
     public UserInfoDTO updateUser(String userId, UserUpdateDTO updates) {
-        User userMongo = userMongoRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
+        UserMongo userMongo = userMongoRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("UserMongo not found with id: " + userId));
 
         if (updates.username() != null) {
             if (userMongoRepository.existsByUsername(updates.username())) {
@@ -145,10 +145,10 @@ public class UserService {
 
     public String deleteUser(String username) {
         // Trova l'utente esistente
-        User user = userMongoRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
+        UserMongo userMongo = userMongoRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("UserMongo not found with username: " + username));
         // Cancella l'utente
-        userMongoRepository.delete(user);
+        userMongoRepository.delete(userMongo);
 
         //nelle recensioni imposto autore a null
         reviewRepository.updateUsernameInReviews(username, null);
@@ -167,7 +167,7 @@ public class UserService {
 
         //ELIMINARE UTENTE DAL GRAPH (E TUTTE LE RELAZIONI)
 
-        return "User deleted successfully";
+        return "UserMongo deleted successfully";
 
 
     }

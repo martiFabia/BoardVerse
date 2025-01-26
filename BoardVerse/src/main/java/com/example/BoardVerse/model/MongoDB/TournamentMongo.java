@@ -1,7 +1,7 @@
 package com.example.BoardVerse.model.MongoDB;
 
 
-import com.example.BoardVerse.model.MongoDB.subentities.GameThread;
+import com.example.BoardVerse.model.MongoDB.subentities.GamePreviewEssential;
 import com.example.BoardVerse.model.MongoDB.subentities.Location;
 import com.example.BoardVerse.model.MongoDB.subentities.OptionsTournament;
 import com.example.BoardVerse.model.MongoDB.subentities.VisibilityTournament;
@@ -16,13 +16,13 @@ import java.util.List;
 
 @Data
 @Document(collection = "tournaments")
-public class Tournament {
+public class TournamentMongo {
     @Id
     private String id;
     @NotBlank
     private String name;
     @NotBlank
-    private GameThread game;
+    private GamePreviewEssential game;
 
     private String type;
     private String typeDescription;

@@ -2,10 +2,9 @@ package com.example.BoardVerse.service;
 
 import com.example.BoardVerse.DTO.Game.GameSuggestionDTO;
 import com.example.BoardVerse.DTO.Tournament.TournamentSuggestionDTO;
-import com.example.BoardVerse.DTO.User.UserSimilarityDTO;
-import com.example.BoardVerse.DTO.User.UserSuggestionDTO;
+import com.example.BoardVerse.DTO.User.UserFollowRecommendationDTO;
+import com.example.BoardVerse.DTO.User.UserTastesSuggestionDTO;
 import com.example.BoardVerse.exception.NotFoundException;
-import com.example.BoardVerse.model.Neo4j.UserNeo4j;
 import com.example.BoardVerse.repository.UserNeo4jRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,31 +21,31 @@ public class SuggestionService {
         this.userNeo4jRepository = userNeo4jRepository;
     }
 
-    public List<UserSuggestionDTO> getSuggestedUsers(String username) {
+    public List<UserFollowRecommendationDTO> getSuggestedUsers(String username) {
        userNeo4jRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
+                .orElseThrow(() -> new NotFoundException("UserMongo not found with username: " + username));
 
-        return userNeo4jRepository.getUsersRecommendation(username);
+        return userNeo4jRepository.getUsersRecommendationBySimilarNetwork(username, 5, 0);
     }
 
-    public List<UserSimilarityDTO>  getSimilarUsers(String username) {
+    public List<UserTastesSuggestionDTO>  getSimilarUsers(String username) {
         userNeo4jRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
+                .orElseThrow(() -> new NotFoundException("UserMongo not found with username: " + username));
 
-        return userNeo4jRepository.findSimilarUsersByGameTaste(username);
+        return userNeo4jRepository.getUsersRecommendationBySimilarTastes(username, 5, 0);
     }
 
     public List<TournamentSuggestionDTO> getSuggestedTournaments(String username) {
         userNeo4jRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
+                .orElseThrow(() -> new NotFoundException("UserMongo not found with username: " + username));
 
-        return userNeo4jRepository.getTournamentsRecommendation(username);
+        return userNeo4jRepository.getTournamentsRecommendation(username, 5, 0);
     }
 
     public List<GameSuggestionDTO> getSuggestedGames(String username) {
         userNeo4jRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with username: " + username));
+                .orElseThrow(() -> new IllegalArgumentException("UserMongo not found with username: " + username));
 
-        return userNeo4jRepository.getGamesRecommendation(username);
+        return userNeo4jRepository.getGamesRecommendation(username, 5, 0);
     }
 }

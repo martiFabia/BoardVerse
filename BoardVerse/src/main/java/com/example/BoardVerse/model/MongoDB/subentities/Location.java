@@ -3,7 +3,7 @@ package com.example.BoardVerse.model.MongoDB.subentities;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@Schema(description = "User Location (Country, State, City)")
+@Schema(description = "UserMongo Location (Country, State, City)")
 @Data
 public class Location {
     @Schema(description = "Country", example = " ")

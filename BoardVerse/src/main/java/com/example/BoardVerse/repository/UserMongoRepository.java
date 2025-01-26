@@ -3,7 +3,7 @@ package com.example.BoardVerse.repository;
 import com.example.BoardVerse.DTO.User.UserDTO;
 import com.example.BoardVerse.DTO.User.aggregation.CountryAggregation;
 import com.example.BoardVerse.DTO.User.aggregation.MonthlyReg;
-import com.example.BoardVerse.model.MongoDB.User;
+import com.example.BoardVerse.model.MongoDB.UserMongo;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.mongodb.repository.Aggregation;
@@ -12,14 +12,13 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.Update;
 
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-public interface UserMongoRepository extends MongoRepository<User, String> {
+public interface UserMongoRepository extends MongoRepository<UserMongo, String> {
 
     // Trova un utente per username
-    Optional<User> findByUsername(String username);
+    Optional<UserMongo> findByUsername(String username);
 
     @Query( value = "{ 'username': { '$regex': ?0, '$options': 'i' } }",
             fields = "{ 'username': 1, 'email': 1 }" )

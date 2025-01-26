@@ -4,7 +4,7 @@ import com.example.BoardVerse.DTO.JwtResponse;
 import com.example.BoardVerse.DTO.User.LoginRequest;
 import com.example.BoardVerse.DTO.User.UserRegDTO;
 import com.example.BoardVerse.exception.AlreadyExistsException;
-import com.example.BoardVerse.model.MongoDB.User;
+import com.example.BoardVerse.model.MongoDB.UserMongo;
 import com.example.BoardVerse.model.MongoDB.subentities.Role;
 import com.example.BoardVerse.model.MongoDB.subentities.TournamentsUser;
 import com.example.BoardVerse.repository.UserMongoRepository;
@@ -59,7 +59,7 @@ public class AuthService {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         // Recupera il ruolo dal database
         Role role = userMongoRepository.findByUsername(userDetails.getUsername())
-                .map(User::getRole)
+                .map(UserMongo::getRole)
                 .orElse(Role.ROLE_USER); // Valore predefinito in caso di errore (non dovrebbe accadere)
 
         // Restituisce il DTO JwtResponse
@@ -97,24 +97,24 @@ public class AuthService {
         newUserTournaments.setWon(0);
 
         // Crea un nuovo utente con ruolo fisso
-        User newUserMongo = new User();
-        newUserMongo.setId(userId);
-        newUserMongo.setUsername(signUpRequest.username());
-        newUserMongo.setPassword(encoder.encode(signUpRequest.password()));
-        newUserMongo.setEmail(signUpRequest.email());
-        newUserMongo.setFirstName(signUpRequest.firstName());
-        newUserMongo.setLastName(signUpRequest.lastName());
-        newUserMongo.setLocation(signUpRequest.location());
-        newUserMongo.setBirthDate(signUpRequest.birthDate());
-        newUserMongo.setFollowers(0);
-        newUserMongo.setFollowing(0);
-        newUserMongo.setTournaments(newUserTournaments); // Non ci sono tornei associati
-        newUserMongo.setRole(Role.ROLE_USER);
-        newUserMongo.setRegisteredDate(new Date());
+        UserMongo newUserMongoMongo = new UserMongo();
+        newUserMongoMongo.setId(userId);
+        newUserMongoMongo.setUsername(signUpRequest.username());
+        newUserMongoMongo.setPassword(encoder.encode(signUpRequest.password()));
+        newUserMongoMongo.setEmail(signUpRequest.email());
+        newUserMongoMongo.setFirstName(signUpRequest.firstName());
+        newUserMongoMongo.setLastName(signUpRequest.lastName());
+        newUserMongoMongo.setLocation(signUpRequest.location());
+        newUserMongoMongo.setBirthDate(signUpRequest.birthDate());
+        newUserMongoMongo.setFollowers(0);
+        newUserMongoMongo.setFollowing(0);
+        newUserMongoMongo.setTournaments(newUserTournaments); // Non ci sono tornei associati
+        newUserMongoMongo.setRole(Role.ROLE_USER);
+        newUserMongoMongo.setRegisteredDate(new Date());
 
         // Salva l'utente nel database
-        userMongoRepository.save(newUserMongo);
+        userMongoRepository.save(newUserMongoMongo);
 
-        return "User registered successfully!";
+        return "UserMongo registered successfully!";
     }
 }

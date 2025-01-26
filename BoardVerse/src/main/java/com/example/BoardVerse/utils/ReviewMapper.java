@@ -1,13 +1,12 @@
 package com.example.BoardVerse.utils;
 
-import com.example.BoardVerse.DTO.Review.ReviewInfo;
 import com.example.BoardVerse.model.MongoDB.subentities.ReviewUser;
-import com.example.BoardVerse.model.MongoDB.Review;
+import com.example.BoardVerse.model.MongoDB.ReviewMongo;
 
 public class ReviewMapper {
 
-    public static ReviewUser toUser(Review review) {
-        return new ReviewUser(review.getId(),review.getPostDate(), review.getGame(), review.getRating(), review.getContent() );
+    public static ReviewUser toUser(ReviewMongo reviewMongo) {
+        return new ReviewUser(reviewMongo.getId(), reviewMongo.getPostDate(), reviewMongo.getGame(), reviewMongo.getRating(), reviewMongo.getContent() );
     }
 
 }

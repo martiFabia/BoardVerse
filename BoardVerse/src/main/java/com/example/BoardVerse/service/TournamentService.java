@@ -3,16 +3,16 @@ package com.example.BoardVerse.service;
 import com.example.BoardVerse.DTO.Tournament.AddTournamentDTO;
 import com.example.BoardVerse.DTO.Tournament.TournPreview;
 import com.example.BoardVerse.DTO.Tournament.TournamentDTO;
-import com.example.BoardVerse.DTO.Tournament.UpdateTournDTO;
+import com.example.BoardVerse.DTO.Tournament.UpdateTournamentDTO;
 import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
-import com.example.BoardVerse.model.MongoDB.Tournament;
-import com.example.BoardVerse.model.MongoDB.User;
-import com.example.BoardVerse.model.MongoDB.subentities.GameThread;
+import com.example.BoardVerse.model.MongoDB.TournamentMongo;
+import com.example.BoardVerse.model.MongoDB.UserMongo;
 import com.example.BoardVerse.model.MongoDB.subentities.Role;
 import com.example.BoardVerse.model.MongoDB.subentities.TournamentsUser;
 import com.example.BoardVerse.model.MongoDB.subentities.VisibilityTournament;
 import com.example.BoardVerse.model.Neo4j.GameNeo4j;
+import com.example.BoardVerse.model.Neo4j.TournamentNeo4j;
 import com.example.BoardVerse.model.Neo4j.UserNeo4j;
 import com.example.BoardVerse.repository.*;
 import com.example.BoardVerse.utils.Constants;
@@ -25,7 +25,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
+
+import static com.example.BoardVerse.utils.GameMapper.toPreviewEssential;
+import static com.example.BoardVerse.utils.TournamentMapper.toTournamentMongo;
 
 /**
  * Service class for managing tournaments.
@@ -76,8 +78,8 @@ public class TournamentService {
      * @param addTournamentDTO the tournament creation DTO
      */
     public String addTournament (String gameId, String userIdMongo, AddTournamentDTO addTournamentDTO) {
-        logger.info("Adding tournament for game with ID: {} and user with ID: {}", gameId, userIdMongo);
-        logger.debug("Tournament creation DTO: {}", addTournamentDTO);
+        logger.info("Adding tournamentMongo for game with ID: {} and user with ID: {}", gameId, userIdMongo);
+        logger.debug("TournamentMongo creation DTO: {}", addTournamentDTO);
 
         // Retrieve the game from the database
         GameMongo game = gameMongoRepository.findById(gameId)
@@ -92,42 +94,27 @@ public class TournamentService {
                 });
 
         // Retrieve the user from the database
-        User userMongo = userMongoRepository.findById(userIdMongo)
+        UserMongo userMongo = userMongoRepository.findById(userIdMongo)
                 .orElseThrow(() -> {
-                    logger.warn("User not found with ID: {}", userIdMongo);
+                    logger.warn("UserMongo not found with ID: {}", userIdMongo);
                     return new NotFoundException("Game not found with ID: " + gameId);
                 });
         UserNeo4j userNeo4j = userNeo4jRepository.findById(userIdMongo)
                 .orElseThrow(() -> {
-                    logger.warn("User not found with ID: {}", userIdMongo);
+                    logger.warn("UserMongo not found with ID: {}", userIdMongo);
                     return new NotFoundException("Game not found with ID: " + gameId);
                 });
 
-        // Create a new tournament
-        Tournament tournament = new Tournament();
-        tournament.setId(UUID.randomUUID().toString());
-        tournament.setGame(new GameThread(game.getId(), game.getName(), game.getYearReleased()));
-        tournament.setAdministrator(userMongo.getUsername());
-        tournament.setName(addTournamentDTO.getName());
-        tournament.setType(addTournamentDTO.getType());
-        tournament.setTypeDescription(addTournamentDTO.getTypeDescription());
-        tournament.setLocation(addTournamentDTO.getLocation());
-        tournament.setNumParticipants(0);
-        tournament.setMinParticipants(addTournamentDTO.getMinParticipants());
-        tournament.setMaxParticipants(addTournamentDTO.getMaxParticipants());
-        tournament.setVisibility(addTournamentDTO.getVisibility());
-        tournament.setWinner(null);
-        tournament.setOptions(addTournamentDTO.getOptions());
-        tournament.setStartingTime(addTournamentDTO.getStartingTime());
+        // Create a new tournamentMongo
+        TournamentMongo tournamentMongo = toTournamentMongo(
+                addTournamentDTO,
+                UUID.randomUUID().toString(),
+                toPreviewEssential(game),
+                userMongo
+        );
 
-        // If the tournament is public or invite-only, the list of allowed users is null
-        logger.info("The tournament is " + addTournamentDTO.getVisibility());
-        if (addTournamentDTO.getVisibility() == VisibilityTournament.PUBLIC || addTournamentDTO.getVisibility() == VisibilityTournament.INVITE) {
-            tournament.setAllowed(null);
-        }
-
-        // If the tournament is private, the list of allowed users is not null
-        else {
+        // If the tournamentMongo is private, the list of allowed users is not null
+        if (tournamentMongo.getVisibility().equals(VisibilityTournament.PRIVATE)) {
             logger.info("Retrieving allowed users");
             List<String> allowed = addTournamentDTO.getAllowed();
 
@@ -145,7 +132,7 @@ public class TournamentService {
                 throw new NotFoundException("The following user IDs do not exist: " + nonExistingIds);
             }
 
-            tournament.setAllowed(existingIds);
+            tournamentMongo.setAllowed(existingIds);
         }
 
         // Increase tournaments created by the user by one
@@ -154,20 +141,20 @@ public class TournamentService {
         // Write in Neo4j
         tournamentNeo4jRepository.save(
                 userMongo.getUsername(),
-                tournament.getId(),
-                tournament.getName(),
-                tournament.getVisibility().toString(),
-                tournament.getMaxParticipants(),
-                tournament.getStartingTime().toString(),
+                tournamentMongo.getId(),
+                tournamentMongo.getName(),
+                tournamentMongo.getVisibility().toString(),
+                tournamentMongo.getMaxParticipants(),
+                tournamentMongo.getStartingTime().toString(),
                 game.getId()
         );
 
         // Writes in MongoDB
         userMongoRepository.save(userMongo);
-        tournamentMongoRepository.save(tournament);
+        tournamentMongoRepository.save(tournamentMongo);
 
-        logger.info("Tournament created successfully");
-        return "Tournament successfully created!";
+        logger.info("TournamentMongo created successfully");
+        return "TournamentMongo successfully created!";
     }
 
     /**
@@ -179,28 +166,51 @@ public class TournamentService {
      * @param tournamentsUser the tournaments user
      */
     public String deleteTournament(String gameId, String tournamentId, String userId, TournamentsUser tournamentsUser) {
-        logger.info("Deleting tournament with ID: {}", tournamentId);
+        logger.info("Deleting tournamentMongo with ID: {}", tournamentId);
 
-        // Retrieve the tournament from the database
-        Tournament tournament = tournamentMongoRepository.findById(tournamentId)
-                .orElseThrow(() -> new NotFoundException("Tournament not found with ID: " + tournamentId));
-        User user = userMongoRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found with ID: " + userId));
+        // Check if tournament exists
+        TournamentMongo tournamentMongo = tournamentMongoRepository.findById(tournamentId)
+                .orElseThrow(() -> {
+                    logger.warn("TournamentMongo not found with ID: {}", tournamentId);
+                    return new NotFoundException("TournamentMongo not found with ID: " + tournamentId);
+                });
+        TournamentNeo4j tournamentNeo4j = tournamentNeo4jRepository.findById(tournamentId)
+                .orElseThrow(() -> {
+                    logger.warn("TournamentNeo4j not found with ID: {}", tournamentId);
+                    return new NotFoundException("TournamentMongo not found with ID: " + tournamentId);
+                });
 
-        // Verify that the user is the administrator of the tournament or an admin
-        if (!tournament.getAdministrator().equals(user.getUsername()) || !user.getRole().equals(Role.ROLE_ADMIN)) {
-            throw new AccessDeniedException("You are not the administrator of this tournament and you are not an admin");
+        // Check if user exists
+        UserMongo userMongo = userMongoRepository.findById(userId)
+                .orElseThrow(() -> {
+                    logger.warn("UserMongo not found with ID: {}", userId);
+                    return new NotFoundException("UserMongo not found with ID: " + userId);
+                });
+        UserNeo4j userNeo4j = userNeo4jRepository.findById(userId)
+                .orElseThrow(() -> {
+                    logger.warn("UserNeo4j not found with ID: {}", userId);
+                    return new NotFoundException("UserMongo not found with ID: " + userId);
+                });
+
+        // Verify that the userMongo is the administrator of the tournamentMongo or an admin
+        if (!tournamentMongo.getAdministrator().equals(userMongo.getUsername()) || !userMongo.getRole().equals(Role.ROLE_ADMIN)) {
+            logger.warn("ACCESS DENIED! User" + userMongo.getUsername() + " is not the administrator of this tournamentMongo neither an admin");
+            throw new AccessDeniedException("You are not the administrator of this tournamentMongo neither an admin");
         }
+
+
+
+
+
         tournamentMongoRepository.deleteById(tournamentId);
 
-        // Decrease tournaments.created of the user by one
-        user.getTournaments().setCreated(user.getTournaments().getCreated() - 1);
 
-        userMongoRepository.save(user);
+        userMongo.getTournaments().setCreated(userMongo.getTournaments().getCreated() - 1);
 
-        //TODO RIMUOVERE ANCHE SU GRAPH
+        userMongoRepository.save(userMongo);
 
-        return "Tournament successfully deleted!";
+
+        return "TournamentMongo successfully deleted!";
     }
 
     /**
@@ -209,60 +219,60 @@ public class TournamentService {
      * @param gameId the game ID
      * @param tournamentId the tournament ID
      * @param username the username
-     * @param updateTournDTO the tournament update DTO
+     * @param updateTournamentDTO the tournament update DTO
      */
-    public String updateTournament(String gameId, String tournamentId, String username, UpdateTournDTO updateTournDTO){
-        Tournament tournament = tournamentMongoRepository.findById(tournamentId)
-                .orElseThrow(() -> new NotFoundException("Tournament not found with ID: " + tournamentId));
+    public String updateTournament(String gameId, String tournamentId, String username, UpdateTournamentDTO updateTournamentDTO){
+        TournamentMongo tournamentMongo = tournamentMongoRepository.findById(tournamentId)
+                .orElseThrow(() -> new NotFoundException("TournamentMongo not found with ID: " + tournamentId));
 
-        // Verify that the user is the administrator of the tournament or an admin
-        if (!tournament.getAdministrator().equals(username) || !userMongoRepository.findByUsername(username).get().getRole().equals(Role.ROLE_ADMIN)) {
-            throw new AccessDeniedException("You are not the administrator of this tournament and you are not an admin");
-        }
-
-        if(updateTournDTO.getName() != null){
-            tournament.setName(updateTournDTO.getName());
-        }
-        if(updateTournDTO.getType() != null){
-            tournament.setType(updateTournDTO.getType());
-        }
-        if(updateTournDTO.getTypeDescription() != null){
-            tournament.setTypeDescription(updateTournDTO.getTypeDescription());
-        }
-        if(updateTournDTO.getStartingTime() != null){
-            tournament.setStartingTime(updateTournDTO.getStartingTime());
-        }
-        if(updateTournDTO.getLocation() != null){
-            tournament.setLocation(updateTournDTO.getLocation());
-        }
-        if(updateTournDTO.getMinParticipants() != null){
-            tournament.setMinParticipants(updateTournDTO.getMinParticipants());
-        }
-        if(updateTournDTO.getMaxParticipants() != null){
-            tournament.setMaxParticipants(updateTournDTO.getMaxParticipants());
-        }
-        if(updateTournDTO.getVisibility() != null){
-            tournament.setVisibility(updateTournDTO.getVisibility());
-        }
-        if(updateTournDTO.getWinner() != null){
-            String usernameWinner = updateTournDTO.getWinner();
-            tournament.setWinner(usernameWinner);
-
-            // Increase tournaments.won of the indicated user by one
-            User user = userMongoRepository.findByUsername(usernameWinner)
-                    .orElseThrow(() -> new NotFoundException("User not found with username: " + usernameWinner));
-            user.getTournaments().setWon(user.getTournaments().getWon() + 1);
-            userMongoRepository.save(user);
-        }
-        if(updateTournDTO.getOptions() != null){
-            tournament.setOptions(updateTournDTO.getOptions());
+        // Verify that the user is the administrator of the tournamentMongo or an admin
+        if (!tournamentMongo.getAdministrator().equals(username) || !userMongoRepository.findByUsername(username).get().getRole().equals(Role.ROLE_ADMIN)) {
+            throw new AccessDeniedException("You are not the administrator of this tournamentMongo and you are not an admin");
         }
 
-        tournamentMongoRepository.save(tournament);
+        if(updateTournamentDTO.getName() != null){
+            tournamentMongo.setName(updateTournamentDTO.getName());
+        }
+        if(updateTournamentDTO.getType() != null){
+            tournamentMongo.setType(updateTournamentDTO.getType());
+        }
+        if(updateTournamentDTO.getTypeDescription() != null){
+            tournamentMongo.setTypeDescription(updateTournamentDTO.getTypeDescription());
+        }
+        if(updateTournamentDTO.getStartingTime() != null){
+            tournamentMongo.setStartingTime(updateTournamentDTO.getStartingTime());
+        }
+        if(updateTournamentDTO.getLocation() != null){
+            tournamentMongo.setLocation(updateTournamentDTO.getLocation());
+        }
+        if(updateTournamentDTO.getMinParticipants() != null){
+            tournamentMongo.setMinParticipants(updateTournamentDTO.getMinParticipants());
+        }
+        if(updateTournamentDTO.getMaxParticipants() != null){
+            tournamentMongo.setMaxParticipants(updateTournamentDTO.getMaxParticipants());
+        }
+        if(updateTournamentDTO.getVisibility() != null){
+            tournamentMongo.setVisibility(updateTournamentDTO.getVisibility());
+        }
+        if(updateTournamentDTO.getWinner() != null){
+            String usernameWinner = updateTournamentDTO.getWinner();
+            tournamentMongo.setWinner(usernameWinner);
+
+            // Increase tournaments.won of the indicated userMongo by one
+            UserMongo userMongo = userMongoRepository.findByUsername(usernameWinner)
+                    .orElseThrow(() -> new NotFoundException("UserMongo not found with username: " + usernameWinner));
+            userMongo.getTournaments().setWon(userMongo.getTournaments().getWon() + 1);
+            userMongoRepository.save(userMongo);
+        }
+        if(updateTournamentDTO.getOptions() != null){
+            tournamentMongo.setOptions(updateTournamentDTO.getOptions());
+        }
+
+        tournamentMongoRepository.save(tournamentMongo);
 
         //TODO MODIFICARE IL GRAFO
 
-        return "Tournament successfully updated!";
+        return "TournamentMongo successfully updated!";
     }
 
     /**
@@ -288,6 +298,6 @@ public class TournamentService {
                 .map(elem -> new TournamentDTO(elem.getName(), elem.getGame(), elem.getType(), elem.getTypeDescription(),
                         elem.getStartingTime(), elem.getLocation(), elem.getNumParticipants(), elem.getMinParticipants(),
                         elem.getMaxParticipants(), elem.getAdministrator(), elem.getWinner(), elem.getVisibility(), elem.getOptions()))
-                .orElseThrow(() -> new NotFoundException("Tournament not found with ID: " + tournamentId));
+                .orElseThrow(() -> new NotFoundException("TournamentMongo not found with ID: " + tournamentId));
     }
 }

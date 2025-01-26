@@ -4,7 +4,7 @@ package com.example.BoardVerse.DTO.User;
 import lombok.Data;
 
 @Data
-public class UserSuggestionDTO {
+public class UserTastesSuggestionDTO {
     private String username;
-    private int coefficient;
+    private int likeSimilarity;
 }

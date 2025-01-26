@@ -9,14 +9,14 @@ import lombok.Data;
 
 import java.util.Date;
 @Data
-public class UpdateTournDTO {
+public class UpdateTournamentDTO {
     private String name;
 
     private String type;
     private String typeDescription;
     private Date startingTime;
 
-    @Schema(description = "Tournament Location (Country, State, City)",
+    @Schema(description = "TournamentMongo Location (Country, State, City)",
             example = "{ \"country\": \" \", \"stateOrProvince\": \" \", \"city\": \" \" }")
     private Location location;
 

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/games/")
-@Tag(name = "Review", description = "Operations related to reviews")
+@Tag(name = "ReviewMongo", description = "Operations related to reviews")
 public class ReviewController {
     private final ReviewService reviewService;
 

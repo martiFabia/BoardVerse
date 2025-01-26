@@ -4,12 +4,8 @@ import com.example.BoardVerse.DTO.Review.ReviewUserDTO;
 import com.example.BoardVerse.DTO.User.UserDTO;
 import com.example.BoardVerse.DTO.User.UserInfoDTO;
 import com.example.BoardVerse.DTO.User.UserUpdateDTO;
-import com.example.BoardVerse.model.MongoDB.Review;
-import com.example.BoardVerse.model.MongoDB.subentities.ReviewUser;
-import com.example.BoardVerse.repository.ReviewRepository;
 import com.example.BoardVerse.repository.UserMongoRepository;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
-import com.example.BoardVerse.service.ReviewService;
 import com.example.BoardVerse.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 @RestController
 @RequestMapping("/api/users")
-@Tag(name = "User", description = "Operations related to user management")
+@Tag(name = "UserMongo", description = "Operations related to user management")
 public class UserController {
 
     private final UserService userService;

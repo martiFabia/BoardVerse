@@ -1,21 +1,18 @@
 package com.example.BoardVerse.DTO.Tournament;
 
-import com.example.BoardVerse.model.MongoDB.subentities.GameThread;
+import com.example.BoardVerse.model.MongoDB.subentities.GamePreviewEssential;
 import com.example.BoardVerse.model.MongoDB.subentities.Location;
 import com.example.BoardVerse.model.MongoDB.subentities.OptionsTournament;
 import com.example.BoardVerse.model.MongoDB.subentities.VisibilityTournament;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
 import java.util.Date;
-import java.util.List;
 
 @Data
 public class TournamentDTO {
 
     private String name;
-    private GameThread game;
+    private GamePreviewEssential game;
 
     private String type;
     private String typeDescription;
@@ -34,7 +31,7 @@ public class TournamentDTO {
 
     private OptionsTournament options;
 
-    public TournamentDTO(String name, GameThread game, String type, String typeDescription, Date startingTime, Location location, Integer numParticipants, Integer minParticipants, Integer maxParticipants, String administrator, String winner, VisibilityTournament visibility, OptionsTournament options) {
+    public TournamentDTO(String name, GamePreviewEssential game, String type, String typeDescription, Date startingTime, Location location, Integer numParticipants, Integer minParticipants, Integer maxParticipants, String administrator, String winner, VisibilityTournament visibility, OptionsTournament options) {
         this.name = name;
         this.game = game;
         this.type = type;

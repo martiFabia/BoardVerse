@@ -4,11 +4,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.example.BoardVerse.model.MongoDB.UserMongo;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.example.BoardVerse.model.MongoDB.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class UserDetailsImpl implements UserDetails {
@@ -21,19 +21,19 @@ public class UserDetailsImpl implements UserDetails {
     private String password;
     private GrantedAuthority authority;
 
-    private final User user;
+    private final UserMongo userMongo;
 
-    public UserDetailsImpl(User user) {
-        this.user = user; // Inizializza il campo User
-        this.id = user.getId();
-        this.username = user.getUsername();
-        this.email = user.getEmail();
-        this.password = user.getPassword();
-        this.authority = new SimpleGrantedAuthority(user.getRole().name());
+    public UserDetailsImpl(UserMongo userMongo) {
+        this.userMongo = userMongo; // Inizializza il campo UserMongo
+        this.id = userMongo.getId();
+        this.username = userMongo.getUsername();
+        this.email = userMongo.getEmail();
+        this.password = userMongo.getPassword();
+        this.authority = new SimpleGrantedAuthority(userMongo.getRole().name());
     }
 
-    public static UserDetailsImpl build(User user) {
-        return new UserDetailsImpl(user);
+    public static UserDetailsImpl build(UserMongo userMongo) {
+        return new UserDetailsImpl(userMongo);
     }
 
     @Override
@@ -42,8 +42,8 @@ public class UserDetailsImpl implements UserDetails {
         return List.of(authority);
     }
 
-    public User getUser() {
-        return user;
+    public UserMongo getUser() {
+        return userMongo;
     }
     public String getId() {
         return id;

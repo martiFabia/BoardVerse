@@ -24,7 +24,7 @@ import com.example.BoardVerse.service.AuthService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
-@Tag(name = "Authentication", description = "User authentication operations")
+@Tag(name = "Authentication", description = "UserMongo authentication operations")
 public class AuthController {
 
     private final AuthService authService;

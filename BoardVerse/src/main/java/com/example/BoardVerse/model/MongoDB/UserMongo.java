@@ -16,7 +16,7 @@ import java.util.List;
 
 @Document(collection = "users")
 @Data
-public class User {
+public class UserMongo {
     @Id
     private String id;
 
@@ -40,7 +40,7 @@ public class User {
 
     @Past(message = "Birthdate must be in the past")
     private Date birthDate;
-    @Schema(description = "User Location (Country, State, City)")
+    @Schema(description = "UserMongo Location (Country, State, City)")
     private Location location;
     private int followers;
     private int following;
@@ -50,11 +50,11 @@ public class User {
     private List<ReviewUser> mostRecentReviews=new ArrayList<>();
 
 
-    public User get() {
+    public UserMongo get() {
         return this;
     }
 /*
-    public User(String username, String email, String password, String role, String city, String country, String state, Date reviewDate, List<String> mostRecentReviews) {
+    public UserMongo(String username, String email, String password, String role, String city, String country, String state, Date reviewDate, List<String> mostRecentReviews) {
         this.username = username;
         this.email = email;
         this.password = password;

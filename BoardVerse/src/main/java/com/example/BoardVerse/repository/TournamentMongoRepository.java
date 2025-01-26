@@ -2,7 +2,7 @@ package com.example.BoardVerse.repository;
 
 import com.example.BoardVerse.DTO.Game.MostPlayedGameDTO;
 import com.example.BoardVerse.DTO.Tournament.TournPreview;
-import com.example.BoardVerse.model.MongoDB.Tournament;
+import com.example.BoardVerse.model.MongoDB.TournamentMongo;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.mongodb.repository.Aggregation;
@@ -13,7 +13,7 @@ import org.springframework.data.mongodb.repository.Update;
 import java.util.Date;
 import java.util.List;
 
-public interface TournamentMongoRepository extends MongoRepository<Tournament, String> {
+public interface TournamentMongoRepository extends MongoRepository<TournamentMongo, String> {
 
     @Query("{ 'administrator': ?0 }")
     @Update("{ '$set': { 'administrator': ?1 } }")

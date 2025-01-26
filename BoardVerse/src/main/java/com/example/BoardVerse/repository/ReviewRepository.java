@@ -5,7 +5,7 @@ import com.example.BoardVerse.DTO.Game.GameRankPreviewDTO;
 import com.example.BoardVerse.DTO.Game.RatingDetails;
 import com.example.BoardVerse.DTO.Review.ReviewInfo;
 import com.example.BoardVerse.DTO.Review.ReviewUserDTO;
-import com.example.BoardVerse.model.MongoDB.Review;
+import com.example.BoardVerse.model.MongoDB.ReviewMongo;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.mongodb.repository.Aggregation;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 
-public interface ReviewRepository extends MongoRepository<Review, String> {
+public interface ReviewRepository extends MongoRepository<ReviewMongo, String> {
     // Trova tutte le recensioni di un gioco
     @Query(value = "{ 'game.id': ?0 }",
             fields = "{ 'id': 1, 'authorUsername': 1, 'rating': 1, 'content': 1, 'postDate': 1 }")
@@ -43,7 +43,7 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
     void deleteByGameId(String gameId);
 
     // Trova la prossima recensione più recente per un utente
-    Optional<Review> findFirstByAuthorUsernameOrderByPostDateDesc(String username);
+    Optional<ReviewMongo> findFirstByAuthorUsernameOrderByPostDateDesc(String username);
 
     // Aggiorna il campo username in tutte le recensioni di un utente
     @Query("{ 'authorUsername': ?0 }")
