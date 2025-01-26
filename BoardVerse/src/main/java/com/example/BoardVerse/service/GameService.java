@@ -1,6 +1,7 @@
 package com.example.BoardVerse.service;
 
 import com.example.BoardVerse.DTO.Game.*;
+import com.example.BoardVerse.exception.AlreadyExistsException;
 import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.model.Neo4j.GameNeo4j;
@@ -76,11 +77,11 @@ public class GameService {
         // Check if a game with the same name and year released already exists
         if (gameMongoRepository.findByNameAndYearReleased(newGameDTO.getName(), newGameDTO.getYearReleased()).isPresent()) {
             logger.warn("Game " + newGameDTO.getName() + " released in " + newGameDTO.getYearReleased() + " already exists");
-            throw new NotFoundException("Game " + newGameDTO.getName() + " released in " + newGameDTO.getYearReleased() + " already exists");
+            throw new AlreadyExistsException("Game " + newGameDTO.getName() + " released in " + newGameDTO.getYearReleased() + " already exists");
         }
         if(gameNeo4jRepository.findGameNeo4jByNameAndYearReleased(newGameDTO.getName(), newGameDTO.getYearReleased()).isPresent()){
             logger.warn("Game " + newGameDTO.getName() + " released in " + newGameDTO.getYearReleased() + " already exists");
-            throw new NotFoundException("Game " + newGameDTO.getName() + " released in " + newGameDTO.getYearReleased() + " already exists");
+            throw new AlreadyExistsException("Game " + newGameDTO.getName() + " released in " + newGameDTO.getYearReleased() + " already exists");
         }
 
         // Generate a new game ID
@@ -194,14 +195,14 @@ public class GameService {
             Optional<GameMongo> existingGameMongo = gameMongoRepository.findByNameAndYearReleased(gameMongo.getName(), gameMongo.getYearReleased());
             if (existingGameMongo.isPresent() && !existingGameMongo.get().getId().equals(gameId)) {
                 logger.warn("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists in MongoDB");
-                throw new NotFoundException("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
+                throw new AlreadyExistsException("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
             }
 
             // Check in neo4j
             Optional<GameNeo4j> existingGameNeo4j = gameNeo4jRepository.findGameNeo4jByNameAndYearReleased(gameNeo4j.getName(), gameNeo4j.getYearReleased());
             if (existingGameNeo4j.isPresent() && !existingGameNeo4j.get().getId().equals(gameId)) {
                 logger.warn("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists in Neo4j");
-                throw new NotFoundException("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
+                throw new AlreadyExistsException("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
             }
         }
 

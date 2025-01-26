@@ -31,59 +31,33 @@ public class ReviewController {
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PostMapping("/{gameId}/reviews")
     public ResponseEntity<String> addReview(@PathVariable String gameId, @Valid @RequestBody AddReviewDTO addReviewDTO) {
-        try {
-            UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            reviewService.addReview(user.getId(), gameId, addReviewDTO);
-            return ResponseEntity.ok("Review successfully added!");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
-        }
+
+        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(reviewService.addReview(user.getId(), gameId, addReviewDTO));
     }
 
     @Operation(summary = "Delete a review")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @DeleteMapping("/{gameId}/reviews/{reviewId}")
     public ResponseEntity<String> deleteReview(@PathVariable String gameId, @PathVariable String reviewId) {
-        try {
-            UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            reviewService.deleteReview(reviewId, gameId, user.getUsername());
-            return ResponseEntity.ok("Review successfully deleted!");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
-        }
+        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(reviewService.deleteReview(reviewId, gameId, user.getUsername()));
     }
 
     @Operation(summary = "Get game reviews")
     @GetMapping("/{gameId}/reviews")
     public ResponseEntity<?> getReview(@PathVariable String gameId,
                                        @RequestParam(defaultValue = "postDate") String sortBy, @RequestParam(defaultValue = "0") int page) {
-        try {
-            Slice<ReviewInfo> reviews = reviewService.getGameReviews(gameId,sortBy, page);
-            return ResponseEntity.ok(reviews);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
-        }
+        return ResponseEntity.ok(reviewService.getGameReviews(gameId,sortBy, page));
+
     }
 
     @Operation(summary = "Update a review")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/{gameId}/reviews/{reviewId}")
     public ResponseEntity<String> updateReview(@PathVariable String gameId, @PathVariable String reviewId, @Valid @RequestBody AddReviewDTO addReviewDTO) {
-        try {
-            UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            reviewService.updateReview(gameId, user.getUsername(), reviewId, addReviewDTO);
-            return ResponseEntity.ok("Review successfully updated!");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
-        }
+        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(reviewService.updateReview(gameId, user.getUsername(), reviewId, addReviewDTO));
     }
 
 

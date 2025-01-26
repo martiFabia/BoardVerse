@@ -5,6 +5,7 @@ import com.example.BoardVerse.DTO.Review.ReviewUserDTO;
 import com.example.BoardVerse.DTO.User.UserDTO;
 import com.example.BoardVerse.DTO.User.UserInfoDTO;
 import com.example.BoardVerse.DTO.User.UserUpdateDTO;
+import com.example.BoardVerse.exception.AlreadyExistsException;
 import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.subentities.Location;
 import com.example.BoardVerse.model.MongoDB.User;
@@ -22,6 +23,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -70,13 +72,14 @@ public class UserService {
     }
 
 
+    @Transactional
     public UserInfoDTO updateUser(String userId, UserUpdateDTO updates) {
         User userMongo = userMongoRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
 
         if (updates.username() != null) {
             if (userMongoRepository.existsByUsername(updates.username())) {
-                throw new IllegalArgumentException("Username already exists");
+                throw new AlreadyExistsException("Username already exists");
             }
             //aggiorno reviews
             reviewRepository.updateUsernameInReviews(userMongo.getUsername(), updates.username());
@@ -99,7 +102,7 @@ public class UserService {
         }
         if (updates.email() != null) {
             if (userMongoRepository.existsByEmail(updates.email())) {
-                throw new IllegalArgumentException("Email already exists");
+                throw new AlreadyExistsException("Email already exists");
             }
             userMongo.setEmail(updates.email());
         }
@@ -140,7 +143,7 @@ public class UserService {
     }
 
 
-    public void deleteUser(String username) {
+    public String deleteUser(String username) {
         // Trova l'utente esistente
         User user = userMongoRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
@@ -163,6 +166,8 @@ public class UserService {
 
 
         //ELIMINARE UTENTE DAL GRAPH (E TUTTE LE RELAZIONI)
+
+        return "User deleted successfully";
 
 
     }

@@ -2,6 +2,7 @@ package com.example.BoardVerse.service;
 
 
 import com.example.BoardVerse.DTO.Thread.*;
+import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.model.MongoDB.ThreadMongo;
 import com.example.BoardVerse.model.MongoDB.User;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -39,10 +41,10 @@ public class ThreadService {
         this.gameRepository = gameRepository;
     }
 
-    public void addThread(String username, String gameId, ThreadCreationDTO addThreadDTO) {
+    public String addThread(String username, String gameId, ThreadCreationDTO addThreadDTO) {
         // Verifica se il gioco esiste
         GameMongo game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new IllegalArgumentException("Game not found with ID: " + gameId));
+                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
         String threadId = UUID.randomUUID().toString();
         String messageId = UUID.randomUUID().toString();
@@ -72,18 +74,20 @@ public class ThreadService {
             throw new IllegalStateException("Error saving the thread: " + e.getMessage(), e);
         }
 
+        return "Thread successfully added!";
+
     }
 
 
-    public void deleteThread(String username, Role role, String threadId) {
+    public String deleteThread(String username, Role role, String threadId) {
         // Verifica se il thread esiste
         ThreadMongo thread = threadRepository.findById(threadId)
-                .orElseThrow(() -> new IllegalArgumentException("Thread not found with ID: " + threadId));
+                .orElseThrow(() -> new NotFoundException("Thread not found with ID: " + threadId));
 
         // Verifica se l'utente è l'autore del thread o è l'admin
         if(!Objects.equals(username, threadRepository.findById(threadId).get().getAuthorUsername())
                 || role.equals(Role.ROLE_ADMIN)) {
-            throw new IllegalArgumentException("You are not the author of this thread and you are not an admin");
+            throw new AccessDeniedException("You are not the author of this thread and you are not an admin");
         }
 
         // Elimina il thread
@@ -92,12 +96,14 @@ public class ThreadService {
         } catch (Exception e) {
             throw new IllegalStateException("Error deleting the thread: " + e.getMessage(), e);
         }
+
+        return "Thread successfully deleted!";
     }
 
-    public void addMessage(String username, String threadId, MessageCreationDTO newMessageDTO) {
+    public String addMessage(String username, String threadId, MessageCreationDTO newMessageDTO) {
         // Verifica se il thread esiste
         ThreadMongo thread = threadRepository.findById(threadId)
-                .orElseThrow(() -> new IllegalArgumentException("Thread not found with ID: " + threadId));
+                .orElseThrow(() -> new NotFoundException("Thread not found with ID: " + threadId));
 
         String messageId = UUID.randomUUID().toString();
 
@@ -120,17 +126,19 @@ public class ThreadService {
         } catch (Exception e) {
             throw new IllegalStateException("Error saving the message: " + e.getMessage(), e);
         }
+
+        return "Message successfully added!";
     }
 
-    public void replyToMessage(String username, String threadId, String messageId, MessageCreationDTO replyDTO) {
+    public String replyToMessage(String username, String threadId, String messageId, MessageCreationDTO replyDTO) {
         // Verifica se il thread esiste
         ThreadMongo thread = threadRepository.findById(threadId)
-                .orElseThrow(() -> new IllegalArgumentException("Thread not found with ID: " + threadId));
+                .orElseThrow(() -> new NotFoundException("Thread not found with ID: " + threadId));
 
         Message originalMessage = thread.getMessages().stream()
                 .filter(m -> m.getId().equals(messageId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Message not found with ID: " + messageId));
+                .orElseThrow(() -> new NotFoundException("Message not found with ID: " + messageId));
 
         String replyId = UUID.randomUUID().toString();
 
@@ -159,17 +167,19 @@ public class ThreadService {
         } catch (Exception e) {
             throw new IllegalStateException("Error saving the reply: " + e.getMessage(), e);
         }
+
+        return "Reply successfully added!";
     }
 
 
-    public void editMessage(String username, String threadId, String messageId, MessageCreationDTO editDTO) {
+    public String editMessage(String username, String threadId, String messageId, MessageCreationDTO editDTO) {
         // Verifica se il thread esiste
         ThreadMongo thread = threadRepository.findById(threadId)
-                .orElseThrow(() -> new IllegalArgumentException("Thread not found with ID: " + threadId));
+                .orElseThrow(() -> new NotFoundException("Thread not found with ID: " + threadId));
 
         // Verifica se l'utente è l'autore del messaggio
         if(!Objects.equals(username, thread.getMessages().stream().filter(m -> m.getId().equals(messageId)).findFirst().get().getAuthorUsername())) {
-            throw new IllegalArgumentException("You are not the author of this message");
+            throw new AccessDeniedException("You are not the author of this message");
         }
 
         // Modifica il messaggio
@@ -189,18 +199,20 @@ public class ThreadService {
         } catch (Exception e) {
             throw new IllegalStateException("Error editing the message: " + e.getMessage(), e);
         }
+
+        return "Message successfully edited!";
     }
 
 
-    public void deleteMessage(String username, Role role,  String threadId, String messageId) {
+    public String deleteMessage(String username, Role role,  String threadId, String messageId) {
         // Verifica se il thread esiste
         ThreadMongo thread = threadRepository.findById(threadId)
-                .orElseThrow(() -> new IllegalArgumentException("Thread not found with ID: " + threadId));
+                .orElseThrow(() -> new NotFoundException("Thread not found with ID: " + threadId));
 
         // Verifica se l'utente è l'autore del messaggio o è l'admin
         if(!Objects.equals(username, thread.getMessages().stream().filter(m -> m.getId().equals(messageId)).findFirst().get().getAuthorUsername())
                 || !role.equals(Role.ROLE_ADMIN)) {
-            throw new IllegalArgumentException("You are not the author of this message and you are not an admin");
+            throw new AccessDeniedException("You are not the author of this message and you are not an admin");
         }
 
         // Elimina il messaggio
@@ -221,6 +233,8 @@ public class ThreadService {
         } catch (Exception e) {
             throw new IllegalStateException("Error deleting the message: " + e.getMessage(), e);
         }
+
+        return "Message successfully deleted!";
     }
 
 
@@ -259,7 +273,7 @@ public class ThreadService {
     public ThreadInfoDTO getThread(String threadId) {
         // Verifica se il thread esiste
         ThreadMongo thread = threadRepository.findById(threadId)
-                .orElseThrow(() -> new IllegalArgumentException("Thread not found with ID: " + threadId));
+                .orElseThrow(() -> new NotFoundException("Thread not found with ID: " + threadId));
 
         int messagesCount = thread.getMessages() != null ? thread.getMessages().size() : 0;
 

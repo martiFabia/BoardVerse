@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -55,13 +56,13 @@ public class ReviewService {
      * @param gameId the game ID
      * @param addReviewDTO the review creation DTO
      */
-    public void addReview(String userId, String gameId, AddReviewDTO addReviewDTO) {
+    public String addReview(String userId, String gameId, AddReviewDTO addReviewDTO) {
 
         GameMongo game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new IllegalArgumentException("Game not found with ID: " + gameId));
+                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with username: " + userId));
+                .orElseThrow(() -> new NotFoundException("User not found with username: " + userId));
 
         // Create the review
         Review review = new Review();
@@ -103,6 +104,8 @@ public class ReviewService {
             removeRating(game, review.getRating());
             throw new IllegalStateException("Error adding review to the user: " + e.getMessage(), e);
         }
+
+        return "Review successfully added!";
     }
 
     /**
@@ -173,19 +176,19 @@ public class ReviewService {
      * @param gameId the game ID
      * @param username the username
      */
-    public void deleteReview(String reviewId, String gameId, String username) {
+    public String deleteReview(String reviewId, String gameId, String username) {
         GameMongo game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("Review not found with ID: " + reviewId));
+                .orElseThrow(() -> new NotFoundException("Review not found with ID: " + reviewId));
 
         User user = userRepository.findByUsername(review.getAuthorUsername())
                 .orElseThrow(() -> new NotFoundException("User not found with username: " + review.getAuthorUsername()));
 
         // Check if the user is the author of the review or an admin
         if(!username.equals(review.getAuthorUsername()) || !user.getRole().equals(Role.ROLE_ADMIN)) {
-            throw new IllegalArgumentException("You can delete only your reviews");
+            throw new AccessDeniedException("You can delete only your reviews");
         }
         // Delete the review from reviews
         reviewRepository.delete(review);
@@ -212,6 +215,7 @@ public class ReviewService {
         user.setMostRecentReviews(list);
         userRepository.save(user);
 
+        return "Review successfully deleted!";
     }
 
     /**
@@ -246,13 +250,13 @@ public class ReviewService {
      * @param reviewId the review ID
      * @param addReviewDTO the review update DTO
      */
-    public void updateReview(String gameId, String username, String reviewId, AddReviewDTO addReviewDTO) {
+    public String updateReview(String gameId, String username, String reviewId, AddReviewDTO addReviewDTO) {
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("Review not found with ID: " + reviewId));
+                .orElseThrow(() -> new NotFoundException("Review not found with ID: " + reviewId));
 
         // Check if the user is the author of the review
         if(!username.equals(review.getAuthorUsername())) {
-            throw new IllegalArgumentException("You can update only your reviews");
+            throw new AccessDeniedException("You can update only your reviews");
         }
 
         // Update the review
@@ -271,5 +275,6 @@ public class ReviewService {
         }
 
         reviewRepository.save(review);
+        return "Review successfully updated!";
     }
 }

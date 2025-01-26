@@ -3,6 +3,7 @@ package com.example.BoardVerse.service;
 import com.example.BoardVerse.DTO.JwtResponse;
 import com.example.BoardVerse.DTO.User.LoginRequest;
 import com.example.BoardVerse.DTO.User.UserRegDTO;
+import com.example.BoardVerse.exception.AlreadyExistsException;
 import com.example.BoardVerse.model.MongoDB.User;
 import com.example.BoardVerse.model.MongoDB.subentities.Role;
 import com.example.BoardVerse.model.MongoDB.subentities.TournamentsUser;
@@ -63,23 +64,23 @@ public class AuthService {
 
         // Restituisce il DTO JwtResponse
         return new JwtResponse(
-                jwt,
                 userDetails.getId(),
                 userDetails.getUsername(),
                 userDetails.getEmail(),
-                role
+                role,
+                jwt
         );
     }
 
     //SIGNUP
-    public void registerUser(UserRegDTO signUpRequest) {
+    public String registerUser(UserRegDTO signUpRequest) {
         // Verifica se il nome utente o l'email sono già registrati
         if (userMongoRepository.existsByUsername(signUpRequest.username())) {
-            throw new IllegalArgumentException("Error: Username is already taken!");
+            throw new AlreadyExistsException("Error: Username is already taken!");
         }
 
         if (userMongoRepository.existsByEmail(signUpRequest.email())) {
-            throw new IllegalArgumentException("Error: Email is already in use!");
+            throw new AlreadyExistsException("Error: Email is already in use!");
         }
 
         String userId = UUID.randomUUID().toString();
@@ -113,5 +114,7 @@ public class AuthService {
 
         // Salva l'utente nel database
         userMongoRepository.save(newUserMongo);
+
+        return "User registered successfully!";
     }
 }
