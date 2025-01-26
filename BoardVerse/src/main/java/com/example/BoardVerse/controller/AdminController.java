@@ -1,25 +1,16 @@
 package com.example.BoardVerse.controller;
 
-import com.example.BoardVerse.DTO.Game.BestGameAgeDTO;
 import com.example.BoardVerse.DTO.Game.GameCreationDTO;
-import com.example.BoardVerse.DTO.Game.GamePreviewDTO;
 import com.example.BoardVerse.DTO.Game.GameUpdateDTO;
-import com.example.BoardVerse.DTO.User.aggregation.CountryAggregation;
-import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.AnalyticsService;
 import com.example.BoardVerse.service.GameService;
 import com.example.BoardVerse.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping(path = "api/admin")

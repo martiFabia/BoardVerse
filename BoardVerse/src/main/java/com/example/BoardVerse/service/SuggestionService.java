@@ -1,9 +1,9 @@
 package com.example.BoardVerse.service;
 
+import com.example.BoardVerse.DTO.Game.GameSuggestionDTO;
 import com.example.BoardVerse.DTO.Tournament.TournamentSuggestionDTO;
 import com.example.BoardVerse.DTO.User.UserSimilarityDTO;
 import com.example.BoardVerse.DTO.User.UserSuggestionDTO;
-import com.example.BoardVerse.model.Neo4j.UserNeo4j;
 import com.example.BoardVerse.repository.UserNeo4jRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ public class SuggestionService {
        userNeo4jRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with username: " + username));
 
-        return userNeo4jRepository.suggestUsers(username);
+        return userNeo4jRepository.getUsersRecommendation(username);
     }
 
     public List<UserSimilarityDTO>  getSimilarUsers(String username) {
@@ -38,6 +38,13 @@ public class SuggestionService {
         userNeo4jRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with username: " + username));
 
-        return userNeo4jRepository.suggestTournaments(username);
+        return userNeo4jRepository.getTournamentsRecommendation(username);
+    }
+
+    public List<GameSuggestionDTO> getSuggestedGames(String username) {
+        userNeo4jRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with username: " + username));
+
+        return userNeo4jRepository.getGamesRecommendation(username);
     }
 }

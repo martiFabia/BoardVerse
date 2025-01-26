@@ -1,6 +1,5 @@
 package com.example.BoardVerse.DTO.Tournament;
 
-import com.example.BoardVerse.model.MongoDB.subentities.GameThread;
 import com.example.BoardVerse.model.MongoDB.subentities.Location;
 import com.example.BoardVerse.model.MongoDB.subentities.OptionsTournament;
 import com.example.BoardVerse.model.MongoDB.subentities.VisibilityTournament;
@@ -13,7 +12,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class AddTournDTO {
+public class AddTournamentDTO {
     @NotBlank
     private String name;
 

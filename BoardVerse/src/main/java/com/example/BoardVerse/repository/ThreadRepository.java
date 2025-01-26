@@ -50,8 +50,8 @@ public interface ThreadRepository extends MongoRepository<ThreadMongo, String> {
     void deleteAllByGameId(String gameId);
 
     @Query("{'game.id': ?0}")
-    @Update("{ '$set': { 'game.name': ?1 } }")
-    void updateGameByGameId(String gameId, String gameName);
+    @Update("{ '$set': { 'game.name': ?1, 'game.yearReleased': ?2 } }")
+    void updateGameInfoById(String gameId, String gameName, Integer yearReleased);
 
     @Query("{'game.id': ?0}")
     @Update("{ '$set': { 'game.yearReleased': ?1 } }")

@@ -24,6 +24,9 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Service class for managing reviews.
+ */
 @Service
 public class ReviewService {
 
@@ -32,12 +35,26 @@ public class ReviewService {
     private final GameMongoRepository gameRepository;
     private final ReviewRepository reviewRepository;
 
+    /**
+     * Constructor for ReviewService.
+     *
+     * @param userRepository the user repository
+     * @param gameRepository the game repository
+     * @param reviewRepository the review repository
+     */
     public ReviewService(UserMongoRepository userRepository, GameMongoRepository gameRepository, ReviewRepository reviewRepository) {
         this.userRepository = userRepository;
         this.gameRepository = gameRepository;
         this.reviewRepository = reviewRepository;
     }
 
+    /**
+     * Adds a new review.
+     *
+     * @param userId the user ID
+     * @param gameId the game ID
+     * @param addReviewDTO the review creation DTO
+     */
     public void addReview(String userId, String gameId, AddReviewDTO addReviewDTO) {
 
         GameMongo game = gameRepository.findById(gameId)
@@ -46,7 +63,7 @@ public class ReviewService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with username: " + userId));
 
-        // Crea la recensione
+        // Create the review
         Review review = new Review();
         review.setAuthorUsername(user.getUsername());
         review.setAuthorBirthDate(user.getBirthDate());
@@ -54,9 +71,9 @@ public class ReviewService {
         review.setGame(new GameReview(game.getId(), game.getName(), game.getYearReleased(), game.getShortDescription()));
         review.setContent(addReviewDTO.getComment());
         review.setRating(addReviewDTO.getRating());
-        review.setPostDate(new Date()); // Imposta la data corrente
+        review.setPostDate(new Date()); // Set the current date
 
-        // Salva la recensione nella collection Review
+        // Save the review in the Review collection
         try {
             reviewRepository.save(review);
         } catch (Exception e) {
@@ -65,76 +82,97 @@ public class ReviewService {
 
         ReviewUser reviewUser = ReviewMapper.toUser(review);
 
-        // Aggiungi il rating al gioco se è presente
+        // Add the rating to the game if present
         try {
-            // Verifica se il campo rating della recensione non è vuoto (null)
+            // Check if the review's rating field is not empty (null)
             if (review.getRating() != null) {
                 addRating(game, review.getRating());
             }
         } catch (Exception e) {
-            // Rollback: elimina la recensione salvata
+            // Rollback: delete the saved review
             reviewRepository.deleteById(review.getId());
             throw new IllegalStateException("Error adding review to the game: " + e.getMessage(), e);
         }
 
-        // Aggiungi la recensione all'utente
+        // Add the review to the user
         try {
             addReviewUser(user, reviewUser);
         } catch (Exception e) {
-            // Rollback: elimina la recensione e rimuovila dal gioco
+            // Rollback: delete the review and remove it from the game
             reviewRepository.deleteById(review.getId());
             removeRating(game, review.getRating());
             throw new IllegalStateException("Error adding review to the user: " + e.getMessage(), e);
         }
-
-        //AGGIUNGERE RAMO AL GRAPH (FORSE)
     }
 
+    /**
+     * Adds a review to the user's most recent reviews.
+     *
+     * @param user the user
+     * @param review the review
+     */
     public void addReviewUser(User user, ReviewUser review) {
-        // Ottieni la lista delle recensioni recenti
+        // Get the list of recent reviews
         List<ReviewUser> list = user.getMostRecentReviews();
-        // Aggiungi la nuova recensione in cima alla lista
+        // Add the new review to the top of the list
         list.add(0, review);
-        // Limita la lista alla dimensione massima definita da Constants.RECENT_SIZE
+        // Limit the list to the maximum size defined by Constants.RECENT_SIZE
         if (list.size() > Constants.RECENT_SIZE) {
             list.remove(list.size() - 1);
         }
 
         user.setMostRecentReviews(list);
-        // Salva l'utente aggiornato nel database
+        // Save the updated user in the database
         userRepository.save(user);
     }
 
+    /**
+     * Adds a rating to a game.
+     *
+     * @param game the game
+     * @param rating the rating
+     */
     public void addRating(GameMongo game, Double rating){
-        //moltiplica averageRating per numRatings
+        // Multiply averageRating by numRatings
         double totalRating = game.getAverageRating() * game.getRatingVoters();
-        // Aggiungi il nuovo rating
+        // Add the new rating
         totalRating += rating;
-        // Incrementa numRatings
+        // Increment numRatings
         game.setRatingVoters(game.getRatingVoters() + 1);
-        // Calcola la nuova media
+        // Calculate the new average
         game.setAverageRating(totalRating / game.getRatingVoters());
         gameRepository.save(game);
     }
 
-    //rimuovi rating da Game
+    /**
+     * Removes a rating from a game.
+     *
+     * @param game the game
+     * @param rating the rating
+     */
     public void removeRating(GameMongo game, Double rating){
-        //rimuovere il rating dal game
+        // Remove the rating from the game
         if (rating != null) {
-            // moltiplica averageRating per numRatings
+            // Multiply averageRating by numRatings
             double totalRating = game.getAverageRating() * game.getRatingVoters();
-            // Rimuovi il rating
+            // Remove the rating
             totalRating -= rating;
-            // decrementa numRatings
+            // Decrement numRatings
             game.setRatingVoters(game.getRatingVoters() - 1);
-            // Calcola la nuova media
+            // Calculate the new average
             game.setAverageRating(totalRating / game.getRatingVoters());
         }
 
         gameRepository.save(game);
     }
 
-
+    /**
+     * Deletes a review.
+     *
+     * @param reviewId the review ID
+     * @param gameId the game ID
+     * @param username the username
+     */
     public void deleteReview(String reviewId, String gameId, String username) {
         GameMongo game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
@@ -145,24 +183,24 @@ public class ReviewService {
         User user = userRepository.findByUsername(review.getAuthorUsername())
                 .orElseThrow(() -> new NotFoundException("User not found with username: " + review.getAuthorUsername()));
 
-        // Verifica se l'utente è l'autore della recensione o un admin
+        // Check if the user is the author of the review or an admin
         if(!username.equals(review.getAuthorUsername()) || !user.getRole().equals(Role.ROLE_ADMIN)) {
             throw new IllegalArgumentException("You can delete only your reviews");
         }
-        // Elimina la recensione dalle review
+        // Delete the review from reviews
         reviewRepository.delete(review);
 
-        //rimuovere il rating dal game
+        // Remove the rating from the game
         if(review.getRating() != null) {
             removeRating(game, review.getRating());
         }
 
-        //rimuovo la review dall'utente
+        // Remove the review from the user
         List<ReviewUser> list= user.getMostRecentReviews();
-        //rimuove review dalla lista
+        // Remove review from the list
         list.removeIf(reviewUser -> reviewUser.id().equals(reviewId));
 
-        // Se la lista ha meno di 3 elementi, aggiungi la prossima recensione più recente
+        // If the list has less than 3 items, add the next most recent review
         if (list.size() < Constants.RECENT_SIZE) {
             Review nextRecentReviewForUser = reviewRepository.findFirstByAuthorUsernameOrderByPostDateDesc(review.getAuthorUsername())
                     .orElse(null);
@@ -174,18 +212,24 @@ public class ReviewService {
         user.setMostRecentReviews(list);
         userRepository.save(user);
 
-        //ELIMINARE RAMO DAL GRAPH
-
     }
 
+    /**
+     * Gets reviews for a game.
+     *
+     * @param gameId the game ID
+     * @param sortBy the sort field
+     * @param page the page number
+     * @return a slice of review information
+     */
     public Slice<ReviewInfo> getGameReviews(String gameId,String sortBy, int page) {
-        //Determina su quale campo ordinare
+        // Determine the field to sort by
         Sort sort;
         if ("rating".equalsIgnoreCase(sortBy)) {
-            // Se vuoi considerare asc/desc
+            // Consider asc/desc
             sort = Sort.by("rating").descending();
         } else {
-            // di default ordiniamo su postDate
+            // Default to sorting by postDate
             sort = Sort.by("postDate").descending();
         }
 
@@ -194,33 +238,38 @@ public class ReviewService {
 
     }
 
+    /**
+     * Updates a review.
+     *
+     * @param gameId the game ID
+     * @param username the username
+     * @param reviewId the review ID
+     * @param addReviewDTO the review update DTO
+     */
     public void updateReview(String gameId, String username, String reviewId, AddReviewDTO addReviewDTO) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("Review not found with ID: " + reviewId));
 
-        // Verifica se l'utente è l'autore della recensione
+        // Check if the user is the author of the review
         if(!username.equals(review.getAuthorUsername())) {
             throw new IllegalArgumentException("You can update only your reviews");
         }
 
-        // Aggiorna la recensione
+        // Update the review
         if(addReviewDTO.getComment() != null){
             review.setContent(addReviewDTO.getComment());
         }
         if(addReviewDTO.getRating() != null){
             GameMongo game = gameRepository.findById(gameId)
                     .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
-            //rimuovere il rating vecchio dal game
+            // Remove the old rating from the game
             removeRating(game, review.getRating());
-            //aggiungere il nuovo rating al game
+            // Add the new rating to the game
             addRating(game, addReviewDTO.getRating());
-            //aggiornare il rating della review
+            // Update the review's rating
             review.setRating(addReviewDTO.getRating());
         }
 
         reviewRepository.save(review);
     }
-
-
 }
-

@@ -1,7 +1,7 @@
 package com.example.BoardVerse.controller;
 
 
-import com.example.BoardVerse.DTO.Tournament.AddTournDTO;
+import com.example.BoardVerse.DTO.Tournament.AddTournamentDTO;
 import com.example.BoardVerse.DTO.Tournament.UpdateTournDTO;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.TournamentService;
@@ -31,10 +31,10 @@ public class TournamentController {
     @Operation(summary = "Add a new tournament")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PostMapping("/{gameId}/tournament")
-    public ResponseEntity<String> createTournament(@PathVariable String gameId, @RequestBody @Valid AddTournDTO addTournDTO) {
+    public ResponseEntity<String> createTournament(@PathVariable String gameId, @RequestBody @Valid AddTournamentDTO addTournamentDTO) {
         try {
             UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            tournamentService.addTournament(gameId, user.getId(), addTournDTO);
+            tournamentService.addTournament(gameId, user.getId(), addTournamentDTO);
             return ResponseEntity.ok("Tournament successfully added!");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

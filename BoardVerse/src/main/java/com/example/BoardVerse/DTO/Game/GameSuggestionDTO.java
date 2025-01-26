@@ -1,6 +1,6 @@
-package com.example.BoardVerse.DTO;
+package com.example.BoardVerse.DTO.Game;
 
-public record GameReccomendationDTO (
+public record GameSuggestionDTO(
         String id,
         String name,
         Integer yearReleased,

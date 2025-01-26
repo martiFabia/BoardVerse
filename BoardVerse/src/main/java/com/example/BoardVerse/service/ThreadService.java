@@ -32,12 +32,10 @@ public class ThreadService {
 
     @Autowired
     private final ThreadRepository threadRepository;
-    private final UserMongoRepository userMongoRepository;
     private final GameMongoRepository gameRepository;
 
     public ThreadService(ThreadRepository threadRepository, UserMongoRepository userMongoRepository, GameMongoRepository gameRepository) {
         this.threadRepository = threadRepository;
-        this.userMongoRepository = userMongoRepository;
         this.gameRepository = gameRepository;
     }
 

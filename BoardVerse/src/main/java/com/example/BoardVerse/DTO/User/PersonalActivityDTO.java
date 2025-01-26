@@ -1,4 +1,4 @@
-package com.example.BoardVerse.DTO;
+package com.example.BoardVerse.DTO.User;
 
 import java.util.Date;
 import java.util.Map;

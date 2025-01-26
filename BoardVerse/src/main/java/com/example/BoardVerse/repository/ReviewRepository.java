@@ -1,7 +1,7 @@
 package com.example.BoardVerse.repository;
 
 import com.example.BoardVerse.DTO.Game.BestGameAgeDTO;
-import com.example.BoardVerse.DTO.Game.GamePreviewDTO;
+import com.example.BoardVerse.DTO.Game.GameRankPreviewDTO;
 import com.example.BoardVerse.DTO.Game.RatingDetails;
 import com.example.BoardVerse.DTO.Review.ReviewInfo;
 import com.example.BoardVerse.DTO.Review.ReviewUserDTO;
@@ -51,17 +51,8 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
     void updateUsernameInReviews(String oldUsername, String newUsername);
 
     @Query("{'game.id': ?0}")
-    @Update("{ '$set': { 'game.name': ?1 } }")
-    void updateGameNameInReviews(String gameId, String gameName);
-
-    @Query("{'game.id': ?0}")
-    @Update("{ '$set': { 'game.yearReleased': ?1 } }")
-    void updateGameYearInReviews(String gameId, Integer gameYear);
-
-    @Query("{'game.id': ?0}")
-    @Update("{ '$set': { 'game.shortDescription': ?1 } }")
-    void updateGameShortDescInReviews(String gameId, String shortDesc);
-
+    @Update("{ '$set': { 'game.name': ?1, 'game.yearReleased': ?2, 'game.shortDescription': ?3 } }")
+    void updateGameInfoById(String gameId, String gameName, Integer yearReleased, String shortDescription);
 
     @Aggregation(pipeline = {
             "{ '$match': { 'game._id': ?0, 'rating': { '$ne': null } } }", // Filtra per game._id e rating non null
@@ -118,7 +109,7 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
                     + "  'averageRating': { '$round': [ '$averageRating', 2 ] } "
                     + "} }"
     })
-    Slice<GamePreviewDTO> findAverageRatingByPostDateLocation(Date startDate, Date endDate, String country, String state, String city, Pageable pageable);
+    Slice<GameRankPreviewDTO> findAverageRatingByPostDateLocation(Date startDate, Date endDate, String country, String state, String city, Pageable pageable);
 
 
     @Aggregation(pipeline = {

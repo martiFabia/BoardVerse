@@ -1,4 +1,4 @@
-package com.example.BoardVerse.DTO;
+package com.example.BoardVerse.DTO.Tournament;
 
 import java.util.Date;
 

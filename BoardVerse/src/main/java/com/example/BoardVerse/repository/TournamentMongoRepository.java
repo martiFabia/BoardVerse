@@ -24,12 +24,8 @@ public interface TournamentMongoRepository extends MongoRepository<Tournament, S
     void updateWinnerInTournaments(String oldUsername, String newUsername);
 
     @Query("{'game.id': ?0}")
-    @Update("{ '$set': { 'game.name': ?1 } }")
-    void updateGameNameInTournaments(String gameId, String gameName);
-
-    @Query("{'game.id': ?0}")
-    @Update("{ '$set': { 'game.yearReleased': ?1 } }")
-    void updateGameYearInTournaments(String gameId, Integer gameYear);
+    @Update("{ '$set': { 'game.name': ?1, 'game.yearReleased': ?2 } }")
+    void updateGameInfoById(String gameId, String gameName, Integer yearReleased);
 
 
     void deleteByAdministrator(String username);

@@ -1,4 +1,4 @@
-package com.example.BoardVerse.DTO;
+package com.example.BoardVerse.DTO.User;
 
 import lombok.Data;
 

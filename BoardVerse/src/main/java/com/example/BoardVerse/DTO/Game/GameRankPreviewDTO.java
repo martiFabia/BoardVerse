@@ -1,6 +1,6 @@
 package com.example.BoardVerse.DTO.Game;
 
-public record GamePreviewDTO(
+public record GameRankPreviewDTO(
         String id,
         String name,
         Integer yearReleased,

@@ -28,18 +28,12 @@ public interface UserMongoRepository extends MongoRepository<User, String> {
     Boolean existsByUsername(String username);
     Boolean existsByEmail(String email);
 
-    @Query(value = "{ '_id': { '$in': ?0 } }", fields = "{ '_id': 1 }")
-    List<String> findUsersById(List<String> ids);
+    @Query(value = "{ 'username': { '$in': ?0 } }", fields = "{ '_id': 1 }")
+    List<String> findUsersByUsername(List<String> usernames);
 
-
-    @Query(value = "{ 'mostRecentReviews.game._id': ?0 }")
-    @Update("{ '$set': { 'mostRecentReviews.$.game.name': ?1 } }")
-    void updateGameNameInMostRecentReviews(String gameId, String gameName);
-
-    @Query(value = "{ 'mostRecentReviews.game._id': ?0 }")
-    @Update("{ '$set': { 'mostRecentReviews.$.game.yearReleased': ?1 } }")
-    void updateGameYearInMostRecentReviews(String gameId, Integer gameYear);
-
+    @Query("{'game.id': ?0}")
+    @Update("{ '$set': { 'game.name': ?1, 'game.yearReleased': ?2, 'game.shortDescription': ?3 } }")
+    void updateGameInfoById(String gameId, String gameName, Integer yearReleased, String shortDescription);
 
     @Query(value = "{'mostRecentReviews.game._id': ?0 }")
     @Update("{ '$pull': { 'mostRecentReviews': { 'game._id': ?0 } } }")

@@ -2,24 +2,23 @@ package com.example.BoardVerse.service;
 
 import com.example.BoardVerse.DTO.Game.*;
 import com.example.BoardVerse.exception.NotFoundException;
-import com.example.BoardVerse.config.GlobalExceptionHandler;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
+import com.example.BoardVerse.model.Neo4j.GameNeo4j;
 import com.example.BoardVerse.repository.*;
 import com.example.BoardVerse.utils.Constants;
-import com.example.BoardVerse.utils.MongoGameMapper;
+import com.example.BoardVerse.utils.GameMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.*;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 
-import static com.example.BoardVerse.utils.MongoGameMapper.mapDTOToGameMongo;
+import static com.example.BoardVerse.utils.GameMapper.toGameMongo;
 
+/**
+ * Service class for managing games.
+ */
 @Service
 public class GameService {
 
@@ -29,186 +28,344 @@ public class GameService {
     private final ThreadRepository threadRepository;
     private final UserMongoRepository userMongoRepository;
 
-    public GameService(GameMongoRepository gameMongoRepository, ReviewRepository reviewRepository, TournamentMongoRepository tournamentMongoRepository, ThreadRepository threadRepository, UserMongoRepository userMongoRepository) {
+    private final GameNeo4jRepository gameNeo4jRepository;
+
+    static private final Logger logger = LoggerFactory.getLogger(GameService.class);
+
+    /**
+     * Constructor for GameService.
+     *
+     * @param gameMongoRepository the game repository
+     * @param reviewRepository the review repository
+     * @param tournamentMongoRepository the tournament repository
+     * @param threadRepository the thread repository
+     * @param userMongoRepository the user repository
+     * @param userNeo4jRepository the Neo4j user repository
+     * @param gameNeo4jRepository the Neo4j game repository
+     * @param tournamentNeo4jRepository the Neo4j tournament repository
+     */
+    public GameService(
+            GameMongoRepository gameMongoRepository,
+            ReviewRepository reviewRepository,
+            TournamentMongoRepository tournamentMongoRepository,
+            ThreadRepository threadRepository,
+            UserMongoRepository userMongoRepository,
+            UserNeo4jRepository userNeo4jRepository,
+            GameNeo4jRepository gameNeo4jRepository,
+            TournamentNeo4jRepository tournamentNeo4jRepository
+    ) {
         this.gameMongoRepository = gameMongoRepository;
         this.reviewRepository = reviewRepository;
         this.tournamentMongoRepository = tournamentMongoRepository;
         this.threadRepository = threadRepository;
         this.userMongoRepository = userMongoRepository;
+
+        this.gameNeo4jRepository = gameNeo4jRepository;
     }
 
-    // Operazione di creazione
+    /**
+     * Adds a new game. TODO add consistency check
+     *
+     * @param newGameDTO the game creation DTO
+     * @return a success message
+     */
     public String addNewGame(GameCreationDTO newGameDTO) {
+        logger.info("Adding new game: " + newGameDTO.getName());
+        logger.debug("Game DTO: " + newGameDTO);
 
+        // Check if a game with the same name and year released already exists
         if (gameMongoRepository.findByNameAndYearReleased(newGameDTO.getName(), newGameDTO.getYearReleased()).isPresent()) {
+            logger.warn("Game " + newGameDTO.getName() + " released in " + newGameDTO.getYearReleased() + " already exists");
+            throw new NotFoundException("Game " + newGameDTO.getName() + " released in " + newGameDTO.getYearReleased() + " already exists");
+        }
+        if(gameNeo4jRepository.findGameNeo4jByNameAndYearReleased(newGameDTO.getName(), newGameDTO.getYearReleased()).isPresent()){
+            logger.warn("Game " + newGameDTO.getName() + " released in " + newGameDTO.getYearReleased() + " already exists");
             throw new NotFoundException("Game " + newGameDTO.getName() + " released in " + newGameDTO.getYearReleased() + " already exists");
         }
 
-        GameMongo newGameMongo = mapDTOToGameMongo(newGameDTO);
-        gameMongoRepository.save(newGameMongo);
-        return "Game " + newGameMongo.getName() + " released in " + newGameDTO.getYearReleased() + " added successfully";
+        // Generate a new game ID
+        String gameId = UUID.randomUUID().toString();
 
+        // Save the new game in Neo4j database
+        GameNeo4j newGameNeo4j = GameMapper.toGameNeo4j(newGameDTO, gameId);
+        gameNeo4jRepository.save(newGameNeo4j);
+        logger.info("Game added to Neo4j");
+        logger.debug("Game: " + newGameNeo4j);
+
+        // Save the new game in Mongo database
+        GameMongo newGameMongo = toGameMongo(newGameDTO, gameId);
+        gameMongoRepository.save(newGameMongo);
+        logger.info("Game added to MongoDB");
+        logger.debug("Game: " + newGameMongo);
+
+        return "Game " + newGameMongo.getName() + " released in " + newGameDTO.getYearReleased() + " added successfully";
     }
 
-
+    /**
+     * Updates an existing game.
+     *
+     * @param gameId the game ID
+     * @param updateGameDTO the game update DTO
+     * @return a success message
+     */
     public String updateGame(String gameId, GameUpdateDTO updateGameDTO) {
-        GameMongo game = gameMongoRepository.findById(gameId)
-                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
+        logger.info("Updating gameMongo: " + gameId);
+        logger.debug("Update DTO: " + updateGameDTO);
 
-        System.out.println("Year: " + updateGameDTO.getYearReleased());
+        // Find the gameMongo to update
+        GameMongo gameMongo = gameMongoRepository.findById(gameId)
+                .orElseThrow(() -> {
+                    logger.warn("Game not found with ID: " + gameId);
+                    return new NotFoundException("Game not found with ID: " + gameId);
+                });
+        GameNeo4j gameNeo4j = gameNeo4jRepository.findById(gameId)
+                .orElseThrow(() -> {
+                    logger.warn("Game not found with ID: " + gameId);
+                    return new NotFoundException("Game not found with ID: " + gameId);
+                });
+        logger.info("Game found");
+        logger.debug("Game in mongo: " + gameMongo);
+        logger.debug("Game in neo4j: " + gameNeo4j);
 
-        //Se è presente un gioco con lo stesso nome e anno di rilascio,
-        // ma questo gioco non è quello che si sta cercando di aggiornare
-        // allora lancia un'eccezione
-        if(updateGameDTO.getName() != null && updateGameDTO.getYearReleased() != null) {
-            Optional<GameMongo> existingGame = gameMongoRepository.findByNameAndYearReleased(updateGameDTO.getName(), updateGameDTO.getYearReleased());
-            if (existingGame.isPresent() && !existingGame.get().getId().equals(gameId)) {
-                throw new NotFoundException("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
-            }
+
+        if(updateGameDTO.getName()!=null){
+            gameMongo.setName(updateGameDTO.getName());
+            gameNeo4j.setName(updateGameDTO.getName());
         }
 
-        if(updateGameDTO.getName() != null) {
-            Optional<GameMongo> existingGame = gameMongoRepository.findByNameAndYearReleased(updateGameDTO.getName(), game.getYearReleased());
-            if (existingGame.isPresent() && !existingGame.get().getId().equals(gameId)) {
-                throw new NotFoundException("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
-            }
-            game.setName(updateGameDTO.getName());
-            //aggiornamento nome in THREAD
-            threadRepository.updateGameByGameId(gameId, updateGameDTO.getName());
-            //aggiornamento nome in review
-            reviewRepository.updateGameNameInReviews(gameId, updateGameDTO.getName());
-            //aggiornamento nome in tournament
-            tournamentMongoRepository.updateGameNameInTournaments(gameId, updateGameDTO.getName());
-            //aggiornamento nome in user.mostRecentReviews
-            userMongoRepository.updateGameNameInMostRecentReviews(gameId, updateGameDTO.getName());
-        }
-
-        if(updateGameDTO.getYearReleased() != null) {
-            Optional<GameMongo> existingGame = gameMongoRepository.findByNameAndYearReleased(game.getName(), updateGameDTO.getYearReleased());
-            if (existingGame.isPresent() && !existingGame.get().getId().equals(gameId)) {
-                throw new NotFoundException("Game " + game.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
-            }
-            game.setYearReleased(updateGameDTO.getYearReleased());
-            //aggiornamento anno in THREAD
-            threadRepository.updateYearByGameId(gameId, updateGameDTO.getYearReleased());
-            //aggiornamento anno in REVIEWS
-            reviewRepository.updateGameYearInReviews(gameId, updateGameDTO.getYearReleased());
-            //aggiornamento anno in TOURNAMENTS
-            tournamentMongoRepository.updateGameYearInTournaments(gameId, updateGameDTO.getYearReleased());
-            //aggiornamento anno in user.mostRecentReviews
-            userMongoRepository.updateGameYearInMostRecentReviews(gameId, updateGameDTO.getYearReleased());
+        if(updateGameDTO.getYearReleased()!=null){
+            gameMongo.setYearReleased(updateGameDTO.getYearReleased());
+            gameNeo4j.setYearReleased(updateGameDTO.getYearReleased());
         }
 
         if (updateGameDTO.getShortDescription()!=null) {
-            game.setShortDescription(updateGameDTO.getShortDescription());
-            //aggiornamento shortDescription in review
-            reviewRepository.updateGameShortDescInReviews(gameId, updateGameDTO.getShortDescription());
+            gameMongo.setShortDescription(updateGameDTO.getShortDescription());
+            gameNeo4j.setShortDescription(updateGameDTO.getShortDescription());
+        }
+
+        if(updateGameDTO.getCategories()!=null && !updateGameDTO.getCategories().isEmpty()) {
+            gameMongo.setCategories(updateGameDTO.getCategories());
+            gameNeo4j.setCategories(updateGameDTO.getCategories());
         }
 
         if(updateGameDTO.getDescription() != null){
-            game.setDescription(updateGameDTO.getDescription());
+            gameMongo.setDescription(updateGameDTO.getDescription());
         }
 
         if(updateGameDTO.getMinPlayers()!=null) {
-            game.setMinPlayers(updateGameDTO.getMinPlayers());
+            gameMongo.setMinPlayers(updateGameDTO.getMinPlayers());
         }
 
         if(updateGameDTO.getMaxPlayers()!=null) {
-            game.setMaxPlayers(updateGameDTO.getMaxPlayers());
+            gameMongo.setMaxPlayers(updateGameDTO.getMaxPlayers());
         }
 
         if(updateGameDTO.getMinSuggAge()!=null) {
-            game.setMinSuggAge(updateGameDTO.getMinSuggAge());
+            gameMongo.setMinSuggAge(updateGameDTO.getMinSuggAge());
         }
 
         if (updateGameDTO.getMinPlayTime()!=null) {
-            game.setMinPlayTime(updateGameDTO.getMinPlayTime());
+            gameMongo.setMinPlayTime(updateGameDTO.getMinPlayTime());
         }
 
         if (updateGameDTO.getMaxPlayTime()!=null) {
-            game.setMaxPlayTime(updateGameDTO.getMaxPlayTime());
+            gameMongo.setMaxPlayTime(updateGameDTO.getMaxPlayTime());
         }
 
         if (updateGameDTO.getDesigners()!=null) {
-            game.setDesigners(updateGameDTO.getDesigners());
+            gameMongo.setDesigners(updateGameDTO.getDesigners());
         }
         if (updateGameDTO.getArtists()!=null)
-            game.setArtists(updateGameDTO.getArtists());
+            gameMongo.setArtists(updateGameDTO.getArtists());
 
         if (updateGameDTO.getPublisher()!=null)
-            game.setPublisher(updateGameDTO.getPublisher());
-
-        if(updateGameDTO.getCategories()!=null && !updateGameDTO.getCategories().isEmpty()) {
-            game.setCategories(updateGameDTO.getCategories());
-        }
+            gameMongo.setPublisher(updateGameDTO.getPublisher());
 
         if(updateGameDTO.getMechanics()!=null)
-            game.setMechanics(updateGameDTO.getMechanics());
+            gameMongo.setMechanics(updateGameDTO.getMechanics());
 
         if(updateGameDTO.getFamily()!=null)
-            game.setFamily(updateGameDTO.getFamily());
+            gameMongo.setFamily(updateGameDTO.getFamily());
 
-        gameMongoRepository.save(game);
-        return "Game " + game.getId() + " updated successfully";
+        // Check if a game with the same name and year released already exists
+        logger.info("Checking if game already exists");
+        if(updateGameDTO.getName() != null || updateGameDTO.getYearReleased() != null) {
+            // Check in mongo
+            Optional<GameMongo> existingGameMongo = gameMongoRepository.findByNameAndYearReleased(gameMongo.getName(), gameMongo.getYearReleased());
+            if (existingGameMongo.isPresent() && !existingGameMongo.get().getId().equals(gameId)) {
+                logger.warn("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists in MongoDB");
+                throw new NotFoundException("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
+            }
 
-        //SE MODIFICATA SHORT DESC MODIFICARE GRAPH
+            // Check in neo4j
+            Optional<GameNeo4j> existingGameNeo4j = gameNeo4jRepository.findGameNeo4jByNameAndYearReleased(gameNeo4j.getName(), gameNeo4j.getYearReleased());
+            if (existingGameNeo4j.isPresent() && !existingGameNeo4j.get().getId().equals(gameId)) {
+                logger.warn("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists in Neo4j");
+                throw new NotFoundException("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
+            }
+        }
+
+        // If the name or year released has changed, update the info in the related entities
+        if(updateGameDTO.getName() != null || updateGameDTO.getYearReleased() != null) {
+            logger.info("Change in name or year released detected");
+
+            // Update in Neo4j
+            gameNeo4jRepository.save(gameNeo4j);
+            logger.info("Game updated in Neo4j");
+
+            // Threads
+            threadRepository.updateGameInfoById(gameId, gameMongo.getName(), gameMongo.getYearReleased());
+            // Tournaments
+            tournamentMongoRepository.updateGameInfoById(gameId, gameMongo.getName(), gameMongo.getYearReleased());
+            // Reviews
+            reviewRepository.updateGameInfoById(gameId, gameMongo.getName(), gameMongo.getYearReleased(), gameMongo.getShortDescription());
+            // Users' mostRecentReviews
+            userMongoRepository.updateGameInfoById(gameId, gameMongo.getName(), gameMongo.getYearReleased(), gameMongo.getShortDescription());
+            logger.info("Updated Game redundant info in MongoDB");
+        }
+
+        // If the short description has changed, update the info in the related entities
+        else if (updateGameDTO.getShortDescription() != null) {
+            logger.info("Change in short description detected");
+
+            // Update in Neo4j
+            gameNeo4jRepository.save(gameNeo4j);
+            logger.info("Game updated in Neo4j");
+
+            // Reviews
+            reviewRepository.updateGameInfoById(gameId, gameMongo.getName(), gameMongo.getYearReleased(), gameMongo.getShortDescription());
+            // Users' mostRecentReviews
+            userMongoRepository.updateGameInfoById(gameId, gameMongo.getName(), gameMongo.getYearReleased(), gameMongo.getShortDescription());
+            logger.info("Updated Game redundant info in MongoDB");
+        }
+
+        // If the categories have changed, update the info in the related entities
+        else if (updateGameDTO.getCategories() != null) {
+            logger.info("Change in categories detected");
+
+            // Update in Neo4j
+            gameNeo4jRepository.save(gameNeo4j);
+            logger.info("Game updated in Neo4j");
+        }
+
+        // Save the updated game in MongoDB
+        gameMongoRepository.save(gameMongo);
+        logger.info("Game updated in MongoDB");
+
+        return "Game " + gameMongo.getId() + " updated successfully";
     }
 
-
-    // Operazione di eliminazione
+    /**
+     * Deletes a game.
+     *
+     * @param gameId the game ID
+     * @return a success message
+     */
     public String deleteGame(String gameId) {
-        GameMongo game = gameMongoRepository.findById(gameId)
-                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
-        gameMongoRepository.delete(game);
+        logger.info("Deleting game with ID: " + gameId);
 
+        GameMongo game = gameMongoRepository.findById(gameId)
+                .orElseThrow(() -> {
+                    logger.warn("Game not found with ID: " + gameId);
+                    return new NotFoundException("Game not found with ID: " + gameId);
+                });
+
+        // Delete from Neo4j
+        gameNeo4jRepository.deleteById(gameId);
+        logger.info("Game deleted from Neo4j");
+
+        // Delete threads
         threadRepository.deleteAllByGameId(gameId);
-        //eliminare reviews
+        // Delete reviews
         reviewRepository.deleteByGameId(gameId);
-        //eliminare tornei
+        // Delete tournaments
         tournamentMongoRepository.deleteByGameId(gameId);
-        //eliminare dai mostRecentReviews degli utenti
+        // Delete users' mostRecentReviews
         userMongoRepository.deleteGameFromMostRecentReviews(gameId);
+        logger.info("Game redundant info deleted from MongoDB");
+
+        // Delete from MongoDB
+        gameMongoRepository.delete(game);
+        logger.info("Game deleted from MongoDB");
 
         return "Game with id " + gameId + " deleted successfully";
-
-        //ELIMINARE DAL GRAPH (E TUTTE LE RELAZIONI)
-
     }
 
-    // Operazione di ricerca per nome
-    public Slice<GamePreviewDTO> findByName(String name, int page) {
+    /**
+     * Finds games by name.
+     *
+     * @param name the game name
+     * @param page the page number
+     * @return a slice of game previews
+     */
+    public Slice<GameRankPreviewDTO> findByName(String name, int page) {
+        logger.info("Finding games with name: " + name);
         Pageable pageable = PageRequest.of(page, Constants.PAGE_SIZE);
         return gameMongoRepository.findByNameContaining(name, pageable);
     }
 
+    /**
+     * Gets game information.
+     *
+     * @param gameId the game ID
+     * @return the game information DTO
+     */
     public GameInfoDTO getInfo(String gameId) {
         GameMongo game = gameMongoRepository.findById(gameId)
-                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
-        return MongoGameMapper.toDTO(game);
+                .orElseThrow(() -> {
+                    logger.warn("Game not found with ID: " + gameId);
+                    return new NotFoundException("Game not found with ID: " + gameId)
+                });
+        return GameMapper.toDTO(game);
     }
 
-
+    /**
+     * Gets rating details for a game.
+     *
+     * @param gameId the game ID
+     * @return the rating details
+     */
     public RatingDetails getRatingsDetails(String gameId) {
+        logger.info("Getting rating details for game with ID: " + gameId);
         return reviewRepository.findRatingDetailsByGameId(gameId);
     }
 
-    public Slice<GamePreviewDTO> getFilteredGames(Integer yearReleased, String categories,
-                                                  String mechanics, String sortBy, String order, int page) {
-        //Determina su quale campo ordinare
+    /**
+     * Gets filtered games.
+     *
+     * @param yearReleased the release year
+     * @param categories the categories
+     * @param mechanics the mechanics
+     * @param sortBy the sort field
+     * @param order the sort order
+     * @param page the page number
+     * @return a slice of game previews
+     */
+    public Slice<GameRankPreviewDTO> getFilteredGames(Integer yearReleased, String categories,
+                                                      String mechanics, String sortBy, String order, int page) {
+        logger.info("Getting filtered games");
+        logger.debug("Year released: " + yearReleased);
+        logger.debug("Categories: " + categories);
+        logger.debug("Mechanics: " + mechanics);
+        logger.debug("Sort by: " + sortBy);
+        logger.debug("Order: " + order);
+        logger.debug("Page: " + page);
+
+        // Determine the field to sort by
         Sort sort;
         if ("yearReleased".equalsIgnoreCase(sortBy)) {
-            // Se vuoi considerare asc/desc
+            // Consider asc/desc
             sort = "asc".equalsIgnoreCase(order)
                     ? Sort.by("yearReleased").ascending()
                     : Sort.by("yearReleased").descending();
         } else {
-            // di default ordiniamo su averageRating
+            // Default to sorting by averageRating
             sort = "asc".equalsIgnoreCase(order)
                     ? Sort.by("averageRating").ascending()
                     : Sort.by("averageRating").descending();
         }
 
-        // 10 elementi per pagina.
+        // 10 items per page.
         Pageable pageable = PageRequest.of(page, Constants.PAGE_SIZE, sort);
 
         return gameMongoRepository.findGamesByFilters(
@@ -216,8 +373,26 @@ public class GameService {
         );
     }
 
+    /**
+     * Gets the ranking of games.
+     *
+     * @param startDate the start date
+     * @param endDate the end date
+     * @param country the country
+     * @param state the state
+     * @param city the city
+     * @param page the page number
+     * @return a slice of game previews
+     */
+    public Slice<GameRankPreviewDTO> getRanking(Date startDate, Date endDate, String country, String state, String city, int page) {
+        logger.info("Getting ranking of games");
+        logger.debug("Start date: " + startDate);
+        logger.debug("End date: " + endDate);
+        logger.debug("Country: " + country);
+        logger.debug("State: " + state);
+        logger.debug("City: " + city);
+        logger.debug("Page: " + page);
 
-    public Slice<GamePreviewDTO> getRanking(Date startDate, Date endDate, String country, String state, String city, int page) {
         if(startDate == null){
             startDate = new Date(0);
         }
@@ -229,6 +404,11 @@ public class GameService {
         return reviewRepository.findAverageRatingByPostDateLocation(startDate, endDate, country, state, city, pageable);
     }
 
+    /**
+     * Gets the most played games.
+     *
+     * @return a list of most played game DTOs
+     */
     public List<MostPlayedGameDTO> getMostPlayedGames() {
         Calendar calendar = Calendar.getInstance();
         Date endDate = new Date();
@@ -238,10 +418,24 @@ public class GameService {
         return tournamentMongoRepository.findTop10GamesWithHighestAverageParticipation(startDate, endDate);
     }
 
-
+    /**
+     * Gets the best games by age.
+     *
+     * @return a list of best game age DTOs
+     */
     public List<BestGameAgeDTO> bestGamesByAge() {
+        logger.info("Getting best games by age");
         return reviewRepository.findBestGameByAgeBrackets();
     }
 
+    /**
+     * Gets game stats about tournaments and likes.
+     *
+     * @return a list of best game player DTOs
+     */
+    public List<GameAnalyticsDTO> getGameAnalytics(String gameId) {
+        logger.info("Getting game analytics for game with ID: " + gameId);
+        return gameNeo4jRepository.getGameAnalytics(gameId);
+    }
 
 }

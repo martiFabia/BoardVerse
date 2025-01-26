@@ -2,24 +2,18 @@ package com.example.BoardVerse.utils;
 
 import com.example.BoardVerse.DTO.Game.GameCreationDTO;
 import com.example.BoardVerse.DTO.Game.GameInfoDTO;
-import com.example.BoardVerse.DTO.Game.GamePreviewDTO;
+import com.example.BoardVerse.DTO.Game.GameRankPreviewDTO;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
-import com.example.BoardVerse.model.MongoDB.Review;
-import lombok.AllArgsConstructor;
+import com.example.BoardVerse.model.Neo4j.GameNeo4j;
 
 import java.util.Date;
-import java.util.UUID;
 
-public class MongoGameMapper {
+public class GameMapper {
 
     // Converte un DTO in un'entità
-    public static GameMongo mapDTOToGameMongo(GameCreationDTO newGameDTO) {
+    public static GameMongo toGameMongo(GameCreationDTO newGameDTO, String gameId) {
 
         GameMongo newGameMongo = new GameMongo();
-
-        String gameId = UUID.randomUUID().toString();
-
-        //TODO AGGIUNGERE GAME AL GRAPH
 
         newGameMongo.setId(gameId);
         newGameMongo.setName(newGameDTO.getName());
@@ -44,7 +38,17 @@ public class MongoGameMapper {
         return newGameMongo;
     }
 
-    // Converte un'entità in un DTO
+    public static GameNeo4j toGameNeo4j(GameCreationDTO gameMongo, String gameId) {
+        GameNeo4j newGameNeo4j = new GameNeo4j();
+
+        newGameNeo4j.setId(gameId);
+        newGameNeo4j.setName(gameMongo.getName());
+        newGameNeo4j.setYearReleased(gameMongo.getYearReleased());
+        newGameNeo4j.setShortDescription(gameMongo.getShortDescription());
+        newGameNeo4j.setCategories(gameMongo.getCategories());
+
+        return newGameNeo4j;
+    }
 
     public static GameInfoDTO toDTO(GameMongo gameMongo) {
         return new GameInfoDTO(
@@ -68,8 +72,8 @@ public class MongoGameMapper {
         );
     }
 
-    public static GamePreviewDTO toPreviewDTO(GameMongo gameMongo) {
-        return new GamePreviewDTO(
+    public static GameRankPreviewDTO toPreviewDTO(GameMongo gameMongo) {
+        return new GameRankPreviewDTO(
             gameMongo.getId(),
             gameMongo.getName(), gameMongo.getYearReleased(),
             gameMongo.getShortDescription(),
