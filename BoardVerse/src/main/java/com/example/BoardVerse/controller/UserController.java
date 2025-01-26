@@ -78,8 +78,7 @@ public class UserController {
     public ResponseEntity<String> deleteUser() {
         //cerco username utente loggato
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        userService.deleteUser(user.getUsername());
-        return ResponseEntity.ok("User deleted successfully");
+        return ResponseEntity.ok(userService.deleteUser(user.getUsername()));
     }
 
     @Operation(summary = "Get user reviews")

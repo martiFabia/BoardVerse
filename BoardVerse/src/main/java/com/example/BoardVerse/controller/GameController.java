@@ -37,14 +37,8 @@ public class GameController {
     @GetMapping("/browse")
     public ResponseEntity<?> getGamesByName(@RequestParam(defaultValue = "") String gameName,
                                                                   @RequestParam(defaultValue = "0") int page) {
-        try {
-            return ResponseEntity.ok(gameService.findByName(gameName, page));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred: " + e.getMessage());
-        }
+
+        return ResponseEntity.ok(gameService.findByName(gameName, page));
     }
 
 
@@ -58,15 +52,8 @@ public class GameController {
     @Operation(summary = "Get game ratings detail")
     @GetMapping("{gameId}/ratingsDetail")
     public ResponseEntity<?> getRatingsDetail(@PathVariable String gameId){
-        try {
-            return ResponseEntity.ok(gameService.getRatingsDetails(gameId));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            // Log dell'eccezione
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred: " + e.getMessage());
-        }
+        return ResponseEntity.ok(gameService.getRatingsDetails(gameId));
+
     }
 
 
@@ -103,21 +90,8 @@ public class GameController {
     @Operation(summary = "Get the best 10 most played games")
     @GetMapping("/mostPlayed")
     public ResponseEntity<?> getMostPlayedGames(){
-        try {
-            List<MostPlayedGameDTO> games = gameService.getMostPlayedGames();
-            return ResponseEntity.ok(games);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            // Log dell'eccezione
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred: " + e.getMessage());
-        }
+            return ResponseEntity.ok(gameService.getMostPlayedGames());
+
     }
-
-
-
-
-
 
 }

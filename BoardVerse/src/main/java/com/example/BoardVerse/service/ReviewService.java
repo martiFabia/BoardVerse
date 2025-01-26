@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -38,13 +39,13 @@ public class ReviewService {
         this.reviewRepository = reviewRepository;
     }
 
-    public void addReview(String userId, String gameId, AddReviewDTO addReviewDTO) {
+    public String addReview(String userId, String gameId, AddReviewDTO addReviewDTO) {
 
         GameMongo game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new IllegalArgumentException("Game not found with ID: " + gameId));
+                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with username: " + userId));
+                .orElseThrow(() -> new NotFoundException("User not found with username: " + userId));
 
         // Crea la recensione
         Review review = new Review();
@@ -88,6 +89,7 @@ public class ReviewService {
         }
 
         //AGGIUNGERE RAMO AL GRAPH (FORSE)
+        return "Review successfully added!";
     }
 
     public void addReviewUser(User user, ReviewUser review) {
@@ -135,19 +137,19 @@ public class ReviewService {
     }
 
 
-    public void deleteReview(String reviewId, String gameId, String username) {
+    public String deleteReview(String reviewId, String gameId, String username) {
         GameMongo game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("Review not found with ID: " + reviewId));
+                .orElseThrow(() -> new NotFoundException("Review not found with ID: " + reviewId));
 
         User user = userRepository.findByUsername(review.getAuthorUsername())
                 .orElseThrow(() -> new NotFoundException("User not found with username: " + review.getAuthorUsername()));
 
         // Verifica se l'utente è l'autore della recensione o un admin
         if(!username.equals(review.getAuthorUsername()) || !user.getRole().equals(Role.ROLE_ADMIN)) {
-            throw new IllegalArgumentException("You can delete only your reviews");
+            throw new AccessDeniedException("You can delete only your reviews");
         }
         // Elimina la recensione dalle review
         reviewRepository.delete(review);
@@ -175,7 +177,7 @@ public class ReviewService {
         userRepository.save(user);
 
         //ELIMINARE RAMO DAL GRAPH
-
+        return "Review successfully deleted!";
     }
 
     public Slice<ReviewInfo> getGameReviews(String gameId,String sortBy, int page) {
@@ -194,13 +196,13 @@ public class ReviewService {
 
     }
 
-    public void updateReview(String gameId, String username, String reviewId, AddReviewDTO addReviewDTO) {
+    public String updateReview(String gameId, String username, String reviewId, AddReviewDTO addReviewDTO) {
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("Review not found with ID: " + reviewId));
+                .orElseThrow(() -> new NotFoundException("Review not found with ID: " + reviewId));
 
         // Verifica se l'utente è l'autore della recensione
         if(!username.equals(review.getAuthorUsername())) {
-            throw new IllegalArgumentException("You can update only your reviews");
+            throw new AccessDeniedException("You can update only your reviews");
         }
 
         // Aggiorna la recensione
@@ -219,6 +221,7 @@ public class ReviewService {
         }
 
         reviewRepository.save(review);
+        return "Review successfully updated!";
     }
 
 

@@ -32,71 +32,44 @@ public class TournamentController {
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PostMapping("/{gameId}/tournament")
     public ResponseEntity<String> createTournament(@PathVariable String gameId, @RequestBody @Valid AddTournDTO addTournDTO) {
-        try {
-            UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            tournamentService.addTournament(gameId, user.getId(), addTournDTO);
-            return ResponseEntity.ok("Tournament successfully added!");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
-        }
+        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        return ResponseEntity.ok(tournamentService.addTournament(gameId, user.getId(), addTournDTO));
     }
 
     @Operation(summary = "Delete a tournament")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @DeleteMapping("/{gameId}/tournament/{tournamentId}")
     public ResponseEntity<String> deleteTournament(@PathVariable String gameId, @PathVariable String tournamentId) {
-        try {
-            UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            tournamentService.deleteTournament(gameId, tournamentId, user.getUsername(), user.getUser().getTournaments());
-            return ResponseEntity.ok("Tournament successfully deleted!");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
-        }
+
+        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(tournamentService.deleteTournament(gameId, tournamentId, user.getUsername(), user.getUser().getTournaments()));
+
     }
 
     @Operation(summary = "Update a tournament")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/{gameId}/tournament/{tournamentId}")
     public ResponseEntity<String> updateTournament(@PathVariable String gameId, @PathVariable String tournamentId, @RequestBody @Valid UpdateTournDTO updateTournDTO) {
-        try {
-            UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            tournamentService.updateTournament(gameId, tournamentId, user.getUsername(), updateTournDTO);
-            return ResponseEntity.ok("Tournament successfully updated!");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
-        }
+
+        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(tournamentService.updateTournament(gameId, tournamentId, user.getUsername(), updateTournDTO));
+
     }
 
     @Operation(summary = "Get game tournaments")
     @GetMapping("/{gameId}/tournaments")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> getTournaments(@PathVariable String gameId, @RequestParam(defaultValue = "0") int page) {
-        try {
-            UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            return ResponseEntity.ok(tournamentService.getTournaments(gameId, user.getId(), page));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
-        }
+        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(tournamentService.getTournaments(gameId, user.getId(), page));
     }
 
     @Operation(summary = "Get tournament detail")
     @GetMapping("/tournaments/{tournamentId}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<?> getTournament(@PathVariable String gameId, @PathVariable String tournamentId) {
-        try {
-            return ResponseEntity.ok(tournamentService.getTournament(tournamentId));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
-        }
+    public ResponseEntity<?> getTournament(@PathVariable String tournamentId) {
+        return ResponseEntity.ok(tournamentService.getTournament(tournamentId));
+
     }
 }

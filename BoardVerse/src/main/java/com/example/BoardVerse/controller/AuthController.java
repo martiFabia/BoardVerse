@@ -53,17 +53,8 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegDTO signUpRequest) {
-        try {
-            // Chiamata al servizio per registrare l'utente
-            authService.registerUser(signUpRequest);
-            return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
-        } catch (IllegalArgumentException e) {
-            // Gestione di errori specifici (es. utente o email già esistenti)
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        } catch (Exception e) {
-            // Gestione di errori generici
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new MessageResponse("Error: An unexpected error occurred."));
-        }
+
+
+        return ResponseEntity.ok (authService.registerUser(signUpRequest));
     }
 }

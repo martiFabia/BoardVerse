@@ -20,6 +20,7 @@ import com.example.BoardVerse.utils.Constants;
 import org.springframework.aot.generate.AccessControl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,12 +41,12 @@ public class TournamentService {
 
     }
 
-    public void addTournament (String gameId, String userIdMongo, AddTournDTO addTournDTO) {
+    public String addTournament (String gameId, String userIdMongo, AddTournDTO addTournDTO) {
         GameMongo game = gameMongoRepository.findById(gameId)
-                .orElseThrow(() -> new IllegalArgumentException("Game not found with ID: " + gameId));
+                .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
         User userMongo = userMongoRepository.findById(userIdMongo)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userIdMongo));
+                .orElseThrow(() -> new NotFoundException("User not found with ID: " + userIdMongo));
 
         Tournament tournament = new Tournament();
         tournament.setId(UUID.randomUUID().toString());
@@ -91,18 +92,20 @@ public class TournamentService {
 
         // TODO AGGIUNGERE ANCHE SU GRAPH
 
+        return "Tournament successfully created!";
+
     }
 
 
-    public void deleteTournament(String gameId, String tournamentId, String userId, TournamentsUser tournamentsUser) {
+    public String deleteTournament(String gameId, String tournamentId, String userId, TournamentsUser tournamentsUser) {
         Tournament tournament = tournamentMongoRepository.findById(tournamentId)
-                .orElseThrow(() -> new IllegalArgumentException("Tournament not found with ID: " + tournamentId));
+                .orElseThrow(() -> new NotFoundException("Tournament not found with ID: " + tournamentId));
         User user = userMongoRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+                .orElseThrow(() -> new NotFoundException("User not found with ID: " + userId));
 
         //Verificare che l'utente sia l'amministratore del torneo o sia un admin
         if (!tournament.getAdministrator().equals(user.getUsername()) || !user.getRole().equals(Role.ROLE_ADMIN)) {
-            throw new IllegalArgumentException("You are not the administrator of this tournament and you are not an admin");
+            throw new AccessDeniedException("You are not the administrator of this tournament and you are not an admin");
         }
         tournamentMongoRepository.deleteById(tournamentId);
 
@@ -112,15 +115,17 @@ public class TournamentService {
         userMongoRepository.save(user);
 
         //TODO RIMUOVERE ANCHE SU GRAPH
+
+        return "Tournament successfully deleted!";
     }
 
-    public void updateTournament(String gameId, String tournamentId, String username, UpdateTournDTO updateTournDTO){
+    public String updateTournament(String gameId, String tournamentId, String username, UpdateTournDTO updateTournDTO){
         Tournament tournament = tournamentMongoRepository.findById(tournamentId)
-                .orElseThrow(() -> new IllegalArgumentException("Tournament not found with ID: " + tournamentId));
+                .orElseThrow(() -> new NotFoundException("Tournament not found with ID: " + tournamentId));
 
         //Verificare che l'utente sia l'amministratore del torneo o sia un admin
         if (!tournament.getAdministrator().equals(username) || !userMongoRepository.findByUsername(username).get().getRole().equals(Role.ROLE_ADMIN)) {
-            throw new IllegalArgumentException("You are not the administrator of this tournament and you are not an admin");
+            throw new AccessDeniedException("You are not the administrator of this tournament and you are not an admin");
         }
 
         if(updateTournDTO.getName() != null){
@@ -153,7 +158,7 @@ public class TournamentService {
 
             //aumentare di uno tournaments.won dell'user indicato
             User user = userMongoRepository.findByUsername(usernameWinner)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found with username: " + usernameWinner));
+                    .orElseThrow(() -> new NotFoundException("User not found with username: " + usernameWinner));
             user.getTournaments().setWon(user.getTournaments().getWon() + 1);
             userMongoRepository.save(user);
         }
@@ -164,6 +169,8 @@ public class TournamentService {
         tournamentMongoRepository.save(tournament);
 
         //TODO MODIFICARE IL GRAFO
+
+        return "Tournament successfully updated!";
     }
 
     public Slice<TournPreview> getTournaments(String gameId, String userId, int page) {

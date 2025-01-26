@@ -1,6 +1,7 @@
 package com.example.BoardVerse.service;
 
 import com.example.BoardVerse.DTO.Game.*;
+import com.example.BoardVerse.exception.AlreadyExistsException;
 import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.config.GlobalExceptionHandler;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
@@ -41,7 +42,7 @@ public class GameService {
     public String addNewGame(GameCreationDTO newGameDTO) {
 
         if (gameMongoRepository.findByNameAndYearReleased(newGameDTO.getName(), newGameDTO.getYearReleased()).isPresent()) {
-            throw new NotFoundException("Game " + newGameDTO.getName() + " released in " + newGameDTO.getYearReleased() + " already exists");
+            throw new AlreadyExistsException("Game " + newGameDTO.getName() + " released in " + newGameDTO.getYearReleased() + " already exists");
         }
 
         GameMongo newGameMongo = mapDTOToGameMongo(newGameDTO);
@@ -63,14 +64,14 @@ public class GameService {
         if(updateGameDTO.getName() != null && updateGameDTO.getYearReleased() != null) {
             Optional<GameMongo> existingGame = gameMongoRepository.findByNameAndYearReleased(updateGameDTO.getName(), updateGameDTO.getYearReleased());
             if (existingGame.isPresent() && !existingGame.get().getId().equals(gameId)) {
-                throw new NotFoundException("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
+                throw new AlreadyExistsException("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
             }
         }
 
         if(updateGameDTO.getName() != null) {
             Optional<GameMongo> existingGame = gameMongoRepository.findByNameAndYearReleased(updateGameDTO.getName(), game.getYearReleased());
             if (existingGame.isPresent() && !existingGame.get().getId().equals(gameId)) {
-                throw new NotFoundException("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
+                throw new AlreadyExistsException("Game " + updateGameDTO.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
             }
             game.setName(updateGameDTO.getName());
             //aggiornamento nome in THREAD
@@ -86,7 +87,7 @@ public class GameService {
         if(updateGameDTO.getYearReleased() != null) {
             Optional<GameMongo> existingGame = gameMongoRepository.findByNameAndYearReleased(game.getName(), updateGameDTO.getYearReleased());
             if (existingGame.isPresent() && !existingGame.get().getId().equals(gameId)) {
-                throw new NotFoundException("Game " + game.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
+                throw new AlreadyExistsException("Game " + game.getName() + " released in " + updateGameDTO.getYearReleased() + " already exists.");
             }
             game.setYearReleased(updateGameDTO.getYearReleased());
             //aggiornamento anno in THREAD

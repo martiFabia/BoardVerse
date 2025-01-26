@@ -3,6 +3,7 @@ package com.example.BoardVerse.service;
 import com.example.BoardVerse.DTO.Tournament.TournamentSuggestionDTO;
 import com.example.BoardVerse.DTO.User.UserSimilarityDTO;
 import com.example.BoardVerse.DTO.User.UserSuggestionDTO;
+import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.Neo4j.UserNeo4j;
 import com.example.BoardVerse.repository.UserNeo4jRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,21 +23,21 @@ public class SuggestionService {
 
     public List<UserSuggestionDTO> getSuggestedUsers(String username) {
        userNeo4jRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with username: " + username));
+                .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
 
         return userNeo4jRepository.suggestUsers(username);
     }
 
     public List<UserSimilarityDTO>  getSimilarUsers(String username) {
         userNeo4jRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with username: " + username));
+                .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
 
         return userNeo4jRepository.findSimilarUsersByGameTaste(username);
     }
 
     public List<TournamentSuggestionDTO> getSuggestedTournaments(String username) {
         userNeo4jRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with username: " + username));
+                .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
 
         return userNeo4jRepository.suggestTournaments(username);
     }

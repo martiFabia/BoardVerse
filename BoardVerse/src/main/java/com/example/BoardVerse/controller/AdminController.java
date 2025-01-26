@@ -63,8 +63,8 @@ public class AdminController {
     @Operation(summary = "Delete a user")
     @DeleteMapping("/users/{username}")
     public ResponseEntity<String> deleteUserByAdmin(@PathVariable String username) {
-        userService.deleteUser(username);
-        return ResponseEntity.ok("User deleted successfully by admin");
+
+        return ResponseEntity.ok(userService.deleteUser(username));
     }
 
 
@@ -73,38 +73,23 @@ public class AdminController {
     @Operation(summary = "Get best games by age")
     @GetMapping("/analytics/bestGamesByAge")
     public ResponseEntity<?> bestGamesByAge() {
-        try {
-            return ResponseEntity.ok(gameService.bestGamesByAge());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
-        }
+        return ResponseEntity.ok(gameService.bestGamesByAge());
     }
 
     @Operation(summary = "Get number of users by country")
     @GetMapping("/analytics/usersByLocation")
     public ResponseEntity<?> usersByLocation(@RequestParam(defaultValue = "0") int page) {
-        try {
-            return ResponseEntity.ok(analyticsService.usersByLocation(page));
 
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
-        }
+        return ResponseEntity.ok(analyticsService.usersByLocation(page));
+
     }
 
     @Operation(summary = "Get monthly registrations by year")
     @GetMapping("/analytics/monthlyRegistrations")
     public ResponseEntity<?> monthlyRegistrations(@RequestParam(required = false) Integer year) {
-        try {
-            return ResponseEntity.ok(analyticsService.monthlyRegistrations(year));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: An unexpected error occurred.");
-        }
+
+        return ResponseEntity.ok(analyticsService.monthlyRegistrations(year));
     }
+
 
 }
