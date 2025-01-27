@@ -11,6 +11,7 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -42,7 +43,7 @@ public class TournamentMongo {
 
     private VisibilityTournament visibility;
 
-    private List<OptionsTournament> options;
+    private List<OptionsTournament> options=new ArrayList<>();
     private List<String> allowed;
 
 }

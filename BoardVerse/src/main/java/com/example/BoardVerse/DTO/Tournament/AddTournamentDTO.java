@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -34,6 +35,6 @@ public class AddTournamentDTO {
 
     private VisibilityTournament visibility;
 
-    private OptionsTournament options;
+    private List<OptionsTournament> options=new ArrayList<>();
     private List<String> allowed;
 }

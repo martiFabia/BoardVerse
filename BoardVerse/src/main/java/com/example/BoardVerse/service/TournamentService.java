@@ -180,7 +180,6 @@ public class TournamentService {
                     return new NotFoundException("Tournament not found with ID: " + tournamentId);
                 });
         logger.debug("Tournament found in Neo4j: {}", extendedTournamentNeo4jInfo);
-
         // Check if user exists
         UserMongo userMongo = userMongoRepository.findById(userId)
                 .orElseThrow(() -> {

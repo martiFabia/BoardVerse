@@ -6,6 +6,7 @@ import com.example.BoardVerse.model.MongoDB.subentities.OptionsTournament;
 import com.example.BoardVerse.model.MongoDB.subentities.VisibilityTournament;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class TournamentDTO {
 
     private VisibilityTournament visibility;
 
-    private List<OptionsTournament> options;
+    private List<OptionsTournament> options = new ArrayList<>();
 
     public TournamentDTO(
             String name,

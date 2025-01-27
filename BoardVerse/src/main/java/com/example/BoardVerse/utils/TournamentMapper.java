@@ -28,11 +28,11 @@ public class TournamentMapper {
         tournamentMongo.setMaxParticipants(addTournamentDTO.getMaxParticipants());
         tournamentMongo.setVisibility(addTournamentDTO.getVisibility());
         tournamentMongo.setWinner(null);
-        List<OptionsTournament> options = new ArrayList<>();
         if (addTournamentDTO.getOptions() != null) {
-            options.add(addTournamentDTO.getOptions());
-        }
-        tournamentMongo.setOptions(options);
+            tournamentMongo.setOptions(addTournamentDTO.getOptions());
+        }else
+            tournamentMongo.setOptions(new ArrayList<OptionsTournament>());
+
         tournamentMongo.setStartingTime(addTournamentDTO.getStartingTime());
         tournamentMongo.setAllowed(null);
 
