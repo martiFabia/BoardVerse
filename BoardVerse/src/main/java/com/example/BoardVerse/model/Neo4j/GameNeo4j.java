@@ -12,6 +12,7 @@ import java.util.List;
 @Data
 public class GameNeo4j {
     @Id
+    @Property("_id")
     private String id;
 
     @Property("name")

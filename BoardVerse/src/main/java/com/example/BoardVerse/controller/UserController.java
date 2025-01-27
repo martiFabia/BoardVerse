@@ -92,8 +92,8 @@ public class UserController {
     public ResponseEntity<?> getLikedGames(
             @PathVariable String username,
             @RequestParam(defaultValue = "alphabetical") String sortBy,
-            @RequestParam(defaultValue = "0") int pageSize,
-            @RequestParam(defaultValue = "10") int pageNumber
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "1") int pageNumber
     ) {
         return ResponseEntity.ok(userService.getLikedGames(username, sortBy, pageSize, pageNumber));
     }
@@ -105,14 +105,14 @@ public class UserController {
     @PostMapping("/{username}/follow")
     public ResponseEntity<String> followUser(@PathVariable String username) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(userService.followUser(username, user.getId()));
+        return ResponseEntity.ok(userService.followUser(user.getUsername(), username));
     }
 
     @Operation(summary = "Stop following a user")
     @DeleteMapping("/{username}/follow")
     public ResponseEntity<String> unfollowUser(@PathVariable String username) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(userService.unfollowUser(username, user.getId()));
+        return ResponseEntity.ok(userService.unfollowUser(user.getUsername(), username));
     }
 
     @Operation(summary = "Get users followed by a user")
@@ -120,8 +120,8 @@ public class UserController {
     public ResponseEntity<?> getFollowing(
             @PathVariable String username,
             @RequestParam(defaultValue = "alphabetical") String sortBy,
-            @RequestParam(defaultValue = "0") int pageSize,
-            @RequestParam(defaultValue = "10") int pageNumber
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "1") int pageNumber
     ) {
         return ResponseEntity.ok(userService.getFollowing(username, sortBy, pageSize, pageNumber));
     }
@@ -131,8 +131,8 @@ public class UserController {
     public ResponseEntity<?> getFollowers(
             @PathVariable String username,
             @RequestParam(defaultValue = "alphabetical") String sortBy,
-            @RequestParam(defaultValue = "0") int pageSize,
-            @RequestParam(defaultValue = "10") int pageNumber
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "1") int pageNumber
     ) {
         return ResponseEntity.ok(userService.getFollowers(username, sortBy, pageSize, pageNumber));
     }
@@ -145,11 +145,11 @@ public class UserController {
     public ResponseEntity<?> getOrganizedTournaments(
             @PathVariable String username,
             @RequestParam(defaultValue = "desc") String sortBy,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "1") int pageNumber
     ) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(userService.getOrganizedTournaments(username, user.getUsername(), sortBy, page, pageSize));
+        return ResponseEntity.ok(userService.getOrganizedTournaments(username, user.getUsername(), sortBy, pageSize, pageNumber));
     }
 
     @Operation(summary = "Get list of participated tournaments by a user")
@@ -157,11 +157,11 @@ public class UserController {
     public ResponseEntity<?> getParticipatedTournaments(
             @PathVariable String username,
             @RequestParam(defaultValue = "desc") String sortBy,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "1") int pageNumber
     ) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(userService.getParticipatedTournaments(username, user.getUsername(), sortBy, page, pageSize));
+        return ResponseEntity.ok(userService.getParticipatedTournaments(username, user.getUsername(), sortBy, pageSize, pageNumber));
     }
 
     @Operation(summary = "Get list of won tournaments by a user")
@@ -169,11 +169,11 @@ public class UserController {
     public ResponseEntity<?> getWonTournaments(
             @PathVariable String username,
             @RequestParam(defaultValue = "desc") String sortBy,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "1") int pageNumber
     ) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(userService.getWonTournaments(username, user.getUsername(), sortBy, page, pageSize));
+        return ResponseEntity.ok(userService.getWonTournaments(username, user.getUsername(), sortBy, pageSize, pageNumber));
     }
 
 
@@ -183,20 +183,20 @@ public class UserController {
     @GetMapping("/{username}/feed")
     public ResponseEntity<?> getActivity(
             @PathVariable String username,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "1") int pageNumber
     ) {
-        return ResponseEntity.ok(userService.getFollowedActivity(username, page, pageSize));
+        return ResponseEntity.ok(userService.getFollowedActivity(username, pageSize, pageNumber));
     }
 
     @Operation(summary = "Get user activity")
     @GetMapping("/myProfile/recentActivity")
     public ResponseEntity<?> getMyActivity(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "1") int pageNumber
     ) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(userService.getPersonalActivity(user.getUsername(), page, pageSize));
+        return ResponseEntity.ok(userService.getPersonalActivity(user.getUsername(), pageSize, pageNumber));
     }
 
 

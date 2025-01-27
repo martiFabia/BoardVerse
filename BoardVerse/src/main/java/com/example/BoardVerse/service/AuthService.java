@@ -7,10 +7,14 @@ import com.example.BoardVerse.exception.AlreadyExistsException;
 import com.example.BoardVerse.model.MongoDB.UserMongo;
 import com.example.BoardVerse.model.MongoDB.subentities.Role;
 import com.example.BoardVerse.model.MongoDB.subentities.TournamentsUser;
+import com.example.BoardVerse.model.Neo4j.UserNeo4j;
 import com.example.BoardVerse.repository.UserMongoRepository;
+import com.example.BoardVerse.repository.UserNeo4jRepository;
 import com.example.BoardVerse.security.jwt.JwtUtils;
 import com.example.BoardVerse.security.services.UserDetailsImpl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,20 +29,27 @@ import java.util.UUID;
 
 @Service
 public class AuthService {
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private JwtUtils jwtUtils;
-    @Autowired
-    private UserMongoRepository userMongoRepository;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtils jwtUtils;
+    private final UserMongoRepository userMongoRepository;
+    private final UserNeo4jRepository userNeo4jRepository;
+
     @Autowired
     PasswordEncoder encoder;
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+
     @Autowired
-    public AuthService(AuthenticationManager authManager, JwtUtils jwtUtils, UserMongoRepository userMongoRepository) {
+    public AuthService(
+            AuthenticationManager authManager,
+            JwtUtils jwtUtils,
+            UserMongoRepository userMongoRepository,
+            UserNeo4jRepository userNeo4jRepository
+    ) {
         this.authenticationManager = authManager;
         this.jwtUtils = jwtUtils;
         this.userMongoRepository = userMongoRepository;
+        this.userNeo4jRepository = userNeo4jRepository;
     }
 
     //LOGIN
@@ -74,22 +85,47 @@ public class AuthService {
 
     //SIGNUP
     public String registerUser(UserRegDTO signUpRequest) {
+        logger.info("Registering new user: " + signUpRequest.username());
+
         // Verifica se il nome utente o l'email sono già registrati
         if (userMongoRepository.existsByUsername(signUpRequest.username())) {
+            logger.warn("Username already taken: " + signUpRequest.username());
+            throw new AlreadyExistsException("Error: Username is already taken!");
+        }
+        if (userMongoRepository.existsByEmail(signUpRequest.email())) {
+            logger.warn("Email already in use: " + signUpRequest.email());
+            throw new AlreadyExistsException("Error: Email is already in use!");
+        }
+        if (userNeo4jRepository.findByUsername(signUpRequest.username()).isPresent()) {
+            logger.warn("Username already taken: " + signUpRequest.username());
             throw new AlreadyExistsException("Error: Username is already taken!");
         }
 
-        if (userMongoRepository.existsByEmail(signUpRequest.email())) {
-            throw new AlreadyExistsException("Error: Email is already in use!");
-        }
+        // Clean location
+        if(
+            signUpRequest.location().getCity().isEmpty() ||
+            signUpRequest.location().getCity().equals(" ") ||
+            signUpRequest.location().getCity().equals("null") ||
+            signUpRequest.location().getCity().equals("undefined")
+        )
+            signUpRequest.location().setCity(null);
+        if(
+            signUpRequest.location().getStateOrProvince().isEmpty() ||
+            signUpRequest.location().getStateOrProvince().equals(" ") ||
+            signUpRequest.location().getStateOrProvince().equals("null") ||
+            signUpRequest.location().getStateOrProvince().equals("undefined")
+        )
+            signUpRequest.location().setStateOrProvince(null);
+        if(
+            signUpRequest.location().getCountry().isEmpty() ||
+            signUpRequest.location().getCountry().equals(" ") ||
+            signUpRequest.location().getCountry().equals("null") ||
+            signUpRequest.location().getCountry().equals("undefined")
+        )
+            signUpRequest.location().setCountry(null);
+        logger.debug("Location: " + signUpRequest.location().toString());
 
         String userId = UUID.randomUUID().toString();
-        /*
-        UserNeo4j newUserNeo4j = new UserNeo4j();
-        newUserNeo4j.setId(userId);
-        newUserNeo4j.setUsername(signUpRequest.username());
-        userNeo4jRepository.save(newUserNeo4j);
-        */
 
         TournamentsUser newUserTournaments = new TournamentsUser();
         newUserTournaments.setCreated(0);
@@ -112,9 +148,15 @@ public class AuthService {
         newUserMongoMongo.setRole(Role.ROLE_USER);
         newUserMongoMongo.setRegisteredDate(new Date());
 
-        // Salva l'utente nel database
+        // Neo4j
+        UserNeo4j UserNeo4j = new UserNeo4j();
+        UserNeo4j.setUsername(signUpRequest.username());
+        userNeo4jRepository.save(UserNeo4j);
+        logger.info("UserNeo4j saved: " + UserNeo4j);
+
+        // MongoDB
         userMongoRepository.save(newUserMongoMongo);
 
-        return "UserMongo registered successfully!";
+        return "User registered successfully!";
     }
 }

@@ -1,13 +1,10 @@
 package com.example.BoardVerse.repository;
 
-import com.example.BoardVerse.DTO.User.FollowersActivityDTO;
+import com.example.BoardVerse.DTO.Game.GameLikedDTO;
+import com.example.BoardVerse.DTO.User.*;
 import com.example.BoardVerse.DTO.Game.GameSuggestionDTO;
-import com.example.BoardVerse.DTO.User.PersonalActivityDTO;
 import com.example.BoardVerse.DTO.Tournament.TournamentSuggestionDTO;
 import com.example.BoardVerse.DTO.Tournament.TournamentNeo4jDTO;
-import com.example.BoardVerse.DTO.User.UserFollowRecommendationDTO;
-import com.example.BoardVerse.DTO.User.UserTastesSuggestionDTO;
-import com.example.BoardVerse.model.Neo4j.GameNeo4j;
 import com.example.BoardVerse.model.Neo4j.UserNeo4j;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
@@ -33,11 +30,13 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
      * Removes a user from the database.
      *
      * @param username the username of the user
+     * @return true if the user was removed, false otherwise
      */
     @Query("MATCH (u:User {username: $username}) " +
-            "DETACH DELETE u"
+            "DETACH DELETE u" +
+            "RETURN count(u) > 0"
     )
-    void deleteByUsername(String username);
+    boolean deleteByUsername(String username);
 
 
     /*============================ USER-GAME ACTIONS ==============================*/
@@ -80,12 +79,14 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
      *
      * @param followerId the ID of the user who wants to follow
      * @param followedId the ID of the user to be followed
+     * @return true if the user was followed, false otherwise
      */
     @Query("MATCH (follower:User {username: $followerId}), MATCH (followed:User {username: $followedId}) " +
             "MERGE (follower)-[f:FOLLOWS]->(followed) " +
-            "ON CREATE SET f.since = datetime() "
+            "ON CREATE SET f.since = datetime() " +
+            "RETURN count(follower) + count(followed) > 1"
     )
-    void followUser(String followerId, String followedId);
+    boolean followUser(String followerId, String followedId);
 
     /**
      * Unfollows another user.
@@ -96,9 +97,10 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
     @Query("MATCH (u:User {username: $username}) " +
             "MATCH (u2:User {username: $usernameToUnfollow}) " +
             "MATCH (u)-[r:FOLLOWS]->(u2) " +
-            "DELETE r "
+            "DELETE r " +
+            "RETURN count(r) > 0"
     )
-    void unfollowUser(String username, String usernameToUnfollow);
+    boolean unfollowUser(String username, String usernameToUnfollow);
 
 
     /*============================ FINDS ==============================*/
@@ -112,13 +114,13 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
      * @param pageNumber the page number
      * @return a list of games liked by the user
      */
-    @Query("MATCH (u:User {username: $username})-[:LIKES]->(g:Game) " +
-            "RETURN g " +
-            "ORDER BY CASE WHEN $sortBy = 'alphabetical' THEN g.name ELSE g.timestamp END " +
+    @Query("MATCH (u:User {username: $username})-[l:LIKES]->(g:Game) " +
+            "RETURN g._id AS id, g.name AS name, g.yearReleased AS yearReleased, g.shortDescription AS shortDescription, l.timestamp AS likedAt " +
+            "ORDER BY CASE WHEN $sortBy = 'alphabetical' THEN g.name ELSE l.timestamp END " +
             "SKIP $pageSize * ($pageNumber - 1) " +
             "LIMIT $pageSize"
     )
-    List<GameNeo4j> getLikedGames(String username, String sortBy, int pageSize, int pageNumber);
+    List<GameLikedDTO> getLikedGames(String username, String sortBy, int pageSize, int pageNumber);
 
     /**
      * Finds all users followed by a user.
@@ -130,12 +132,12 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
      * @return a list of users followed by the user
      */
     @Query("MATCH (u:User {username: $username})-[f:FOLLOWS]->(u2:User) " +
-            "RETURN u2.username " +
+            "RETURN u2.username AS username, f.since AS since " +
             "ORDER BY CASE WHEN $sortOrder = 'alphabetical' THEN u2.username ELSE f.timestamp END " +
             "SKIP $pageSize * ($pageNumber - 1) " +
             "LIMIT $pageSize"
     )
-    List<UserNeo4j> getFollowing(String username, String sortOrder, int pageSize, int pageNumber);
+    List<UserFollowsDTO> getFollowing(String username, String sortOrder, int pageSize, int pageNumber);
 
     /**
      * Finds all users following a user.
@@ -144,12 +146,12 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
      * @return a list of users following the user
      */
     @Query("MATCH (u:User {username: $username})<-[f:FOLLOWS]-(u2:User) " +
-            "RETURN u2.username " +
+            "RETURN u2.username AS username, f.since AS since " +
             "ORDER BY CASE WHEN $sortBy = 'alphabetical' THEN u2.username ELSE f.timestamp END " +
             "SKIP $pageSize * ($pageNumber - 1) " +
             "LIMIT $pageSize"
     )
-    List<UserNeo4j> getFollowers(String username, String sortBy, int pageSize, int pageNumber);
+    List<UserFollowsDTO> getFollowers(String username, String sortBy, int pageSize, int pageNumber);
 
     /**
      * Finds all tournaments created by a user.
@@ -172,7 +174,7 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
         "   t.visibility, " +
         "   t.maxParticipants, " +
         "   t.startingTime, " +
-        "   {name: g.name, _id: g._id} AS game " +
+        "   {id: g._id, name: g.name, yearReleased: g.yearReleased} AS game " +
         "ORDER BY CASE WHEN $sortBy = 'desc' THEN c.timestamp DESC ELSE c.timestamp END " +
         "SKIP $pageSize * ($pageNumber - 1) " +
         "LIMIT $pageSize")
@@ -199,7 +201,7 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
             "   t.visibility, " +
             "   t.maxParticipants, " +
             "   t.startingTime, " +
-            "   {name: g.name, _id: g._id} AS game " +
+            "   {id: g._id, name: g.name, yearReleased: g.yearReleased} AS game " +
             "ORDER BY CASE WHEN $sortBy = 'desc' THEN c.timestamp DESC ELSE c.timestamp END " +
             "SKIP $pageSize * ($pageNumber - 1) " +
             "LIMIT $pageSize")
@@ -226,7 +228,7 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
             "   t.visibility, " +
             "   t.maxParticipants, " +
             "   t.startingTime, " +
-            "   {name: g.name, _id: g._id} AS game " +
+            "   {id: g._id, name: g.name, yearReleased: g.yearReleased} AS game " +
             "ORDER BY CASE WHEN $sortBy = 'desc' THEN c.timestamp DESC ELSE c.timestamp END " +
             "SKIP $pageSize * ($pageNumber - 1) " +
             "LIMIT $pageSize")

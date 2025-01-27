@@ -1,6 +1,7 @@
 package com.example.BoardVerse.service;
 
 
+import com.example.BoardVerse.DTO.Game.GameLikedDTO;
 import com.example.BoardVerse.DTO.Review.ReviewUserDTO;
 import com.example.BoardVerse.DTO.Tournament.TournamentNeo4jDTO;
 import com.example.BoardVerse.DTO.User.*;
@@ -14,6 +15,7 @@ import com.example.BoardVerse.repository.*;
 import com.example.BoardVerse.security.jwt.JwtUtils;
 import com.example.BoardVerse.utils.Constants;
 import com.example.BoardVerse.utils.UserMapper;
+import org.neo4j.cypherdsl.core.Use;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -224,7 +226,10 @@ public class UserService {
                 });
 
         // Delete user in Neo4j
-        userNeo4jRepository.deleteByUsername(username);
+        if(!userNeo4jRepository.deleteByUsername(username)){
+            logger.warn("UserNeo4j not found with username: " + username);
+            throw new NotFoundException("UserNeo4j not found with username: " + username);
+        }
         logger.info("UserNeo4j deleted successfully");
 
         // Delete redundancies in MongoDB
@@ -266,11 +271,11 @@ public class UserService {
     /**
      * Adds a like to a game by username.
      *
-     * @param username the username to add the like to
      * @param gameId the game ID to add the like to
+     * @param username the username to add the like to
      * @return a message indicating successful addition
      */
-    public String likeGame(String username, String gameId) {
+    public String likeGame(String gameId, String username) {
         logger.info("Adding like to game with id: " + gameId + " for user with username: " + username);
 
         // Check if user exists
@@ -294,13 +299,13 @@ public class UserService {
         }
 
         // Add like to game in Neo4j
-        if (userNeo4jRepository.addLikeToGame(username, gameId)) {
-            logger.info("Like added successfully");
-            return "Like added successfully";
-        } else {
-            logger.warn("Like already exists");
-            return "Like already exists";
+        if (!userNeo4jRepository.addLikeToGame(username, gameId)) {
+            logger.warn("Game not found with id: " + gameId);
+            throw new NotFoundException("Game not found with id: " + gameId);
         }
+
+        logger.info("Like added successfully");
+        return "Like added successfully";
 
     }
 
@@ -311,7 +316,7 @@ public class UserService {
      * @param gameId the game ID to remove the like from
      * @return a message indicating successful removal
      */
-    public String unlikeGame(String username, String gameId) {
+    public String unlikeGame(String gameId, String username) {
         logger.info("Removing like from game with id: " + gameId + " for user with username: " + username);
 
         // Check if user exists
@@ -335,13 +340,13 @@ public class UserService {
         }
 
         // Remove like to game in Neo4j
-        if (userNeo4jRepository.removeLikeFromGame(username, gameId)) {
-            logger.info("Like removed successfully");
-            return "Like removed successfully";
-        } else {
-            logger.warn("Like does not exist");
-            return "Like does not exist";
+        if (!userNeo4jRepository.removeLikeFromGame(username, gameId)) {
+            logger.warn("Game not found with id: " + gameId);
+            throw new NotFoundException("Game not found with id: " + gameId);
         }
+
+        logger.info("Like removed successfully");
+        return "Like removed successfully";
     }
 
     /**
@@ -353,7 +358,7 @@ public class UserService {
      * @param pageNumber the page number
      * @return a list of game Neo4j objects
      */
-    public List<GameNeo4j> getLikedGames(String username, String sortBy, int pageSize, int pageNumber) {
+    public List<GameLikedDTO> getLikedGames(String username, String sortBy, int pageSize, int pageNumber) {
         logger.info("Retrieving liked games for user with username: " + username);
         logger.debug("Sort by: " + sortBy + ", Page size: " + pageSize + ", Page number: " + pageNumber);
 
@@ -392,7 +397,10 @@ public class UserService {
         }
 
         // Add follow to user in Neo4j
-        userNeo4jRepository.followUser(username, followUsername);
+        if(!userNeo4jRepository.followUser(username, followUsername)){
+            logger.warn("User not found");
+            throw new NotFoundException("User not found");
+        }
         logger.info("Follow added successfully");
 
         // Increment the number of followers
@@ -431,7 +439,10 @@ public class UserService {
         }
 
         // Remove follow from user in Neo4j
-        userNeo4jRepository.unfollowUser(username, followUsername);
+        if(!userNeo4jRepository.unfollowUser(username, followUsername)){
+            logger.warn("Follow not found");
+            throw new NotFoundException("Follow not found");
+        }
         logger.info("Follow removed successfully");
 
         // Decrement the number of followers
@@ -450,7 +461,7 @@ public class UserService {
      * @param pageNumber the page number
      * @return a list of user Neo4j objects
      */
-    public List<UserNeo4j> getFollowing(String username, String sortBy, int pageSize, int pageNumber) {
+    public List<UserFollowsDTO> getFollowing(String username, String sortBy, int pageSize, int pageNumber) {
         logger.info("Retrieving following for user with username: " + username);
         logger.debug("Sort by: " + sortBy + ", Page size: " + pageSize + ", Page number: " + pageNumber);
 
@@ -469,7 +480,7 @@ public class UserService {
      * @param pageNumber the page number
      * @return a list of user Neo4j objects
      */
-    public List<UserNeo4j> getFollowers(String username, String sortBy, int pageSize, int pageNumber) {
+    public List<UserFollowsDTO> getFollowers(String username, String sortBy, int pageSize, int pageNumber) {
         logger.info("Retrieving followers for user with username: " + username);
         logger.debug("Sort by: " + sortBy + ", Page size: " + pageSize + ", Page number: " + pageNumber);
 

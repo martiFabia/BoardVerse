@@ -106,14 +106,14 @@ public class GameController {
     @PostMapping("/{gameId}/like")
     public ResponseEntity<String> likeGame(@PathVariable String gameId){
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(userService.likeGame(gameId, user.getId()));
+        return ResponseEntity.ok(userService.likeGame(gameId, user.getUsername()));
     }
 
     @Operation(summary = "Unlike a game")
     @DeleteMapping("/{gameId}/like")
     public ResponseEntity<String> unlikeGame(@PathVariable String gameId){
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(userService.unlikeGame(gameId, user.getId()));
+        return ResponseEntity.ok(userService.unlikeGame(gameId, user.getUsername()));
     }
 
     @Operation(summary = "Get the list of user who liked a game")

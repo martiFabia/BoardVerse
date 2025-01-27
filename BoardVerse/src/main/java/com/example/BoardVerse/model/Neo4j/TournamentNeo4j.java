@@ -12,11 +12,11 @@ import org.springframework.data.neo4j.core.schema.Property;
 import java.util.Date;
 
 
-@Node("TournamentMongo")
+@Node("Tournament")
 @Data
 public class TournamentNeo4j {
     @Id
-    @Property("id")
+    @Property("_id")
     private String id;
 
     @Property("name")
