@@ -276,7 +276,7 @@ public class GameService {
         threadRepository.deleteAllByGameId(gameId);
         // Delete reviews
         reviewRepository.deleteByGameId(gameId);
-        // Delete tournaments
+        // TODO Delete tournaments
         tournamentMongoRepository.deleteByGameId(gameId);
         // Delete users' mostRecentReviews
         userMongoRepository.deleteGameFromMostRecentReviews(gameId);

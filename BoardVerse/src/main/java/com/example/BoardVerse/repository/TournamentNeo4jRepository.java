@@ -13,6 +13,10 @@ import java.util.Optional;
 
 public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo4j, String> {
 
+    @Query("MATCH (t:Tournament {_id: $tournamentId}) " +
+            "RETURN t")
+    Optional<TournamentNeo4j> findById(@NonNull String tournamentId);
+
     /**
      * Removes a tournament.
      *
@@ -64,14 +68,12 @@ public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo
           tournament.startingTime = $startingTime,
           tournament.maxParticipants = $maxParticipants,
           tournament.visibility = $visibility
-            
         WITH tournament
         OPTIONAL MATCH (user:User {username: $username})
         FOREACH (_ IN CASE WHEN user IS NOT NULL THEN [1] ELSE [] END |
           MERGE (user)-[won:WON]->(tournament)
           ON CREATE SET won.timestamp = datetime()
         )
-            
         WITH tournament, user
         MATCH (otherUser:User)-[won:WON]->(tournament)
         WHERE $username IS NULL OR otherUser.username <> $username
@@ -114,9 +116,9 @@ public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo
           tournament.startingTime AS startingTime,
           tournament.maxParticipants AS maxParticipants,
           tournament.visibility AS visibility,
-        COLLECT(
+      COLLECT(
           participant.username
-        ) AS participants;
+        ) AS participants
     """)
     Optional<ExtendedTournamentNeo4jInfo> extendedFindById(String tournamentId);
 
@@ -180,12 +182,18 @@ public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo
         WITH tournament, participant, COUNT(wonTournament) AS wonCount
         OPTIONAL MATCH (participant)-[:PARTICIPATES]->(participatedTournament:Tournament)
         WITH tournament, participant, wonCount, COUNT(participatedTournament) AS totalCount
-        WITH tournament, participant,
-             CASE WHEN totalCount > 0 THEN (1.0 * wonCount / totalCount) ELSE 0 END AS winPercentage
+        WITH tournament,
+             CASE
+                 WHEN COUNT(participant) = 0 THEN 0
+                 ELSE AVG(
+                     CASE
+                         WHEN totalCount > 0 THEN (1.0 * wonCount / totalCount)
+                         ELSE 0
+                     END
+                 )
+             END AS competitionDifficulty
         RETURN
-          tournament._id AS tournamentId,
-          tournament.name AS tournamentName,
-          AVG(winPercentage) AS competitionDifficulty
+          competitionDifficulty
     """)
     double getTournamentDifficulty(String tournamentId);
 
@@ -197,7 +205,11 @@ public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo
         WITH tournament, followCount, size(participants) AS participantCount,
              (size(participants) * (size(participants) - 1)) AS maxPossibleFollows
         WITH tournament, followCount, participantCount, maxPossibleFollows,
-             CASE WHEN maxPossibleFollows > 0 THEN (1.0 * followCount / maxPossibleFollows) ELSE 0 END AS compactness
+             CASE
+                 WHEN participantCount = 0 THEN 0
+                 WHEN maxPossibleFollows > 0 THEN (1.0 * followCount / maxPossibleFollows)
+                 ELSE 0  // Default a 0
+             END AS compactness
         RETURN
           compactness
     """)

@@ -31,7 +31,8 @@ public interface GameNeo4jRepository  extends Neo4jRepository<GameNeo4j, String>
      *
      *  @param gameId the ID of the game to be removed
      */
-    @Query("MATCH (g:Game {_id: $gameId})<-[:IS_RELATED_TO]-(t:Tournament)" +
+    @Query("MATCH (g:Game {_id: $gameId}) " +
+            "OPTIONAL MATCH (g)<-[:IS_RELATED_TO]-(t:Tournament) " +
             "DETACH DELETE g, t")
     void deleteById(@NonNull String gameId);
 

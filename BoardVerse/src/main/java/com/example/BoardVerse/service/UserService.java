@@ -5,6 +5,7 @@ import com.example.BoardVerse.DTO.Game.GameLikedDTO;
 import com.example.BoardVerse.DTO.Review.ReviewUserDTO;
 import com.example.BoardVerse.DTO.Tournament.TournamentNeo4jDTO;
 import com.example.BoardVerse.DTO.User.*;
+import com.example.BoardVerse.DTO.User.activity.*;
 import com.example.BoardVerse.exception.AlreadyExistsException;
 import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.subentities.Location;
@@ -27,6 +28,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -581,7 +583,26 @@ public class UserService {
         userNeo4jRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
 
-        return userNeo4jRepository.getPersonalActivity(username, pageSize, pageNumber);
+        List<PersonalActivityDTO> rawResults = userNeo4jRepository.getPersonalActivity(username, pageSize, pageNumber);
+        logger.info("Raw results: {}", rawResults);
+        return rawResults.stream()
+                .map(dto -> new PersonalActivityDTO(
+                        dto.activityType(),
+                        dto.activityTime(),
+                        mapActivityProperties(dto.activityProperties())
+                ))
+                .toList();
     }
 
+    private ActivityPropertiesDTO mapActivityProperties(ActivityPropertiesDTO properties) {
+        if (properties instanceof ActivityUserDTO userProps) {
+            return userProps;
+        } else if (properties instanceof ActivityTournamentDTO tournamentProps) {
+            return tournamentProps;
+        } else if (properties instanceof ActivityLikeDTO genericProps) {
+            return genericProps;
+        } else {
+            throw new IllegalArgumentException("Unsupported type for ActivityPropertiesDTO: " + properties.getClass().getName());
+        }
+    }
 }

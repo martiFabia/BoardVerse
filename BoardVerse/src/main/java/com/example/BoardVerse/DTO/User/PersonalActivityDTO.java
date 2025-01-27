@@ -1,10 +1,11 @@
 package com.example.BoardVerse.DTO.User;
 
-import java.util.Date;
-import java.util.Map;
+import com.example.BoardVerse.DTO.User.activity.ActivityPropertiesDTO;
+
+import java.time.OffsetDateTime;
 
 public record PersonalActivityDTO(
         String activityType,
-        Date timestamp,
-        Map<String, Object> objectProperties
+        OffsetDateTime activityTime,
+        ActivityPropertiesDTO activityProperties
 ) {}

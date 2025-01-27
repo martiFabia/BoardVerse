@@ -33,7 +33,7 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
      * @return true if the user was removed, false otherwise
      */
     @Query("MATCH (u:User {username: $username}) " +
-            "DETACH DELETE u" +
+            "DETACH DELETE u " +
             "RETURN count(u) > 0"
     )
     boolean deleteByUsername(String username);
@@ -81,11 +81,13 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
      * @param followedId the ID of the user to be followed
      * @return true if the user was followed, false otherwise
      */
-    @Query("MATCH (follower:User {username: $followerId}), MATCH (followed:User {username: $followedId}) " +
-            "MERGE (follower)-[f:FOLLOWS]->(followed) " +
-            "ON CREATE SET f.since = datetime() " +
-            "RETURN count(follower) + count(followed) > 1"
-    )
+    @Query("""
+            MATCH (follower:User {username: $followerId})
+            MATCH (followed:User {username: $followedId})
+            MERGE (follower)-[f:FOLLOWS]->(followed)
+            ON CREATE SET f.since = datetime()
+            RETURN count(follower) + count(followed) > 1;
+    """)
     boolean followUser(String followerId, String followedId);
 
     /**
@@ -281,29 +283,29 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
      * @param pageNumber the page number
      * @return a list of recent followers activity
      */
-    @Query("MATCH (u:User {username: $username})-[activity:LIKES|FOLLOWS|CREATED|PARTICIPATES|WON]->(object) " +
-            "OPTIONAL MATCH (object)-[:IS_RELATED_TO]->(game:Game) " +
-            "WITH " +
-            "    activity, " +
-            "    CASE " +
-            "        WHEN activity:FOLLOWS THEN activity.since " +
-            "        ELSE activity.timestamp " +
-            "    END AS activityTime, " +
-            "    CASE " +
-            "        WHEN object:User THEN {username: object.username} " +
-            "        WHEN object:Tournament THEN {name: object.name, _id: object._id, game: {name: game.name, _id: game._id}} " +
-            "        ELSE {name: object.name, _id: object._id} " +
-            "    END AS objectProperties " +
-            "WHERE activityTime <= datetime() " +
-            "RETURN " +
-            "    followerUsername AS follower, " +
-            "    activity, " +
-            "    activityTime, " +
-            "    objectProperties " +
-            "ORDER BY activityTime DESC " +
-            "SKIP $pageSize * ($pageNumber - 1) " +
-            "LIMIT $pageSize"
-    )
+    @Query("""
+            MATCH (u:User {username: $username})-[activity:LIKES|FOLLOWS|CREATED|PARTICIPATES|WON]->(object)
+            OPTIONAL MATCH (object)-[:IS_RELATED_TO]->(game:Game)
+            WITH\s
+                activity,\s
+                CASE\s
+                    WHEN activity:FOLLOWS THEN activity.since\s
+                    ELSE activity.timestamp\s
+                END AS activityTime,
+                CASE\s
+                    WHEN object:User THEN {username: object.username}\s
+                    WHEN object:Tournament THEN {id: object._id, name: object.name, game: { id: game._id, name: game.name}}\s
+                    ELSE {id: object._id, name: object.name}\s
+                END AS activityProperties
+            WHERE activityTime <= datetime()
+            RETURN\s
+                type(activity) AS activityType,
+                activityProperties,
+                activityTime
+            ORDER BY activityTime DESC
+            SKIP $pageSize * ($pageNumber - 1)
+            LIMIT $pageSize
+    """)
     List<PersonalActivityDTO> getPersonalActivity(String username, int pageSize, int pageNumber);
 
 

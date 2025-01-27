@@ -80,6 +80,7 @@ public class UserController {
 
     @Operation(summary = "Get user reviews")
     @GetMapping("/myProfile/reviews")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> getMyReviews(@RequestParam(defaultValue = "0") int page) {
         //utente loggato
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -99,10 +100,38 @@ public class UserController {
     }
 
 
+    /*================================ ACTIVITY =================================*/
+
+    // TODO
+//    @Operation(summary = "Get user activity")
+//    @GetMapping("myProfile/feed")
+//    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+//    public ResponseEntity<?> getActivity(
+//            @RequestParam(defaultValue = "10") int pageSize,
+//            @RequestParam(defaultValue = "1") int pageNumber
+//    ) {
+//        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//        return ResponseEntity.ok(userService.getFollowedActivity(user.getUsername(), pageSize, pageNumber));
+//    }
+
+    // TODO
+//    @Operation(summary = "Get user activity")
+//    @GetMapping("/myProfile/recentActivity")
+//    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+//    public ResponseEntity<?> getMyActivity(
+//            @RequestParam(defaultValue = "10") int pageSize,
+//            @RequestParam(defaultValue = "1") int pageNumber
+//    ) {
+//        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//        return ResponseEntity.ok(userService.getPersonalActivity(user.getUsername(), pageSize, pageNumber));
+//    }
+
+
     /*================================ FOLLOWERS =================================*/
 
     @Operation(summary = "Start following a user")
     @PostMapping("/{username}/follow")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<String> followUser(@PathVariable String username) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(userService.followUser(user.getUsername(), username));
@@ -110,6 +139,7 @@ public class UserController {
 
     @Operation(summary = "Stop following a user")
     @DeleteMapping("/{username}/follow")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<String> unfollowUser(@PathVariable String username) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(userService.unfollowUser(user.getUsername(), username));
@@ -117,6 +147,7 @@ public class UserController {
 
     @Operation(summary = "Get users followed by a user")
     @GetMapping("/{username}/following")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> getFollowing(
             @PathVariable String username,
             @RequestParam(defaultValue = "alphabetical") String sortBy,
@@ -175,30 +206,4 @@ public class UserController {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(userService.getWonTournaments(username, user.getUsername(), sortBy, pageSize, pageNumber));
     }
-
-
-    /*================================ ACTIVITY =================================*/
-
-    @Operation(summary = "Get user activity")
-    @GetMapping("/{username}/feed")
-    public ResponseEntity<?> getActivity(
-            @PathVariable String username,
-            @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(defaultValue = "1") int pageNumber
-    ) {
-        return ResponseEntity.ok(userService.getFollowedActivity(username, pageSize, pageNumber));
-    }
-
-    @Operation(summary = "Get user activity")
-    @GetMapping("/myProfile/recentActivity")
-    public ResponseEntity<?> getMyActivity(
-            @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(defaultValue = "1") int pageNumber
-    ) {
-        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(userService.getPersonalActivity(user.getUsername(), pageSize, pageNumber));
-    }
-
-
-
 }

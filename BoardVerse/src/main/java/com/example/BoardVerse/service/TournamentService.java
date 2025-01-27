@@ -6,6 +6,7 @@ import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
 import com.example.BoardVerse.model.MongoDB.TournamentMongo;
 import com.example.BoardVerse.model.MongoDB.UserMongo;
+import com.example.BoardVerse.model.MongoDB.subentities.OptionsTournament;
 import com.example.BoardVerse.model.MongoDB.subentities.Role;
 import com.example.BoardVerse.model.MongoDB.subentities.TournamentsUser;
 import com.example.BoardVerse.model.MongoDB.subentities.VisibilityTournament;
@@ -18,12 +19,11 @@ import org.springframework.data.domain.Slice;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static com.example.BoardVerse.utils.GameMapper.toPreviewEssential;
+import static com.example.BoardVerse.utils.TournamentMapper.toTournamentDTO;
 import static com.example.BoardVerse.utils.TournamentMapper.toTournamentMongo;
 
 /**
@@ -71,11 +71,11 @@ public class TournamentService {
      * Adds a new tournament.
      *
      * @param gameId the game ID
-     * @param userIdMongo the user ID
+     * @param administratorUsername the user ID
      * @param addTournamentDTO the tournament creation DTO
      */
-    public String addTournament (String gameId, String userIdMongo, AddTournamentDTO addTournamentDTO) {
-        logger.info("Adding tournament for game with ID: {} and user with ID: {}", gameId, userIdMongo);
+    public String addTournament (String gameId, String administratorUsername, AddTournamentDTO addTournamentDTO) {
+        logger.info("Adding tournament for game with ID: {} and user with ID: {}", gameId, administratorUsername);
         logger.debug("Tournament creation DTO: {}", addTournamentDTO);
 
         // Tournament cannot be started in the past
@@ -96,14 +96,14 @@ public class TournamentService {
         }
 
         // Retrieve the user from the database
-        UserMongo userMongo = userMongoRepository.findById(userIdMongo)
+        UserMongo userMongo = userMongoRepository.findByUsername(administratorUsername)
                 .orElseThrow(() -> {
-                    logger.warn("User not found with ID: {}", userIdMongo);
+                    logger.warn("User not found in MongoDB: {}", administratorUsername);
                     return new NotFoundException("Game not found with ID: " + gameId);
                 });
-        if(userNeo4jRepository.findById(userIdMongo).isEmpty()) {
-            logger.warn("User not found with ID: {}", userIdMongo);
-            throw new NotFoundException("User not found with ID: " + userIdMongo);
+        if(userNeo4jRepository.findByUsername(administratorUsername).isEmpty()) {
+            logger.warn("User not found in Neo4j: {}", administratorUsername);
+            throw new NotFoundException("User not found with ID: " + administratorUsername);
         }
 
         // Create a new tournamentMongo
@@ -146,7 +146,7 @@ public class TournamentService {
                 tournamentMongo.getName(),
                 tournamentMongo.getVisibility().toString(),
                 tournamentMongo.getMaxParticipants(),
-                tournamentMongo.getStartingTime().toString(),
+                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(tournamentMongo.getStartingTime()),
                 game.getId()
         );
 
@@ -155,7 +155,7 @@ public class TournamentService {
         tournamentMongoRepository.save(tournamentMongo);
 
         logger.info("Tournament created successfully");
-        return "Tournament successfully created!";
+        return "Tournament successfully created! ID: " + tournamentMongo.getId();
     }
 
     /**
@@ -275,7 +275,8 @@ public class TournamentService {
             tournamentMongo.setWinner(updateTournamentDTO.getWinner());
         }
         if(updateTournamentDTO.getOptions() != null){
-            tournamentMongo.setOptions(updateTournamentDTO.getOptions());
+            List<OptionsTournament> options = new ArrayList<>(updateTournamentDTO.getOptions());
+            tournamentMongo.setOptions(options);
         }
 
         if (updateTournamentDTO.getWinner() != null && userMongoRepository.findByUsername(updateTournamentDTO.getWinner()).isEmpty()) {
@@ -290,7 +291,7 @@ public class TournamentService {
         }
 
         // Check if the winner is a participant
-        if (updateTournamentDTO.getWinner() != null && !extendedTournamentNeo4jInfo.participants().contains(updateTournamentDTO.getWinner())) {
+        if (updateTournamentDTO.getWinner() != null && (extendedTournamentNeo4jInfo.participants() != null || !extendedTournamentNeo4jInfo.participants().contains(updateTournamentDTO.getWinner()))) {
             logger.warn("The winner is not a participant");
             throw new NotFoundException("The winner is not a participant");
         }
@@ -313,7 +314,7 @@ public class TournamentService {
                 updateTournamentDTO.getName(),
                 updateTournamentDTO.getVisibility().toString(),
                 updateTournamentDTO.getMaxParticipants(),
-                updateTournamentDTO.getStartingTime().toString(),
+                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(tournamentMongo.getStartingTime()),
                 updateTournamentDTO.getWinner()
         );
         logger.info("Tournament successfully updated in Neo4j");
@@ -365,11 +366,14 @@ public class TournamentService {
      */
     public TournamentDTO getTournament(String tournamentId) {
         logger.info("Retrieving tournament with ID: {}", tournamentId);
-        return tournamentMongoRepository.findById(tournamentId)
-                .map(elem -> new TournamentDTO(elem.getName(), elem.getGame(), elem.getType(), elem.getTypeDescription(),
-                        elem.getStartingTime(), elem.getLocation(), elem.getNumParticipants(), elem.getMinParticipants(),
-                        elem.getMaxParticipants(), elem.getAdministrator(), elem.getWinner(), elem.getVisibility(), elem.getOptions()))
-                .orElseThrow(() -> new NotFoundException("Tournament not found with ID: " + tournamentId));
+
+        TournamentMongo tournamentMongo = tournamentMongoRepository.findById(tournamentId)
+                .orElseThrow(() -> {
+                    logger.warn("Tournament not found with ID: {}", tournamentId);
+                    return new NotFoundException("Tournament not found with ID: " + tournamentId);
+                });
+
+        return toTournamentDTO(tournamentMongo);
     }
 
     /**

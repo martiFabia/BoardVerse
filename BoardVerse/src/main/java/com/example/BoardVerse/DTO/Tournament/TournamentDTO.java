@@ -7,6 +7,7 @@ import com.example.BoardVerse.model.MongoDB.subentities.VisibilityTournament;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class TournamentDTO {
@@ -29,9 +30,23 @@ public class TournamentDTO {
 
     private VisibilityTournament visibility;
 
-    private OptionsTournament options;
+    private List<OptionsTournament> options;
 
-    public TournamentDTO(String name, GamePreviewEssential game, String type, String typeDescription, Date startingTime, Location location, Integer numParticipants, Integer minParticipants, Integer maxParticipants, String administrator, String winner, VisibilityTournament visibility, OptionsTournament options) {
+    public TournamentDTO(
+            String name,
+            GamePreviewEssential game,
+            String type,
+            String typeDescription,
+            Date startingTime,
+            Location location,
+            Integer numParticipants,
+            Integer minParticipants,
+            Integer maxParticipants,
+            String administrator,
+            String winner,
+            VisibilityTournament visibility,
+            List<OptionsTournament> options
+    ) {
         this.name = name;
         this.game = game;
         this.type = type;
@@ -44,6 +59,6 @@ public class TournamentDTO {
         this.administrator = administrator;
         this.winner = winner;
         this.visibility = visibility;
-        this.options = options;
+        this.options.addAll(options);
     }
 }

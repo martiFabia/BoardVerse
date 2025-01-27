@@ -33,7 +33,7 @@ public class TournamentController {
     public ResponseEntity<String> createTournament(@PathVariable String gameId, @RequestBody @Valid AddTournamentDTO addTournamentDTO) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        return ResponseEntity.ok(tournamentService.addTournament(gameId, user.getId(), addTournamentDTO));
+        return ResponseEntity.ok(tournamentService.addTournament(gameId, user.getUsername(), addTournamentDTO));
     }
 
     @Operation(summary = "Delete a tournament")

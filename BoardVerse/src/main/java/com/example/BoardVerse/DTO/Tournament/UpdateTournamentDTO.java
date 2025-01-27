@@ -8,6 +8,8 @@ import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
+
 @Data
 public class UpdateTournamentDTO {
     private String name;
@@ -27,5 +29,5 @@ public class UpdateTournamentDTO {
 
     private String winner;
     private VisibilityTournament visibility;
-    private OptionsTournament options;
+    private List<OptionsTournament> options;
 }

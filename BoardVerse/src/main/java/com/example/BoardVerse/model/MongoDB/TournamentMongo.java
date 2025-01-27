@@ -42,7 +42,7 @@ public class TournamentMongo {
 
     private VisibilityTournament visibility;
 
-    private OptionsTournament options;
+    private List<OptionsTournament> options;
     private List<String> allowed;
 
 }
