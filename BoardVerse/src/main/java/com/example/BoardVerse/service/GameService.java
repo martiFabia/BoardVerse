@@ -435,7 +435,7 @@ public class GameService {
      * @param pageNumber the page number
      * @return a list of users that like the game
      */
-    public List<GameLikesUserList> getLikedBy(String gameId, String sortBy, int pageSize, int pageNumber) {
+    public List<GameLikesUserList> getLikes(String gameId, String sortBy, int pageSize, int pageNumber) {
         logger.info("Getting users that like game with ID: " + gameId);
         return gameNeo4jRepository.getLikedBy(gameId, sortBy, pageSize, pageNumber);
     }
@@ -449,5 +449,31 @@ public class GameService {
         logger.info("Getting game analytics for game with ID: " + gameId);
         return gameNeo4jRepository.getGameStatistics(gameId);
     }
+
+    /**
+     * Gets hottest games by thread discussions.
+     *
+     * @param startDate the start date
+     * @param endDate the end date
+     * @param page the page number
+     * @return a slice of best game thread DTOs
+     */
+    public Slice<BestGameThreadDTO> getBestGamesByThread(Date startDate, Date endDate, int page) {
+        logger.info("Getting hottest games by thread discussions");
+        logger.debug("Start date: " + startDate + " End date: " + endDate + " Page: " + page);
+
+        // Last month if null
+        if(startDate == null){
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.MONTH, -1);
+            startDate = calendar.getTime();
+        }
+        if (endDate == null) {
+            endDate = new Date();
+        }
+        Pageable pageable = PageRequest.of(page, Constants.PAGE_SIZE);
+        return threadRepository.getNormalizedGameRankingsWithDetails(startDate, endDate, pageable);
+    }
+
 
 }

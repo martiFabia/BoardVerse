@@ -9,8 +9,6 @@ import com.example.BoardVerse.model.MongoDB.UserMongo;
 import com.example.BoardVerse.model.MongoDB.subentities.Role;
 import com.example.BoardVerse.model.MongoDB.subentities.TournamentsUser;
 import com.example.BoardVerse.model.MongoDB.subentities.VisibilityTournament;
-import com.example.BoardVerse.model.Neo4j.GameNeo4j;
-import com.example.BoardVerse.model.Neo4j.UserNeo4j;
 import com.example.BoardVerse.repository.*;
 import com.example.BoardVerse.utils.Constants;
 import org.slf4j.Logger;
@@ -92,11 +90,10 @@ public class TournamentService {
                     logger.warn("Game not found with ID: {}", gameId);
                     return new NotFoundException("Game not found with ID: " + gameId);
                 });
-        GameNeo4j gameNeo4j = gameNeo4jRepository.findById(gameId)
-                .orElseThrow(() -> {
-                    logger.warn("Game not found with ID: {}", gameId);
-                    return new NotFoundException("Game not found with ID: " + gameId);
-                });
+        if(gameNeo4jRepository.findById(gameId).isEmpty()) {
+            logger.warn("Game not found with ID: {}", gameId);
+            throw new NotFoundException("Game not found with ID: " + gameId);
+        }
 
         // Retrieve the user from the database
         UserMongo userMongo = userMongoRepository.findById(userIdMongo)
@@ -104,11 +101,10 @@ public class TournamentService {
                     logger.warn("User not found with ID: {}", userIdMongo);
                     return new NotFoundException("Game not found with ID: " + gameId);
                 });
-        UserNeo4j userNeo4j = userNeo4jRepository.findById(userIdMongo)
-                .orElseThrow(() -> {
-                    logger.warn("User not found with ID: {}", userIdMongo);
-                    return new NotFoundException("Game not found with ID: " + gameId);
-                });
+        if(userNeo4jRepository.findById(userIdMongo).isEmpty()) {
+            logger.warn("User not found with ID: {}", userIdMongo);
+            throw new NotFoundException("User not found with ID: " + userIdMongo);
+        }
 
         // Create a new tournamentMongo
         TournamentMongo tournamentMongo = toTournamentMongo(
@@ -165,12 +161,10 @@ public class TournamentService {
     /**
      * Deletes a tournament.
      *
-     * @param gameId the game ID
      * @param tournamentId the tournament ID
      * @param userId the user ID
-     * @param tournamentsUser the tournaments user
      */
-    public String deleteTournament(String gameId, String tournamentId, String userId, TournamentsUser tournamentsUser) {
+    public String deleteTournament(String tournamentId, String userId) {
         logger.info("Deleting tournament with ID: {}", tournamentId);
 
         // Check if tournament exists
@@ -180,7 +174,6 @@ public class TournamentService {
                     return new NotFoundException("Tournament not found with ID: " + tournamentId);
                 });
         logger.debug("Tournament found in Mongo: {}", tournamentMongo);
-
         ExtendedTournamentNeo4jInfo extendedTournamentNeo4jInfo = tournamentNeo4jRepository.extendedFindById(tournamentId)
                 .orElseThrow(() -> {
                     logger.warn("Tournament not found in Neo4j with ID: {}", tournamentId);
@@ -194,11 +187,10 @@ public class TournamentService {
                     logger.warn("User not found in MongoDB with ID: {}", userId);
                     return new NotFoundException("User not found with ID: " + userId);
                 });
-        UserNeo4j userNeo4j = userNeo4jRepository.findById(userId)
-                .orElseThrow(() -> {
-                    logger.warn("UserNeo4j not found in Neo4j with ID: {}", userId);
-                    return new NotFoundException("User not found with ID: " + userId);
-                });
+        if (userNeo4jRepository.findById(userId).isEmpty()) {
+            logger.warn("User not found in Neo4j with ID: {}", userId);
+            throw new NotFoundException("User not found with ID: " + userId);
+        }
 
         // Verify that the userMongo is the administrator of the tournamentMongo or an admin
         if (!tournamentMongo.getAdministrator().equals(userMongo.getUsername()) || !userMongo.getRole().equals(Role.ROLE_ADMIN)) {

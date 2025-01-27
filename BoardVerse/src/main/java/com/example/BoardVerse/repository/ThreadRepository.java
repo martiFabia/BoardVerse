@@ -1,5 +1,6 @@
 package com.example.BoardVerse.repository;
 
+import com.example.BoardVerse.DTO.Game.BestGameThreadDTO;
 import com.example.BoardVerse.DTO.Thread.ThreadPreviewDTO;
 import com.example.BoardVerse.DTO.Thread.ThreadPreviewGameDTO;
 import com.example.BoardVerse.model.MongoDB.ThreadMongo;
@@ -69,11 +70,29 @@ public interface ThreadRepository extends MongoRepository<ThreadMongo, String> {
     @Update("{ '$set': { 'messages.$[].replyTo.username': ?1 } }")
     void updateReplyToUsername(String username, String newUsername);
 
-
     @Query(value = "{ 'game.id': ?0 }",
             fields = "{ 'id': 1, 'tag': 1, 'lastPostDate': 1, " +
                     "'authorUsername': 1, 'postDate': 1, 'content': 1, 'messageCount': { $size: '$messages' } }")
     Slice<ThreadPreviewGameDTO> findByGameId(String gameId, Pageable pageable);
+
+    @Aggregation(pipeline = {
+            // Filtra i messaggi dell'ultimo mese
+            "{ $addFields: { messages: { $filter: { input: '$messages', as: 'message', cond: { $and: [ { $gte: ['$$message.postDate', ?0 ] }, { $lte: ['$$message.postDate', ?1] } ] } } } } }",
+
+            // Calcola il peso per ogni messaggio
+            "{ $addFields: { messages: { $map: { input: '$messages', as: 'message', in: { $let: { vars: { maxDate: ?1, minDate: ?0, dateDif: { $subtract: [?1, ?0] } }, in: { $mergeObjects: ['$$message', { weight: { $add: [0.1, { $divide: [ { $multiply: [1, { $subtract: ['$$message.postDate', ?0] }] }, { $subtract: [?1, ?0] }] }] } }] } } } } } } }",
+
+            // Proietta il peso totale
+            "{ $project: { game: 1, totalWeight: { $sum: '$messages.weight' } } }",
+
+            // Raggruppa per gioco
+            "{ $group: { _id: '$game._id', game: { $first: '$game' }, importanceIndex: { $sum: '$totalWeight' } } }",
+
+            "{ $project: { _id: '$_id', name: '$game.name', yearReleased: '$game.yearReleased', importanceIndex: 1 } }",
+
+            "{ $sort: { importanceIndex: -1 } }"
+    })
+    Slice<BestGameThreadDTO> getNormalizedGameRankingsWithDetails(Date startDate, Date endDate, Pageable pageable);
 
 
 }

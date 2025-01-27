@@ -49,7 +49,7 @@ public interface GameNeo4jRepository  extends Neo4jRepository<GameNeo4j, String>
             RETURN user.username AS username, l.timestamp AS timestamp
         ORDER BY
           CASE $sortBy
-            WHEN 'time' THEN l.timestamp
+            WHEN 'timestamp' THEN l.timestamp
             WHEN 'alphabetical' THEN user.username
           END ASC
         SKIP $pageSize * ($pageNumber - 1)

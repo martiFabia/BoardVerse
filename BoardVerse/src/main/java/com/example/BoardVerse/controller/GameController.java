@@ -91,6 +91,14 @@ public class GameController {
             return ResponseEntity.ok(gameService.getMostPlayedGames());
     }
 
+    @Operation(summary = "Hottest games based on threads activity")
+    @GetMapping("/hottest")
+    public ResponseEntity<?> getHottestGames( @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
+                                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endDate,
+                                              @RequestParam(defaultValue = "0") int page){
+        return ResponseEntity.ok(gameService.getBestGamesByThread(startDate, endDate, page));
+    }
+
 
     /*================================ LIKES =================================*/
 
@@ -106,6 +114,17 @@ public class GameController {
     public ResponseEntity<String> unlikeGame(@PathVariable String gameId){
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(userService.unlikeGame(gameId, user.getId()));
+    }
+
+    @Operation(summary = "Get the list of user who liked a game")
+    @GetMapping("/{gameId}/likes")
+    public ResponseEntity<?> getLikes(
+            @PathVariable String gameId,
+            @RequestParam(defaultValue = "alphabetical") String sortBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        return ResponseEntity.ok(gameService.getLikes(gameId, sortBy, page, size));
     }
 
 }

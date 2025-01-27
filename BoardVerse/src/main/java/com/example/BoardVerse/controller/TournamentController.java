@@ -42,7 +42,7 @@ public class TournamentController {
     public ResponseEntity<String> deleteTournament(@PathVariable String gameId, @PathVariable String tournamentId) {
 
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(tournamentService.deleteTournament(gameId, tournamentId, user.getUsername(), user.getUser().getTournaments()));
+        return ResponseEntity.ok(tournamentService.deleteTournament(tournamentId, user.getUsername()));
 
     }
 
