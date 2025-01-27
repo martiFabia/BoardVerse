@@ -62,7 +62,7 @@ public class ReviewService {
                 .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
         UserMongo userMongo = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("UserMongo not found with username: " + userId));
+                .orElseThrow(() -> new NotFoundException("User not found with username: " + userId));
 
         // Create the reviewMongo
         ReviewMongo reviewMongo = new ReviewMongo();
@@ -78,7 +78,7 @@ public class ReviewService {
         try {
             reviewRepository.save(reviewMongo);
         } catch (Exception e) {
-            throw new IllegalStateException("Error saving the reviewMongo: " + e.getMessage(), e);
+            throw new IllegalStateException("Error saving the review: " + e.getMessage(), e);
         }
 
         ReviewUser reviewUser = ReviewMapper.toUser(reviewMongo);
@@ -92,7 +92,7 @@ public class ReviewService {
         } catch (Exception e) {
             // Rollback: delete the saved reviewMongo
             reviewRepository.deleteById(reviewMongo.getId());
-            throw new IllegalStateException("Error adding reviewMongo to the game: " + e.getMessage(), e);
+            throw new IllegalStateException("Error adding review to the game: " + e.getMessage(), e);
         }
 
         // Add the reviewMongo to the userMongo
@@ -102,16 +102,16 @@ public class ReviewService {
             // Rollback: delete the reviewMongo and remove it from the game
             reviewRepository.deleteById(reviewMongo.getId());
             removeRating(game, reviewMongo.getRating());
-            throw new IllegalStateException("Error adding reviewMongo to the userMongo: " + e.getMessage(), e);
+            throw new IllegalStateException("Error adding review to the user: " + e.getMessage(), e);
         }
 
-        return "ReviewMongo successfully added!";
+        return "Review successfully added!";
     }
 
     /**
-     * Adds a review to the userMongo's most recent reviews.
+     * Adds a review to the user's most recent reviews.
      *
-     * @param userMongo the userMongo
+     * @param userMongo the user
      * @param review the review
      */
     public void addReviewUser(UserMongo userMongo, ReviewUser review) {
@@ -181,10 +181,10 @@ public class ReviewService {
                 .orElseThrow(() -> new NotFoundException("Game not found with ID: " + gameId));
 
         ReviewMongo reviewMongo = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new NotFoundException("ReviewMongo not found with ID: " + reviewId));
+                .orElseThrow(() -> new NotFoundException("Review not found with ID: " + reviewId));
 
         UserMongo userMongo = userRepository.findByUsername(reviewMongo.getAuthorUsername())
-                .orElseThrow(() -> new NotFoundException("UserMongo not found with username: " + reviewMongo.getAuthorUsername()));
+                .orElseThrow(() -> new NotFoundException("User not found with username: " + reviewMongo.getAuthorUsername()));
 
         // Check if the userMongo is the author of the reviewMongo or an admin
         if(!username.equals(reviewMongo.getAuthorUsername()) || !userMongo.getRole().equals(Role.ROLE_ADMIN)) {
@@ -215,7 +215,7 @@ public class ReviewService {
         userMongo.setMostRecentReviews(list);
         userRepository.save(userMongo);
 
-        return "ReviewMongo successfully deleted!";
+        return "Review successfully deleted!";
     }
 
     /**
@@ -252,7 +252,7 @@ public class ReviewService {
      */
     public String updateReview(String gameId, String username, String reviewId, AddReviewDTO addReviewDTO) {
         ReviewMongo reviewMongo = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new NotFoundException("ReviewMongo not found with ID: " + reviewId));
+                .orElseThrow(() -> new NotFoundException("Review not found with ID: " + reviewId));
 
         // Check if the user is the author of the reviewMongo
         if(!username.equals(reviewMongo.getAuthorUsername())) {
@@ -270,11 +270,11 @@ public class ReviewService {
             removeRating(game, reviewMongo.getRating());
             // Add the new rating to the game
             addRating(game, addReviewDTO.getRating());
-            // Update the reviewMongo's rating
+            // Update the review's rating
             reviewMongo.setRating(addReviewDTO.getRating());
         }
 
         reviewRepository.save(reviewMongo);
-        return "ReviewMongo successfully updated!";
+        return "Review successfully updated!";
     }
 }

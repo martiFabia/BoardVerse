@@ -19,7 +19,7 @@ public class TestController {
     @GetMapping("/user")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public String userAccess() {
-        return "UserMongo Content.";
+        return "User Content.";
     }
 
     @GetMapping("/admin")

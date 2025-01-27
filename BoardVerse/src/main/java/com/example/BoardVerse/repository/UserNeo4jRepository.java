@@ -23,48 +23,33 @@ import java.util.Optional;
 public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> {
 
     /**
-     * Creates a userMongo, if the new username is not already taken.
-     * @param oldUsername the username of the userMongo
-     * @param newUsername the username of the userMongo
-     * @return true if the userMongo was created, false otherwise
-     */
-    @Query("MATCH (u:UserMongo {username: $oldUsername}) " +
-            "OPTIONAL MATCH (existing:UserMongo {username: $newUsername}) " +
-            "WITH u, existing " +
-            "WHERE existing IS NULL " +
-            "SET u.username = $newUsername " +
-            "RETURN count(u) > 0")
-    boolean updateUserNeo4jByUsername(String oldUsername, String newUsername);
-
-    /**
-     *  Finds a userMongo by username.
-     * @param username the username of the userMongo
-     * @return the userMongo with the given username
+     *  Finds a user by username.
+     * @param username the username of the user
+     * @return the user with the given username
      */
     Optional<UserNeo4j> findByUsername(String username);
 
     /**
-     * Removes a userMongo from the database.
+     * Removes a user from the database.
      *
-     * @param username the username of the userMongo
-     * @return true if the userMongo was removed, false otherwise
+     * @param username the username of the user
      */
-    @Query("MATCH (u:UserMongo {username: $username}) " +
-            "DETACH DELETE u" +
-            "RETURN count(u) > 0")
-    boolean removeUser(String username);
+    @Query("MATCH (u:User {username: $username}) " +
+            "DETACH DELETE u"
+    )
+    void deleteByUsername(String username);
 
 
     /*============================ USER-GAME ACTIONS ==============================*/
 
     /**
-     * Adds a game to the userMongo's favorites.
+     * Adds a game to the user's favorites.
      *
-     * @param username the username of the userMongo
+     * @param username the username of the user
      * @param gameId the ID of the game to be added to favorites
      * @return true if the game was added to favorites, false otherwise
      */
-    @Query("MATCH (u:UserMongo {username: $username}) " +
+    @Query("MATCH (u:User {username: $username}) " +
             "MATCH (g:Game {_id: $gameId}) " +
             "MERGE (u)-[l:LIKES]->(g) " +
             "ON CREATE SET l.timestamp = datetime() " +
@@ -73,13 +58,13 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
     boolean addLikeToGame(String username, String gameId);
 
     /**
-     * Removes a game from the userMongo's favorites.
+     * Removes a game from the user's favorites.
      *
-     * @param username the username of the userMongo
+     * @param username the username of the user
      * @param gameId the ID of the game to be removed from favorites
      * @return true if the game was removed from favorites, false otherwise
      */
-    @Query("MATCH (u:UserMongo {username: $username}) " +
+    @Query("MATCH (u:User {username: $username}) " +
             "MATCH (g:Game {_id: $gameId}) " +
             "MATCH (u)-[r:LIKES]->(g) " +
             "DELETE r " +
@@ -91,145 +76,92 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
     /*============================ USER-USER ACTIONS ==============================*/
 
     /**
-     * Follows another userMongo.
+     * Follows another user.
      *
-     * @param followerId the ID of the userMongo who wants to follow
-     * @param followedId the ID of the userMongo to be followed
-     * @return true if the follow operation was successful, false otherwise
+     * @param followerId the ID of the user who wants to follow
+     * @param followedId the ID of the user to be followed
      */
-    @Query("MATCH (follower:UserMongo {username: $followerId}), MATCH (followed:UserMongo {username: $followedId}) " +
+    @Query("MATCH (follower:User {username: $followerId}), MATCH (followed:User {username: $followedId}) " +
             "MERGE (follower)-[f:FOLLOWS]->(followed) " +
-            "ON CREATE SET f.since = datetime() " +
-            "RETURN count(follower) > 0"
+            "ON CREATE SET f.since = datetime() "
     )
-    boolean followUser(String followerId, String followedId);
+    void followUser(String followerId, String followedId);
 
     /**
-     * Unfollows another userMongo.
+     * Unfollows another user.
      *
-     * @param username the username of the userMongo who wants to unfollow
-     * @param usernameToUnfollow the username of the userMongo to be unfollowed
-     * @return true if the unfollow operation was successful, false otherwise
+     * @param username the username of the user who wants to unfollow
+     * @param usernameToUnfollow the username of the user to be unfollowed
      */
-    @Query("MATCH (u:UserMongo {username: $username}) " +
-            "MATCH (u2:UserMongo {username: $usernameToUnfollow}) " +
+    @Query("MATCH (u:User {username: $username}) " +
+            "MATCH (u2:User {username: $usernameToUnfollow}) " +
             "MATCH (u)-[r:FOLLOWS]->(u2) " +
-            "DELETE r " +
-            "RETURN count(r) > 0")
-    boolean unfollowUser(String username, String usernameToUnfollow);
-
-
-    /*============================ USER-TOURNAMENT ACTIONS ==============================*/
-
-    /**
-     * Participates in a tournamentMongo.
-     *
-     * @param username the username of the userMongo participating in the tournamentMongo
-     * @param tournamentId the ID of the tournamentMongo
-     * @return true if the userMongo participated in the tournamentMongo, false otherwise
-     */
-    @Query("""
-            MATCH (u:UserMongo {username: $username})
-            MATCH (t:TournamentMongo {_id: $tournamentId})
-            WHERE NOT EXISTS {
-                MATCH (t)<-[:PARTICIPATES]-()
-                WITH COUNT(*) AS participantCount
-                WHERE participantCount >= t.maxParticipants
-            }
-              AND t.startingTime > datetime()
-            MERGE (u)-[:PARTICIPATES {timestamp: datetime()}]->(t)
-            RETURN count(u) > 0                
-    """)
-    boolean participateToTournament(String username, String tournamentId);
-
-    /**
-     * Removes a userMongo from a tournamentMongo.
-     *
-     * @param username the username of the userMongo to be removed from the tournamentMongo
-     * @param tournamentId the ID of the tournamentMongo
-     * @return true if the userMongo was removed from the tournamentMongo, false otherwise
-     */
-    @Query("MATCH (u:UserMongo {username: $username}) " +
-            "MATCH (t:TournamentMongo {_id: $tournamentId}) " +
-            "MATCH (u)-[r:PARTICIPATES]->(t) " +
-            "DELETE r" +
-            "RETURN count(r) > 0"
+            "DELETE r "
     )
-    boolean removeUserFromTournament(String username, String tournamentId);
-
-    /**
-     * Wins a tournamentMongo.
-     *
-     * @param username the username of the userMongo winning the tournamentMongo
-     * @param tournamentId the ID of the tournamentMongo
-     * @return true if the userMongo won the tournamentMongo, false otherwise
-     */
-    @Query("MATCH (u:UserMongo {username: $username}) " +
-            "MATCH (t:TournamentMongo {_id: $tournamentId}) " +
-            "MERGE (u)-[:WON {timestamp: datetime()}]->(t)" +
-            "RETURN count(t) > 0")
-    boolean winTournament(String username, String tournamentId);
+    void unfollowUser(String username, String usernameToUnfollow);
 
 
     /*============================ FINDS ==============================*/
 
     /**
-     * Finds all games liked by a userMongo.
+     * Finds all games liked by a user.
      *
-     * @param username the username of the userMongo
-     * @param sortOrder the order in which the games should be returned
+     * @param username the username of the user
+     * @param sortBy the order in which the games should be returned
      * @param pageSize the number of records to return
      * @param pageNumber the page number
-     * @return a list of games liked by the userMongo
+     * @return a list of games liked by the user
      */
-    @Query("MATCH (u:UserMongo {username: $username})-[:LIKES]->(g:Game) " +
+    @Query("MATCH (u:User {username: $username})-[:LIKES]->(g:Game) " +
             "RETURN g " +
-            "ORDER BY CASE WHEN $sortOrder = 'alphabetical' THEN g.name ELSE g.timestamp END " +
+            "ORDER BY CASE WHEN $sortBy = 'alphabetical' THEN g.name ELSE g.timestamp END " +
             "SKIP $pageSize * ($pageNumber - 1) " +
             "LIMIT $pageSize"
     )
-    List<GameNeo4j> findLikedGames(String username, String sortOrder, int pageSize, int pageNumber);
+    List<GameNeo4j> getLikedGames(String username, String sortBy, int pageSize, int pageNumber);
 
     /**
-     * Finds all users followed by a userMongo.
+     * Finds all users followed by a user.
      *
-     * @param username the username of the userMongo
+     * @param username the username of the user
      * @param sortOrder the order in which the games should be returned
      * @param pageSize the number of records to return
      * @param pageNumber the page number
-     * @return a list of users followed by the userMongo
+     * @return a list of users followed by the user
      */
-    @Query("MATCH (u:UserMongo {username: $username})-[f:FOLLOWS]->(u2:UserMongo) " +
+    @Query("MATCH (u:User {username: $username})-[f:FOLLOWS]->(u2:User) " +
             "RETURN u2.username " +
             "ORDER BY CASE WHEN $sortOrder = 'alphabetical' THEN u2.username ELSE f.timestamp END " +
             "SKIP $pageSize * ($pageNumber - 1) " +
             "LIMIT $pageSize"
     )
-    List<UserNeo4j> findFollowedUsers(String username, String sortOrder, int pageSize, int pageNumber);
+    List<UserNeo4j> getFollowing(String username, String sortOrder, int pageSize, int pageNumber);
 
     /**
-     * Finds all users following a userMongo.
+     * Finds all users following a user.
      *
-     * @param username the username of the userMongo
-     * @return a list of users following the userMongo
+     * @param username the username of the user
+     * @return a list of users following the user
      */
-    @Query("MATCH (u:UserMongo {username: $username})<-[f:FOLLOWS]-(u2:UserMongo) " +
+    @Query("MATCH (u:User {username: $username})<-[f:FOLLOWS]-(u2:User) " +
             "RETURN u2.username " +
-            "ORDER BY CASE WHEN $sortOrder = 'alphabetical' THEN u2.username ELSE f.timestamp END " +
+            "ORDER BY CASE WHEN $sortBy = 'alphabetical' THEN u2.username ELSE f.timestamp END " +
             "SKIP $pageSize * ($pageNumber - 1) " +
             "LIMIT $pageSize"
     )
-    List<UserNeo4j> findFollowers(String username, String sortOrder, int pageSize, int pageNumber);
+    List<UserNeo4j> getFollowers(String username, String sortBy, int pageSize, int pageNumber);
 
     /**
-     * Finds all tournaments created by a userMongo.
+     * Finds all tournaments created by a user.
      *
-     * @param username the username of the userMongo
+     * @param username the username of the user
+     * @param currentUsername the username of the current user
+     * @param sortBy the order in which the tournaments should be returned
      * @param pageSize the number of records to return
      * @param pageNumber the page number
-     * @return a list of tournaments created by the userMongo
+     * @return a list of tournaments created by the user
      */
-    @Query("MATCH (u:UserMongo {username: $username})-[c:CREATED]->(t:TournamentMongo)-[:IS_RELATED_TO]->(g:Game) " +
+    @Query("MATCH (u:User {username: $username})-[c:CREATED]->(t:Tournament)-[:IS_RELATED_TO]->(g:Game) " +
         "RETURN " +
         "   CASE " +
         "       WHEN t.visibility <> 'PUBLIC' AND  $username <> $currentUsername" +
@@ -241,73 +173,77 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
         "   t.maxParticipants, " +
         "   t.startingTime, " +
         "   {name: g.name, _id: g._id} AS game " +
-        "ORDER BY c.timestamp DESC " +
+        "ORDER BY CASE WHEN $sortBy = 'desc' THEN c.timestamp DESC ELSE c.timestamp END " +
         "SKIP $pageSize * ($pageNumber - 1) " +
         "LIMIT $pageSize")
-    List<TournamentNeo4jDTO> findCreatedTournaments(String username, String currentUsername, int pageSize, int pageNumber);
+    List<TournamentNeo4jDTO> getCreatedTournaments(String username, String currentUsername, String sortBy, int pageSize, int pageNumber);
 
     /**
-     * Finds all tournaments a userMongo participates in.
+     * Finds all tournaments a user has participated in.
      *
-     * @param username the username of the userMongo
+     * @param username the username of the user
+     * @param currentUsername the username of the current user
+     * @param sortBy the order in which the tournaments should be returned
      * @param pageSize the number of records to return
      * @param pageNumber the page number
-     * @return a list of tournaments the userMongo participates in
+     * @return a list of tournaments created by the user
      */
-    @Query("MATCH (u:UserMongo {username: $username})-[p:PARTICIPATES]->(t:TournamentMongo)-[:IS_RELATED_TO]->(g:Game) " +
-        "RETURN " +
-        "   CASE " +
-        "       WHEN t.visibility <> 'PUBLIC' AND  $username <> $currentUsername" +
-        "       THEN null " +
-        "       ELSE t.id " +
-        "       END AS id, " +
-        "   t.name, " +
-        "   t.visibility, " +
-        "   t.maxParticipants, " +
-        "   t.startingTime, " +
-        "   {name: g.name, _id: g._id} AS game " +
-        "ORDER BY p.timestamp DESC " +
-        "SKIP $pageSize * ($pageNumber - 1) " +
-        "LIMIT $pageSize")
-    List<TournamentNeo4jDTO> findParticipatedTournaments(String username, String currentUsername, int pageSize, int pageNumber);
+    @Query("MATCH (u:User {username: $username})-[c:PARTICIPATES]->(t:Tournament)-[:IS_RELATED_TO]->(g:Game) " +
+            "RETURN " +
+            "   CASE " +
+            "       WHEN t.visibility <> 'PUBLIC' AND  $username <> $currentUsername" +
+            "       THEN null " +
+            "       ELSE t.id " +
+            "       END AS id, " +
+            "   t.name, " +
+            "   t.visibility, " +
+            "   t.maxParticipants, " +
+            "   t.startingTime, " +
+            "   {name: g.name, _id: g._id} AS game " +
+            "ORDER BY CASE WHEN $sortBy = 'desc' THEN c.timestamp DESC ELSE c.timestamp END " +
+            "SKIP $pageSize * ($pageNumber - 1) " +
+            "LIMIT $pageSize")
+    List<TournamentNeo4jDTO> getParticipatedTournaments(String username, String currentUsername, String sortBy, int pageSize, int pageNumber);
 
     /**
-     * Finds all tournaments won by a userMongo.
+     * Finds all tournaments created by a user.
      *
-     * @param username the username of the userMongo
+     * @param username the username of the user
+     * @param currentUsername the username of the current user
+     * @param sortBy the order in which the tournaments should be returned
      * @param pageSize the number of records to return
      * @param pageNumber the page number
-     * @return a list of tournaments won by the userMongo
+     * @return a list of tournaments created by the user
      */
-    @Query("MATCH (u:UserMongo {username: $username})-[w:WON]->(t:TournamentMongo)-[:IS_RELATED_TO]->(g:Game) " +
-        "RETURN " +
-        "   CASE " +
-        "       WHEN t.visibility <> 'PUBLIC' AND  $username <> $currentUsername" +
-        "       THEN null " +
-        "       ELSE t.id " +
-        "       END AS id, " +
-        "   t.name, " +
-        "   t.visibility, " +
-        "   t.maxParticipants, " +
-        "   t.startingTime, " +
-        "   {name: g.name, _id: g._id} AS game " +
-        "ORDER BY w.timestamp DESC " +
-        "SKIP $pageSize * ($pageNumber - 1) " +
-        "LIMIT $pageSize")
-    List<TournamentNeo4jDTO> findWonTournaments(String username, String currentUsername, int pageSize, int pageNumber);
+    @Query("MATCH (u:User {username: $username})-[c:WON]->(t:Tournament)-[:IS_RELATED_TO]->(g:Game) " +
+            "RETURN " +
+            "   CASE " +
+            "       WHEN t.visibility <> 'PUBLIC' AND  $username <> $currentUsername" +
+            "       THEN null " +
+            "       ELSE t.id " +
+            "       END AS id, " +
+            "   t.name, " +
+            "   t.visibility, " +
+            "   t.maxParticipants, " +
+            "   t.startingTime, " +
+            "   {name: g.name, _id: g._id} AS game " +
+            "ORDER BY CASE WHEN $sortBy = 'desc' THEN c.timestamp DESC ELSE c.timestamp END " +
+            "SKIP $pageSize * ($pageNumber - 1) " +
+            "LIMIT $pageSize")
+    List<TournamentNeo4jDTO> getWonTournaments(String username, String currentUsername, String sortBy, int pageSize, int pageNumber);
 
 
     /*================================ ACTIVITY =================================*/
 
     /**
-     * Recent followers activity given a userMongo
+     * Recent followers activity given a user
      *
-     * @param username the username of the userMongo
+     * @param username the username of the user
      * @param pageSize the number of records to return
      * @param pageNumber the page number
      * @return a list of recent followers activity
      */
-    @Query("MATCH (u:UserMongo {username: $username})<-[:FOLLOWS]-(follower:UserMongo)-[activity:LIKES|FOLLOWS|CREATED|PARTICIPATES|WON]->(object) " +
+    @Query("MATCH (u:User {username: $username})<-[:FOLLOWS]-(follower:User)-[activity:LIKES|FOLLOWS|CREATED|PARTICIPATES|WON]->(object) " +
             "OPTIONAL MATCH (object)-[:IS_RELATED_TO]->(game:Game) " +
             "WITH " +
             "    follower.username AS followerUsername, " +
@@ -317,8 +253,8 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
             "        ELSE activity.timestamp " +
             "    END AS activityTime, " +
             "    CASE " +
-            "        WHEN object:UserMongo THEN {username: object.username} " +
-            "        WHEN object:TournamentMongo THEN {name: object.name, _id: " +
+            "        WHEN object:User THEN {username: object.username} " +
+            "        WHEN object:Tournament THEN {name: object.name, _id: " +
             "           CASE WHEN object.visibility <> 'PUBLIC' THEN null ELSE object._id END, " +
             "           game: {name: game.name, _id: game._id}} " +
             "        ELSE {name: object.name, _id: object._id} " +
@@ -333,17 +269,17 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
             "SKIP $pageSize * ($pageNumber - 1) " +
             "LIMIT $pageSize"
     )
-    List<FollowersActivityDTO> getFollowedRecentActivities(String username, int pageSize, int pageNumber);
+    List<FollowersActivityDTO> getFollowedActivity(String username, int pageSize, int pageNumber);
 
     /**
-     * Recent followers activity given a userMongo
+     * Recent followers activity given a user
      *
-     * @param username the username of the userMongo
+     * @param username the username of the user
      * @param pageSize the number of records to return
      * @param pageNumber the page number
      * @return a list of recent followers activity
      */
-    @Query("MATCH (u:UserMongo {username: $username})-[activity:LIKES|FOLLOWS|CREATED|PARTICIPATES|WON]->(object) " +
+    @Query("MATCH (u:User {username: $username})-[activity:LIKES|FOLLOWS|CREATED|PARTICIPATES|WON]->(object) " +
             "OPTIONAL MATCH (object)-[:IS_RELATED_TO]->(game:Game) " +
             "WITH " +
             "    activity, " +
@@ -352,8 +288,8 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
             "        ELSE activity.timestamp " +
             "    END AS activityTime, " +
             "    CASE " +
-            "        WHEN object:UserMongo THEN {username: object.username} " +
-            "        WHEN object:TournamentMongo THEN {name: object.name, _id: object._id, game: {name: game.name, _id: game._id}} " +
+            "        WHEN object:User THEN {username: object.username} " +
+            "        WHEN object:Tournament THEN {name: object.name, _id: object._id, game: {name: game.name, _id: game._id}} " +
             "        ELSE {name: object.name, _id: object._id} " +
             "    END AS objectProperties " +
             "WHERE activityTime <= datetime() " +
@@ -366,19 +302,20 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
             "SKIP $pageSize * ($pageNumber - 1) " +
             "LIMIT $pageSize"
     )
-    List<PersonalActivityDTO> getProfileRecentActivities(String username, int pageSize, int pageNumber);
+    List<PersonalActivityDTO> getPersonalActivity(String username, int pageSize, int pageNumber);
+
 
     /*============================ SUGGESTIONS ==============================*/
 
     /**
-     * Suggests games to a userMongo based on the games they like.
+     * Suggests games to a user based on the games they like.
      *
-     * @param username the username of the userMongo
+     * @param username the username of the user
      * @param pageSize the number of records to return
      * @param pageNumber the page number
-     * @return a list of games suggested to the userMongo
+     * @return a list of games suggested to the user
      */
-    @Query("MATCH (u:UserMongo {username: $username})<-[:FOLLOWS]-(follower:UserMongo)-[:LIKES]->(g:Game) " +
+    @Query("MATCH (u:User {username: $username})<-[:FOLLOWS]-(follower:User)-[:LIKES]->(g:Game) " +
             "WHERE NOT (u)-[:LIKES]->(g) " +
             "WITH u, g " +
             "MATCH (u)-[:LIKES]->(likedGame:Game) " +
@@ -402,14 +339,14 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
     List<GameSuggestionDTO> getGamesRecommendation(String username, int pageSize, int pageNumber);
 
     /**
-     * Suggests users to a userMongo based on the users they follow.
+     * Suggests users to a user based on the users they follow.
      *
-     * @param username the username of the userMongo
+     * @param username the username of the user
      * @param pageSize the number of records to return
      * @param pageNumber the page number
-     * @return a list of users suggested to the userMongo
+     * @return a list of users suggested to the user
      */
-    @Query("MATCH (currentUser:UserMongo {username: $username})-[:FOLLOWS]->(followedUser:UserMongo)-[:FOLLOWS]->(suggestedUser:UserMongo)"+
+    @Query("MATCH (currentUser:User {username: $username})-[:FOLLOWS]->(followedUser:User)-[:FOLLOWS]->(suggestedUser:User)"+
             "WHERE NOT (currentUser)-[:FOLLOWS]->(suggestedUser) AND suggestedUser.username <> $username"+
             "RETURN suggestedUser.username AS username, COUNT(suggestedUser) AS commonFollowers"+
             "ORDER BY commonFollowers DESC"+
@@ -419,21 +356,21 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
     List<UserFollowRecommendationDTO> getUsersRecommendationBySimilarNetwork(String username, int pageSize, int pageNumber);
 
     /**
-     * Suggests users to a userMongo based on the games they like.
+     * Suggests users to a user based on the games they like.
      *
-     * @param username the username of the userMongo
+     * @param username the username of the user
      * @param pageSize the number of records to return
      * @param pageNumber the page number
-     * @return a list of users suggested to the userMongo
+     * @return a list of users suggested to the user
      */
     @Query("""
-            MATCH (userMongo:UserMongo {username: $username})-[:FOLLOWS]->(follower:UserMongo)-[:FOLLOWS]->(suggestedUser:UserMongo)
-            WHERE NOT (userMongo)-[:FOLLOWS]->(suggestedUser) AND suggestedUser <> userMongo
-            WITH DISTINCT userMongo, suggestedUser
-            OPTIONAL MATCH (userMongo)-[:LIKES]->(game:Game)<-[:LIKES]-(suggestedUser)
-            WITH DISTINCT userMongo, suggestedUser, COLLECT(DISTINCT game) AS commonGames
-            MATCH (userMongo)-[:LIKES]->(allGames:Game)
-            WITH DISTINCT userMongo, suggestedUser, commonGames, COLLECT(DISTINCT allGames) AS allUserGames
+            MATCH (user:User {username: $username})-[:FOLLOWS]->(follower:User)-[:FOLLOWS]->(suggestedUser:User)
+            WHERE NOT (user)-[:FOLLOWS]->(suggestedUser) AND suggestedUser <> user
+            WITH DISTINCT user, suggestedUser
+            OPTIONAL MATCH (user)-[:LIKES]->(game:Game)<-[:LIKES]-(suggestedUser)
+            WITH DISTINCT user, suggestedUser, COLLECT(DISTINCT game) AS commonGames
+            MATCH (user)-[:LIKES]->(allGames:Game)
+            WITH DISTINCT user, suggestedUser, commonGames, COLLECT(DISTINCT allGames) AS allUserGames
             MATCH (suggestedUser)-[:LIKES]->(suggestedGames:Game)
             WITH DISTINCT suggestedUser, commonGames, allUserGames, COLLECT(DISTINCT suggestedGames) AS allSuggestedGames
             WITH DISTINCT suggestedUser,
@@ -451,37 +388,37 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
 
 
     /**
-     * Suggests tournaments to a userMongo based on the games they like, the games liked by the users they follow, and the tournaments they participate in.
+     * Suggests tournaments to a user based on the games they like, the games liked by the users they follow, and the tournaments they participate in.
      *
-     * @param username the username of the userMongo
+     * @param username the username of the user
      * @param pageSize the number of records to return
      * @param pageNumber the page number
-     * @return a list of tournaments suggested to the userMongo
+     * @return a list of tournaments suggested to the user
      */
     @Query("""
-            // Find tournaments related to games liked by the userMongo
-            MATCH (userMongo:UserMongo {username: $username})-[:PARTICIPATES]->(userTournament:TournamentMongo)-[:IS_RELATED_TO]->(game:Game)
+            // Find tournaments related to games liked by the user
+            MATCH (user:User {username: $username})-[:PARTICIPATES]->(userTournament:Tournament)-[:IS_RELATED_TO]->(game:Game)
                 
-            // Find tournaments related to games liked by the users followed by the userMongo
-            MATCH (game)<-[:IS_RELATED_TO]-(suggestedTournament:TournamentMongo)
-            WHERE NOT (userMongo)-[:PARTICIPATES]->(suggestedTournament)
+            // Find tournaments related to games liked by the users followed by the user
+            MATCH (game)<-[:IS_RELATED_TO]-(suggestedTournament:Tournament)
+            WHERE NOT (user)-[:PARTICIPATES]->(suggestedTournament)
               AND suggestedTournament.startingTime > datetime()
               AND suggestedTournament.visibility = 'PUBLIC'
               AND NOT EXISTS {
-                MATCH (suggestedTournament)<-[:PARTICIPATES]-(:UserMongo)
+                MATCH (suggestedTournament)<-[:PARTICIPATES]-(:User)
                 WITH COUNT(*) AS participantCount
                 WHERE participantCount >= suggestedTournament.maxParticipants
               } // Only public tournaments with available spots not yet started
                 
             // Followed users that participate in the suggested tournaments
-            MATCH (userMongo)-[:FOLLOWS]->(follower:UserMongo)-[:PARTICIPATES]->(suggestedTournament)
+            MATCH (user)-[:FOLLOWS]->(follower:User)-[:PARTICIPATES]->(suggestedTournament)
             WITH suggestedTournament, COUNT(DISTINCT follower) AS followerCount
                 
             // Total number of participants in the suggested tournaments
-            MATCH (suggestedTournament)<-[:PARTICIPATES]-(participant:UserMongo)
+            MATCH (suggestedTournament)<-[:PARTICIPATES]-(participant:User)
             WITH suggestedTournament, followerCount, COUNT(DISTINCT participant) AS participantCount
                 
-            // Game related to the suggested tournamentMongo
+            // Game related to the suggested tournament
             MATCH (suggestedTournament)-[:IS_RELATED_TO]->(relatedGame:Game)
             WITH suggestedTournament, followerCount, participantCount,
                  relatedGame.name AS gameName,

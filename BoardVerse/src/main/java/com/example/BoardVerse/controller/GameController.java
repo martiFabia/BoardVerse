@@ -2,29 +2,32 @@ package com.example.BoardVerse.controller;
 
 import com.example.BoardVerse.DTO.Game.GameInfoDTO;
 import com.example.BoardVerse.DTO.Game.GameRankPreviewDTO;
-import com.example.BoardVerse.DTO.Game.MostPlayedGameDTO;
+import com.example.BoardVerse.security.services.UserDetailsImpl;
 import com.example.BoardVerse.service.GameService;
+import com.example.BoardVerse.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Slice;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/games")
 @Tag(name = "Game", description = "Operations related to games")
 public class GameController {
     private final GameService gameService;
+    private final UserService userService;
 
     @Autowired
-    public GameController(GameService gameService) {
+    public GameController(GameService gameService, UserService userService) {
+
         this.gameService = gameService;
+        this.userService = userService;
     }
 
     @Operation(summary = "Browse games")
@@ -34,7 +37,6 @@ public class GameController {
 
         return ResponseEntity.ok(gameService.findByName(gameName, page));
     }
-
 
     @Operation(summary = "Get game page")
     @GetMapping("/{gameId}")
@@ -47,9 +49,13 @@ public class GameController {
     @GetMapping("{gameId}/ratingsDetail")
     public ResponseEntity<?> getRatingsDetail(@PathVariable String gameId){
         return ResponseEntity.ok(gameService.getRatingsDetails(gameId));
-
     }
 
+    @Operation(summary = "Get games statistics about likes and tournaments")
+    @GetMapping("{gameId}/statistics")
+    public ResponseEntity<?> getStatistics(@PathVariable String gameId){
+        return ResponseEntity.ok(gameService.getStatistics(gameId));
+    }
 
     @Operation(summary = "Find games by filter")
     @GetMapping("/filter")
@@ -66,7 +72,6 @@ public class GameController {
                 sortBy, order, page));
     }
 
-
     @Operation(summary = "Get games ranking")
     @GetMapping("/ranking")
     public ResponseEntity<Slice<GameRankPreviewDTO>> getRanking(
@@ -80,12 +85,27 @@ public class GameController {
         return ResponseEntity.ok(gameService.getRanking(startDate, endDate, country, state, city, page));
     }
 
-
     @Operation(summary = "Get the best 10 most played games")
     @GetMapping("/mostPlayed")
     public ResponseEntity<?> getMostPlayedGames(){
             return ResponseEntity.ok(gameService.getMostPlayedGames());
+    }
 
+
+    /*================================ LIKES =================================*/
+
+    @Operation(summary = "Like a game")
+    @PostMapping("/{gameId}/like")
+    public ResponseEntity<String> likeGame(@PathVariable String gameId){
+        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(userService.likeGame(gameId, user.getId()));
+    }
+
+    @Operation(summary = "Unlike a game")
+    @DeleteMapping("/{gameId}/like")
+    public ResponseEntity<String> unlikeGame(@PathVariable String gameId){
+        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(userService.unlikeGame(gameId, user.getId()));
     }
 
 }

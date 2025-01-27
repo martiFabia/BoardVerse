@@ -16,7 +16,7 @@ public class UpdateTournamentDTO {
     private String typeDescription;
     private Date startingTime;
 
-    @Schema(description = "TournamentMongo Location (Country, State, City)",
+    @Schema(description = "Tournament Location (Country, State, City)",
             example = "{ \"country\": \" \", \"stateOrProvince\": \" \", \"city\": \" \" }")
     private Location location;
 

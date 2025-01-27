@@ -15,9 +15,9 @@ import java.util.List;
 
 public interface TournamentMongoRepository extends MongoRepository<TournamentMongo, String> {
 
-    @Query("{ 'administrator': ?0 }")
-    @Update("{ '$set': { 'administrator': ?1 } }")
-    void updateAdministratorInTournaments(String oldUsername, String newUsername);
+@Query("{ '$or': [ { 'administrator': ?0 }, { 'winner': ?0 } ] }")
+@Update("{ '$set': { 'administrator': { $cond: { if: { $eq: ['$administrator', ?0] }, then: ?1, else: '$administrator' } }, 'winner': { $cond: { if: { $eq: ['$winner', ?0] }, then: ?1, else: '$winner' } } } }")
+void updateUsernameInTournaments(String oldUsername, String newUsername);
 
     @Query("{ 'winner': ?0 }")
     @Update("{ '$set': { 'winner': ?1 } }")
@@ -59,6 +59,8 @@ public interface TournamentMongoRepository extends MongoRepository<TournamentMon
             "{ $project: { '_id': 0, 'gameID': '$_id', 'name': 1, 'yearReleased': 1, 'averageWeightedParticipants': 1 } }"
     })
     List<MostPlayedGameDTO> findTop10GamesWithHighestAverageParticipation(Date startDate, Date endDate);
-
+@Query("{ 'username': { $in: ?0 } }")
+@Update("{ '$inc': { 'tournaments.participated': -1, 'tournaments.created': { $cond: [ { $eq: ['$username', ?1] }, -1, 0 ] } } }")
+void decrementTournamentStats(List<String> participants, String administrator);
 
 }

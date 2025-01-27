@@ -56,9 +56,11 @@ public interface UserMongoRepository extends MongoRepository<UserMongo, String> 
     })
     List<MonthlyReg> monthlyRegistrations(Instant startDate, Instant endDate);
 
+    @Query("{ 'username': ?0 }")
+    @Update("{ '$inc': { 'followers': 1 } }")
+    void incrementFollowers(String followUsername);
 
-
-
-
-
+    @Query("{ 'username': ?0 }")
+    @Update("{ '$inc': { 'followers': -1 } }")
+    void decrementFollowers(String followUsername);
 }

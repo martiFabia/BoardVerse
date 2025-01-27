@@ -4,6 +4,7 @@ import com.example.BoardVerse.model.MongoDB.subentities.Location;
 import com.example.BoardVerse.model.MongoDB.subentities.OptionsTournament;
 import com.example.BoardVerse.model.MongoDB.subentities.VisibilityTournament;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
@@ -18,6 +19,8 @@ public class AddTournamentDTO {
 
     private String type;
     private String typeDescription;
+
+    @Future
     private Date startingTime;
 
     @Schema(description = "TournamentMongo Location (Country, State, City)",

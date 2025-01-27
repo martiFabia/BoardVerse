@@ -1,7 +1,9 @@
 package com.example.BoardVerse.repository;
 
 import com.example.BoardVerse.DTO.Game.GameAnalyticsDTO;
+import com.example.BoardVerse.DTO.User.GameLikesUserList;
 import com.example.BoardVerse.model.Neo4j.GameNeo4j;
+import com.example.BoardVerse.model.Neo4j.UserNeo4j;
 import lombok.NonNull;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
@@ -11,6 +13,9 @@ import java.util.Optional;
 
 
 public interface GameNeo4jRepository  extends Neo4jRepository<GameNeo4j, String> {
+
+
+    Optional<GameNeo4j> findById(String name);
 
     /**
      *  Finds a game by its name and year
@@ -26,9 +31,31 @@ public interface GameNeo4jRepository  extends Neo4jRepository<GameNeo4j, String>
      *
      *  @param gameId the ID of the game to be removed
      */
-    @Query("MATCH (g:Game {_id: $gameId})<-[:IS_RELATED_TO]-(t:TournamentMongo)" +
+    @Query("MATCH (g:Game {_id: $gameId})<-[:IS_RELATED_TO]-(t:Tournament)" +
             "DETACH DELETE g, t")
     void deleteById(@NonNull String gameId);
+
+    /**
+     *  Returns the list of users that like a game
+     *
+     *  @param gameId the ID of the game
+     *  @param sortBy the sorting criteria
+     *  @param pageSize the number of results per page
+     *  @param pageNumber the page number
+     *  @return a list of GameNeo4j objects
+     */
+    @Query("""
+            MATCH (game:Game {_id: $gameId})<-[l:LIKES]-(user:User)
+            RETURN user.username AS username, l.timestamp AS timestamp
+        ORDER BY
+          CASE $sortBy
+            WHEN 'time' THEN l.timestamp
+            WHEN 'alphabetical' THEN user.username
+          END ASC
+        SKIP $pageSize * ($pageNumber - 1)
+        LIMIT $pageSize
+    """)
+    List<GameLikesUserList> getLikedBy(String gameId, String sortBy, int pageSize, int pageNumber);
 
 
     /*====================================== ANALYTICS ======================================*/
@@ -40,19 +67,20 @@ public interface GameNeo4jRepository  extends Neo4jRepository<GameNeo4j, String>
      *  @return a list of GameAnalyticsDTO objects
      */
     @Query("""
-            MATCH (game:Game {_id: $gameId})<-[:LIKES]-(userMongo:User)
-            WITH game, COUNT(userMongo) AS likeCount
-            MATCH (game)<-[:IS_RELATED_TO]-(tournamentMongo:TournamentMongo)
+            MATCH (game:Game {_id: $gameId})<-[:LIKES]-(user:User)
+            WITH game, COUNT(user) AS likeCount
+            MATCH (game)<-[:IS_RELATED_TO]-(tournament:Tournament)
             WITH game, likeCount,
-                 COUNT(tournamentMongo) AS totalTournaments,
-                 COUNT(CASE WHEN EXISTS { MATCH (tournamentMongo)<-[:WINNER]-(:User) } THEN tournamentMongo END) AS finishedTournaments,
-                 COUNT(CASE WHEN tournamentMongo.startingTime <= datetime() THEN tournamentMongo END) AS ongoingTournaments,
-                 COUNT(CASE WHEN tournamentMongo.startingTime > datetime()
-                  AND NOT EXISTS { MATCH (tournamentMongo)<-[:WINNER]-(:User) }
-                  THEN tournamentMongo END) AS futureTournaments,
-                 COUNT(CASE WHEN tournamentMongo.visibility = 'PUBLIC' THEN tournamentMongo END) AS publicTournaments,
-                 COUNT(CASE WHEN tournamentMongo.visibility = 'PRIVATE' THEN tournamentMongo END) AS privateTournaments,
-                 COUNT(CASE WHEN tournamentMongo.visibility = 'INVITE' THEN tournamentMongo END) AS inviteTournaments
+                 COUNT(tournament) AS totalTournaments,
+                 COUNT(CASE WHEN EXISTS { MATCH (tournament)<-[:WINNER]-(:User) } THEN tournament END) AS finishedTournaments,
+                 COUNT(CASE WHEN EXISTS { MATCH (tournament)<-[:PARTICIPATES_IN]-(:User) }
+                    AND tournament.startingTime <= datetime() THEN tournament END) AS ongoingTournaments,
+                 COUNT(CASE WHEN tournament.startingTime > datetime()
+                  AND NOT EXISTS { MATCH (tournament)<-[:WINNER]-(:User) }
+                  THEN tournament END) AS futureTournaments,
+                 COUNT(CASE WHEN tournament.visibility = 'PUBLIC' THEN tournament END) AS publicTournaments,
+                 COUNT(CASE WHEN tournament.visibility = 'PRIVATE' THEN tournament END) AS privateTournaments,
+                 COUNT(CASE WHEN tournament.visibility = 'INVITE' THEN tournament END) AS inviteTournaments
             RETURN
               game._id AS gameId,
               game.name AS gameName,
@@ -65,7 +93,7 @@ public interface GameNeo4jRepository  extends Neo4jRepository<GameNeo4j, String>
               privateTournaments,
               inviteTournaments
     """)
-    List<GameAnalyticsDTO> getGameAnalytics(String gameId);
+    List<GameAnalyticsDTO> getGameStatistics(String gameId);
 }
 
 

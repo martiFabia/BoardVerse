@@ -1,6 +1,7 @@
 package com.example.BoardVerse.service;
 
 import com.example.BoardVerse.DTO.Game.*;
+import com.example.BoardVerse.DTO.User.GameLikesUserList;
 import com.example.BoardVerse.exception.AlreadyExistsException;
 import com.example.BoardVerse.exception.NotFoundException;
 import com.example.BoardVerse.model.MongoDB.GameMongo;
@@ -41,9 +42,7 @@ public class GameService {
      * @param tournamentMongoRepository the tournament repository
      * @param threadRepository the thread repository
      * @param userMongoRepository the user repository
-     * @param userNeo4jRepository the Neo4j user repository
      * @param gameNeo4jRepository the Neo4j game repository
-     * @param tournamentNeo4jRepository the Neo4j tournament repository
      */
     public GameService(
             GameMongoRepository gameMongoRepository,
@@ -51,9 +50,7 @@ public class GameService {
             TournamentMongoRepository tournamentMongoRepository,
             ThreadRepository threadRepository,
             UserMongoRepository userMongoRepository,
-            UserNeo4jRepository userNeo4jRepository,
-            GameNeo4jRepository gameNeo4jRepository,
-            TournamentNeo4jRepository tournamentNeo4jRepository
+            GameNeo4jRepository gameNeo4jRepository
     ) {
         this.gameMongoRepository = gameMongoRepository;
         this.reviewRepository = reviewRepository;
@@ -315,7 +312,7 @@ public class GameService {
         GameMongo game = gameMongoRepository.findById(gameId)
                 .orElseThrow(() -> {
                     logger.warn("Game not found with ID: " + gameId);
-                    return new NotFoundException("Game not found with ID: " + gameId)
+                    return new NotFoundException("Game not found with ID: " + gameId);
                 });
         return GameMapper.toDTO(game);
     }
@@ -430,13 +427,27 @@ public class GameService {
     }
 
     /**
+     * Gets list of users that like a game.
+     *
+     * @param gameId the ID of the game
+     * @param sortBy the field to sort by
+     * @param pageSize the number of items per page
+     * @param pageNumber the page number
+     * @return a list of users that like the game
+     */
+    public List<GameLikesUserList> getLikedBy(String gameId, String sortBy, int pageSize, int pageNumber) {
+        logger.info("Getting users that like game with ID: " + gameId);
+        return gameNeo4jRepository.getLikedBy(gameId, sortBy, pageSize, pageNumber);
+    }
+
+    /**
      * Gets game stats about tournaments and likes.
      *
      * @return a list of best game player DTOs
      */
-    public List<GameAnalyticsDTO> getGameAnalytics(String gameId) {
+    public List<GameAnalyticsDTO> getStatistics(String gameId) {
         logger.info("Getting game analytics for game with ID: " + gameId);
-        return gameNeo4jRepository.getGameAnalytics(gameId);
+        return gameNeo4jRepository.getGameStatistics(gameId);
     }
 
 }

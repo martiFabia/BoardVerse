@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/games/")
-@Tag(name = "TournamentMongo", description = "Operations related to tournaments")
+@Tag(name = "Tournament", description = "Operations related to tournaments")
 public class TournamentController {
 
 
@@ -69,6 +69,59 @@ public class TournamentController {
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> getTournament(@PathVariable String tournamentId) {
         return ResponseEntity.ok(tournamentService.getTournament(tournamentId));
-
     }
+
+    @Operation(summary = "Get tournament participants")
+    @GetMapping("/tournaments/{tournamentId}/participants")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<?> getTournamentParticipants(
+            @PathVariable String tournamentId,
+            @RequestParam(defaultValue = "alphabetical") String sortBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+
+    ) {
+        return ResponseEntity.ok(tournamentService.getTournamentParticipants(tournamentId, sortBy, page, size));
+    }
+
+    @Operation(summary = "Register to a tournament")
+    @PostMapping("/tournaments/{tournamentId}/register")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<String> registerToTournament(@PathVariable String tournamentId) {
+        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(tournamentService.registerToTournament(tournamentId, user.getId()));
+    }
+
+    @Operation(summary = "Unregister from a tournament")
+    @DeleteMapping("/tournaments/{tournamentId}/unregister")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<String> unregisterFromTournament(@PathVariable String tournamentId) {
+        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(tournamentService.unregisterFromTournament(tournamentId, user.getId()));
+    }
+
+    @Operation(summary = "Select a winner for a tournament")
+    @PostMapping("/tournaments/{tournamentId}/selectWinner")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<String> selectWinner(
+            @PathVariable String tournamentId,
+            @RequestParam String winnerUsername) {
+        UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(tournamentService.selectWinner(tournamentId, winnerUsername, user.getUsername()));
+    }
+
+    @Operation(summary = "Get tournament difficulty index")
+    @GetMapping("/tournaments/{tournamentId}/difficulty")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<?> getTournamentDifficultyIndex(@PathVariable String tournamentId) {
+        return ResponseEntity.ok(tournamentService.getTournamentDifficultyIndex(tournamentId));
+    }
+
+    @Operation(summary = "Get tournament social density index")
+    @GetMapping("/tournaments/{tournamentId}/socialDensity")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<?> getTournamentSocialDensityIndex(@PathVariable String tournamentId) {
+        return ResponseEntity.ok(tournamentService.getTournamentSocialDensityIndex(tournamentId));
+    }
+
 }

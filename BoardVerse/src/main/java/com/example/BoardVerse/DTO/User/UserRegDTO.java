@@ -19,7 +19,7 @@ public record UserRegDTO(
         @NotBlank
         @Size(min = 3)
         String password,
-        @Schema(description = "UserMongo Location (Country, State, City)",
+        @Schema(description = "User Location (Country, State, City)",
                 example = "{ \"country\": \"Italy\", \"state\": \"Tuscany\", \"city\": \"Pisa\" }")
         Location location,
         @Past

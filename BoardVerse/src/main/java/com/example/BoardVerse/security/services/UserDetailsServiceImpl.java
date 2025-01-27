@@ -23,7 +23,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserMongo userMongo = userMongoRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("UserMongo Not Found with username: " + username));
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
 
         return UserDetailsImpl.build(userMongo);
     }
@@ -33,7 +33,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Transactional
     public UserDetails loadUserById(String id) throws UsernameNotFoundException {
         UserMongo userMongo = userMongoRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("UserMongo not found with ID: " + id));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with ID: " + id));
 
         return UserDetailsImpl.build(userMongo);
     }
