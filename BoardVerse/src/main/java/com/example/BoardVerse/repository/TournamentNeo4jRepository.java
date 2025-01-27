@@ -175,7 +175,7 @@ public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo
      * @return the number of participants in the tournament
      */
     @Query("""
-        MATCH (tournament:Tournament {_id: "$tournamentId})<-[:PARTICIPATES]-(participant:User)
+        MATCH (tournament:Tournament {_id: $tournamentId})<-[:PARTICIPATES]-(participant:User)
         OPTIONAL MATCH (participant)-[:WON]->(wonTournament:Tournament)
         WITH tournament, participant, COUNT(wonTournament) AS wonCount
         OPTIONAL MATCH (participant)-[:PARTICIPATES]->(participatedTournament:Tournament)
