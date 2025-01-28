@@ -26,7 +26,6 @@ public class ReviewMongo extends Post {
     @Min(1) @Max(value = 10, message = "Rating must be between 1 and 10")
     @NotNull
     private Double rating;
-    private boolean isAuthorDeleted;
 
     // Costruttore vuoto per Spring e MongoDB
     public ReviewMongo() {

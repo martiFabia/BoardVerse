@@ -16,12 +16,16 @@ import com.example.BoardVerse.security.services.UserDetailsImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionSystemException;
 
 import java.util.Date;
 import java.util.UUID;
@@ -84,6 +88,11 @@ public class AuthService {
     }
 
     //SIGNUP
+    @Retryable(
+            retryFor = {DataAccessException.class, TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     public String registerUser(UserRegDTO signUpRequest) {
         logger.info("Registering new user: " + signUpRequest.username());
 

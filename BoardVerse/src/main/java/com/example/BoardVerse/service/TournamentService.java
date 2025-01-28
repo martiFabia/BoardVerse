@@ -14,10 +14,14 @@ import com.example.BoardVerse.repository.*;
 import com.example.BoardVerse.utils.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionSystemException;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -74,6 +78,11 @@ public class TournamentService {
      * @param administratorUsername the user ID
      * @param addTournamentDTO the tournament creation DTO
      */
+    @Retryable(
+            retryFor = {DataAccessException.class, TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     public String addTournament (String gameId, String administratorUsername, AddTournamentDTO addTournamentDTO) {
         logger.info("Adding tournament for game with ID: {} and user with ID: {}", gameId, administratorUsername);
         logger.debug("Tournament creation DTO: {}", addTournamentDTO);
@@ -164,6 +173,11 @@ public class TournamentService {
      * @param tournamentId the tournament ID
      * @param userId the user ID
      */
+    @Retryable(
+            retryFor = {DataAccessException.class, TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     public String deleteTournament(String tournamentId, String userId) {
         logger.info("Deleting tournament with ID: {}", tournamentId);
 
@@ -222,6 +236,11 @@ public class TournamentService {
      * @param username the username
      * @param updateTournamentDTO the tournament update DTO
      */
+    @Retryable(
+            retryFor = {DataAccessException.class, TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     public String updateTournament(String gameId, String tournamentId, String username, UpdateTournamentDTO updateTournamentDTO){
         logger.info("Updating tournament with ID: {}", tournamentId);
 
@@ -395,6 +414,11 @@ public class TournamentService {
      * @param userId the user ID
      * @return a message
      */
+    @Retryable(
+            retryFor = {DataAccessException.class, TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     public String registerToTournament(String tournamentId, String userId) {
         logger.info("User with ID: {} is participating to tournament with ID: {}", userId, tournamentId);
 
@@ -461,6 +485,11 @@ public class TournamentService {
      * @param userId the user ID
      * @return a message
      */
+    @Retryable(
+            retryFor = {DataAccessException.class, TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     public String unregisterFromTournament(String tournamentId, String userId) {
         logger.info("User with ID: {} is no longer participating to tournament with ID: {}", userId, tournamentId);
 
@@ -515,6 +544,11 @@ public class TournamentService {
 
     }
 
+    @Retryable(
+            retryFor = {DataAccessException.class, TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     public String selectWinner(String tournamentId, String winnerUsername, String username) {
         logger.info("Adding winner with ID: {} to tournament with ID: {}", winnerUsername, tournamentId);
 

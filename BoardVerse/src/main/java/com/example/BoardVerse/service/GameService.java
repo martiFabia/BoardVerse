@@ -11,8 +11,12 @@ import com.example.BoardVerse.utils.Constants;
 import com.example.BoardVerse.utils.GameMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.*;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionSystemException;
 
 import java.util.*;
 
@@ -67,6 +71,11 @@ public class GameService {
      * @param newGameDTO the game creation DTO
      * @return a success message
      */
+    @Retryable(
+            retryFor = {DataAccessException.class, TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     public String addNewGame(GameCreationDTO newGameDTO) {
         logger.info("Adding new game: " + newGameDTO.getName());
         logger.debug("Game DTO: " + newGameDTO);
@@ -106,6 +115,11 @@ public class GameService {
      * @param updateGameDTO the game update DTO
      * @return a success message
      */
+    @Retryable(
+            retryFor = {DataAccessException.class, TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     public String updateGame(String gameId, GameUpdateDTO updateGameDTO) {
         logger.info("Updating gameMongo: " + gameId);
         logger.debug("Update DTO: " + updateGameDTO);
@@ -259,6 +273,11 @@ public class GameService {
      * @param gameId the game ID
      * @return a success message
      */
+    @Retryable(
+            retryFor = {DataAccessException.class, TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     public String deleteGame(String gameId) {
         logger.info("Deleting game with ID: " + gameId);
 

@@ -4,9 +4,9 @@ import java.util.Date;
 
 public record ReviewUser(
         String id,
-        Date reviewDate,
-        GameReview game,
+        Date postDate,
+        GamePreviewEssential game,
         Double rating,
-        String comment
+        String content
 ) {
 }

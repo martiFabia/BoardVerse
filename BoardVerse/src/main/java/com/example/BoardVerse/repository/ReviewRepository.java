@@ -113,14 +113,29 @@ public interface ReviewRepository extends MongoRepository<ReviewMongo, String> {
 
 
     @Aggregation(pipeline = {
-            "{ $match: { rating: { $ne: null } } }", // Escludi recensioni con rating null
+            "{ $match: { rating: { $ne: null } } }",
             "{ $addFields: { age: { $dateDiff: { startDate: \"$authorBirthDate\", endDate: \"$$NOW\", unit: \"year\" } } } }",
             "{ $match: { age: { $gte: 10, $lte: 99 } } }",
-            "{ $addFields: { ageBracket: { $concat: [ { $toString: { $multiply: [10, { $floor: { $divide: [\"$age\", 10] } }] } }, \"-\", { $toString: { $add: [ { $multiply: [10, { $floor: { $divide: [\"$age\", 10] } }] }, 9 ] } } ] } } }",
-            "{ $project: { ageBracket: 1, rating: 1, game: \"$game._id\", name: \"$game.name\", yearReleased: \"$game.yearReleased\" } }",
-            "{ $group: { _id: { ageBracket: \"$ageBracket\", game: \"$game\", name: \"$name\", yearReleased: \"$yearReleased\" }, averageRating: { $avg: \"$rating\" }, totalReviews: { $sum: 1 } } }",
+            "{ $addFields: { ageBracket: { $concat: [ " +
+                    "{ $toString: { $multiply: [10, { $floor: { $divide: [\"$age\", 10] } }] } }, \"-\", " +
+                    "{ $toString: { $add: [ { $multiply: [10, { $floor: { $divide: [\"$age\", 10] } }] }, 9 ] } } ] } } }",
+            "{ $group: { " +
+                    "    _id: { ageBracket: \"$ageBracket\", game: \"$game._id\" }, " +
+                    "    name: { $first: \"$game.name\" }, " +
+                    "    yearReleased: { $first: \"$game.yearReleased\" }, " +
+                    "    averageRating: { $avg: \"$rating\" }, " +
+                    "    totalReviews: { $sum: 1 } " +
+                    "} }",
+            "{ $match: { totalReviews: { $gte: 30 } } }",
             "{ $sort: { \"_id.ageBracket\": 1, \"averageRating\": -1 } }",
-            "{ $group: { _id: \"$_id.ageBracket\", gameID: { $first: \"$_id.game\" }, name: { $first: \"$_id.name\" }, yearReleased: { $first: \"$_id.yearReleased\" }, bestAvgRating: { $first: \"$averageRating\" }, totalReviews: { $sum: \"$totalReviews\" } } }", // Somma il numero di recensioni totali
+            "{ $group: { " +
+                    "    _id: \"$_id.ageBracket\", " +
+                    "    gameID: { $first: \"$_id.game\" }, " +
+                    "    name: { $first: \"$name\" }, " +
+                    "    yearReleased: { $first: \"$yearReleased\" }, " +
+                    "    bestAvgRating: { $first: \"$averageRating\" }, " +
+                    "    totalReviews: { $first: \"$totalReviews\" } " +
+                    "} }",
             "{ $sort: { \"_id\": 1 } }"
     })
     List<BestGameAgeDTO> findBestGameByAgeBrackets();

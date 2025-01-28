@@ -20,12 +20,16 @@ import org.neo4j.cypherdsl.core.Use;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionSystemException;
 
 import java.util.List;
 import java.util.Map;
@@ -123,6 +127,11 @@ public class UserService {
      * @param updates the user update DTO
      * @return the updated user information DTO
      */
+    @Retryable(
+            retryFor = {DataAccessException.class, TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     public UserInfoDTO updateUser(String userId, UserUpdateDTO updates) {
         logger.info("Updating user with id: " + userId);
 
@@ -217,6 +226,11 @@ public class UserService {
      * @param username the username to delete
      * @return a message indicating successful deletion
      */
+    @Retryable(
+            retryFor = {DataAccessException.class, TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     public String deleteUser(String username) {
         logger.info("Deleting user with username: " + username);
 
@@ -377,6 +391,11 @@ public class UserService {
      * @param followUsername the follow username to add
      * @return a message indicating successful addition
      */
+    @Retryable(
+            retryFor = {DataAccessException.class, TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     public String followUser(String username, String followUsername) {
         logger.info("Adding follow to user with username: " + followUsername + " for user with username: " + username);
 
@@ -419,6 +438,11 @@ public class UserService {
      * @param followUsername the follow username to remove
      * @return a message indicating successful removal
      */
+    @Retryable(
+            retryFor = {DataAccessException.class, TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     public String unfollowUser(String username, String followUsername) {
         logger.info("Removing follow from user with username: " + followUsername + " for user with username: " + username);
 
