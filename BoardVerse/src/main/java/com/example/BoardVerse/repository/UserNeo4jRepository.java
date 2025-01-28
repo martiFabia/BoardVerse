@@ -343,23 +343,24 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
      */
     @Query("""
         MATCH (u:User {username: $username})<-[:FOLLOWS]-(follower:User)-[:LIKES]->(g:Game)
-        WHERE NOT (u)-[:LIKES]->(g)
-        WITH u, g
-        MATCH (u)-[:LIKES]->(likedGame:Game)
-        WITH g, likedGame,
-             [x IN g.categories WHERE x IN likedGame.categories] AS intersection,
-             g.categories + [x IN likedGame.categories WHERE NOT x IN g.categories] AS union
-        WITH g, size(intersection) AS intersectionSize, size(union) AS unionSize
-        WHERE unionSize > 0
-        WITH g, (1.0 * intersectionSize / unionSize) AS jaccardSimilarity
-        WHERE jaccardSimilarity > 0
-        RETURN DISTINCT
-           g.name AS name,
-           g._id AS id,
-           g.yearReleased AS yearReleased,
-           g.shortDescription AS shortDescription,
-           jaccardSimilarity AS similarity
-        ORDER BY jaccardSimilarity DESC
+            WHERE NOT (u)-[:LIKES]->(g)
+            WITH DISTINCT g, u
+            // Compute common categories
+            MATCH (u)-[:LIKES]->(likedGame:Game)
+            UNWIND likedGame.categories AS userCategory
+            UNWIND g.categories AS gameCategory
+            WITH g, userCategory, gameCategory
+            WHERE userCategory = gameCategory
+            WITH g, COUNT(userCategory) AS commonCategories
+            // Order and return results
+            WHERE commonCategories > 0
+            RETURN
+              g.name AS name,
+              g._id AS id,
+              g.yearReleased AS yearReleased,
+              g.shortDescription AS shortDescription,
+              commonCategories
+            ORDER BY commonCategories DESC
         SKIP $pageSize * ($pageNumber - 1)
         LIMIT $pageSize
     """)
@@ -392,23 +393,15 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
      * @return a list of users suggested to the user
      */
     @Query("""
-            MATCH (user:User {username: $username})-[:FOLLOWS]->(follower:User)-[:FOLLOWS]->(suggestedUser:User)
+            MATCH (user:User {username: $username})-[:FOLLOWS]->(:User)-[:FOLLOWS]->(suggestedUser:User)
             WHERE NOT (user)-[:FOLLOWS]->(suggestedUser) AND suggestedUser <> user
-            WITH DISTINCT user, suggestedUser
-            OPTIONAL MATCH (user)-[:LIKES]->(game:Game)<-[:LIKES]-(suggestedUser)
-            WITH DISTINCT user, suggestedUser, COLLECT(DISTINCT game) AS commonGames
-            MATCH (user)-[:LIKES]->(allGames:Game)
-            WITH DISTINCT user, suggestedUser, commonGames, COLLECT(DISTINCT allGames) AS allUserGames
-            MATCH (suggestedUser)-[:LIKES]->(suggestedGames:Game)
-            WITH DISTINCT suggestedUser, commonGames, allUserGames, COLLECT(DISTINCT suggestedGames) AS allSuggestedGames
-            WITH DISTINCT suggestedUser,
-                 size(commonGames) AS intersectionSize,
-                 size(apoc.coll.union(allUserGames, allSuggestedGames)) AS unionSize,
-                 (1.0 * size(commonGames) / size(apoc.coll.union(allUserGames, allSuggestedGames))) AS likeSimilarity
-            RETURN DISTINCT
+            MATCH (user)-[:LIKES]->(commonGame:Game)<-[:LIKES]-(suggestedUser)
+            WITH suggestedUser, COUNT(commonGame) AS sharedGames
+            WHERE sharedGames > 0
+            RETURN
               suggestedUser.username AS username,
-              likeSimilarity
-            ORDER BY likeSimilarity DESC
+              sharedGames
+            ORDER BY sharedGames DESC
             SKIP $pageSize * ($pageNumber - 1)
             LIMIT $pageSize
     """)
@@ -424,49 +417,35 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
      * @return a list of tournaments suggested to the user
      */
     @Query("""
-            // Find tournaments related to games liked by the user
-            MATCH (user:User {username: $username})-[:PARTICIPATES]->(userTournament:Tournament)-[:IS_RELATED_TO]->(game:Game)
-                
-            // Find tournaments related to games liked by the users followed by the user
-            MATCH (game)<-[:IS_RELATED_TO]-(suggestedTournament:Tournament)
-            WHERE NOT (user)-[:PARTICIPATES]->(suggestedTournament)
-              AND suggestedTournament.startingTime > datetime()
-              AND suggestedTournament.visibility = 'PUBLIC'
-              AND NOT EXISTS {
-                MATCH (suggestedTournament)<-[:PARTICIPATES]-(:User)
-                WITH COUNT(*) AS participantCount
-                WHERE participantCount >= suggestedTournament.maxParticipants
-              } // Only public tournaments with available spots not yet started
-                
-            // Followed users that participate in the suggested tournaments
-            MATCH (user)-[:FOLLOWS]->(follower:User)-[:PARTICIPATES]->(suggestedTournament)
-            WITH suggestedTournament, COUNT(DISTINCT follower) AS followerCount
-                
-            // Total number of participants in the suggested tournaments
-            MATCH (suggestedTournament)<-[:PARTICIPATES]-(participant:User)
-            WITH suggestedTournament, followerCount, COUNT(DISTINCT participant) AS participantCount
-                
-            // Game related to the suggested tournament
-            MATCH (suggestedTournament)-[:IS_RELATED_TO]->(relatedGame:Game)
-            WITH suggestedTournament, followerCount, participantCount,
-                 relatedGame.name AS gameName,
-                 relatedGame.yearReleased AS gameYearReleased,
-                 relatedGame._id AS gameId
-                
-            // Return the suggested tournaments
-            RETURN DISTINCT
-              suggestedTournament._id AS id,
-              suggestedTournament.name AS name,
-              suggestedTournament.startingTime AS startingTime,
-              suggestedTournament.maxParticipants AS maxParticipants,
-              followerCount,
-              participantCount,
-              gameName,
-              gameYearReleased,
-              gameId
-            ORDER BY followerCount DESC, suggestedTournament.startingTime ASC
-            SKIP $pageSize * ($pageNumber - 1)
-            LIMIT $pageSize
+        MATCH (user:User {username: $username})-[:PARTICIPATES]->(userTournament:Tournament)-[:IS_RELATED_TO]->(game:Game)
+        MATCH (game)<-[:IS_RELATED_TO]-(suggestedTournament:Tournament)
+        WHERE NOT (user)-[:PARTICIPATES]->(suggestedTournament)
+          AND suggestedTournament.startingTime > datetime()
+          AND suggestedTournament.visibility = 'PUBLIC'
+          AND NOT EXISTS {
+            MATCH (suggestedTournament)<-[:PARTICIPATES]-(:User)
+            WITH COUNT(*) AS participantCount
+            WHERE participantCount >= suggestedTournament.maxParticipants
+          }
+        MATCH (user)-[:FOLLOWS]->(follower:User)-[:PARTICIPATES]->(suggestedTournament)
+        WITH suggestedTournament, COUNT(DISTINCT follower) AS numParticipantFollowers
+        MATCH (suggestedTournament)<-[:PARTICIPATES]-(participant:User)
+        WITH suggestedTournament, numParticipantFollowers, COUNT(DISTINCT participant) AS numParticipants
+        MATCH (suggestedTournament)-[:IS_RELATED_TO]->(relatedGame:Game)
+        WITH suggestedTournament, numParticipantFollowers, numParticipants,
+             relatedGame._id AS gameId,
+             relatedGame.name AS gameName
+        RETURN DISTINCT
+          suggestedTournament._id AS id,
+          suggestedTournament.name AS name,
+          suggestedTournament.startingTime AS startingTime,
+          suggestedTournament.maxParticipants AS maxParticipants,
+          numParticipants,
+          numParticipantFollowers,
+          { id: gameId, name: gameName } AS game
+        ORDER BY numParticipantFollowers DESC, suggestedTournament.startingTime ASC
+        SKIP $pageSize * ($pageNumber - 1)
+        LIMIT $pageSize
     """)
     List<TournamentSuggestionDTO> getTournamentsRecommendation(String username, int pageSize, int pageNumber);
 

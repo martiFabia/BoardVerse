@@ -5,6 +5,8 @@ package com.example.BoardVerse.controller;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +31,8 @@ public class AuthController {
 
     private final AuthService authService;
 
+    private final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
     @Autowired
     public AuthController(AuthService authService) {
         this.authService = authService;
@@ -45,6 +49,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new MessageResponse("Error: Invalid username or password!"));
         } catch (Exception e) {
+            logger.error("An unexpected error occurred: " + e.getMessage());
             // Gestisce altri errori inaspettati
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new MessageResponse("Error: An unexpected error occurred."));

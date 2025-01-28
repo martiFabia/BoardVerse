@@ -5,5 +5,5 @@ public record GameSuggestionDTO(
         String name,
         Integer yearReleased,
         String shortDescription,
-        Double similarity
+        Integer commonCategories
 ){}

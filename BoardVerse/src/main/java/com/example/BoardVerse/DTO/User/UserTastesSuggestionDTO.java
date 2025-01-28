@@ -6,5 +6,5 @@ import lombok.Data;
 @Data
 public class UserTastesSuggestionDTO {
     private String username;
-    private int likeSimilarity;
+    private int sharedGames;
 }
