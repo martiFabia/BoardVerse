@@ -60,12 +60,5 @@ void updateUsernameInTournaments(String oldUsername, String newUsername);
     })
     List<MostPlayedGameDTO> findTop10GamesWithHighestAverageParticipation(Date startDate, Date endDate);
 
-    @Query("{ 'username': { $in: ?0 } }")
-    @Update("{ '$inc': { 'tournaments.participated': -1 } }")
-    void decrementParticipated(List<String> participants);
-
-    @Query("{ 'username': ?0 }")
-    @Update("{ '$inc': { 'tournaments.created': -1 } }")
-    void decrementCreations(String administrator);
 
 }

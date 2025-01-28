@@ -214,13 +214,13 @@ public class TournamentService {
         // If there's no winner (so the tournament is not concluded), update participants and administrator statistics
         if (tournamentMongo.getWinner() == null) {
             // Decrement participations
-            tournamentMongoRepository.decrementParticipated(
+            userMongoRepository.decrementParticipated(
                     participants.stream()
                             .map(TournamentParticipantDTO::username)
                             .toList()
             );
             // Decrement creation
-            tournamentMongoRepository.decrementCreations(userMongo.getUsername());
+            userMongoRepository.decrementCreations(userMongo.getUsername());
 
             logger.info("Tournament stats decremented");
         }

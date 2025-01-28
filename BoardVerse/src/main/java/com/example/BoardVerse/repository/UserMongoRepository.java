@@ -71,4 +71,12 @@ public interface UserMongoRepository extends MongoRepository<UserMongo, String> 
     @Query("{ 'username': ?0 }")
     @Update("{ '$inc': { 'following': -1 } }")
     void decrementFollowing(String username);
+
+    @Query("{ 'username': { $in: ?0 } }")
+    @Update("{ '$inc': { 'tournaments.participated': -1 } }")
+    void decrementParticipated(List<String> participants);
+
+    @Query("{ 'username': ?0 }")
+    @Update("{ '$inc': { 'tournaments.created': -1 } }")
+    void decrementCreations(String administrator);
 }
