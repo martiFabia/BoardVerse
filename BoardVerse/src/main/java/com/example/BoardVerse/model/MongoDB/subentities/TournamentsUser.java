@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class TournamentsUser {
-    private int partecipated;
+    private int participated;
     private int won;
     private int created;
 }

@@ -64,19 +64,19 @@ public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo
     @Query("""
         MATCH (tournament:Tournament {_id: $tournamentId})
         SET
-          tournament.name = $tournamentName,
-          tournament.startingTime = $startingTime,
+          tournament.name = $name,
+          tournament.startingTime = datetime($startingTime),
           tournament.maxParticipants = $maxParticipants,
           tournament.visibility = $visibility
         WITH tournament
-        OPTIONAL MATCH (user:User {username: $username})
+        OPTIONAL MATCH (user:User {username: $winner})
         FOREACH (_ IN CASE WHEN user IS NOT NULL THEN [1] ELSE [] END |
           MERGE (user)-[won:WON]->(tournament)
           ON CREATE SET won.timestamp = datetime()
         )
         WITH tournament, user
         MATCH (otherUser:User)-[won:WON]->(tournament)
-        WHERE $username IS NULL OR otherUser.username <> $username
+        WHERE $winner IS NULL OR otherUser.username <> $winner
         DELETE won
     """)
     void updateTournament(String tournamentId, String name, String visibility, int maxParticipants, String startingTime, String winner);
@@ -97,29 +97,8 @@ public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo
             WHEN 'time' THEN p.timestamp
             WHEN 'alphabetical' THEN user.username
           END ASC
-        SKIP $pageSize * ($pageNumber - 1)
-        LIMIT $pageSize
     """)
     List<TournamentParticipantDTO> getParticipants(String tournamentId, String sortBy, int pageSize, int pageNumber);
-
-    /**
-     * Provides basic information plus the participants of a tournament.
-     * @param tournamentId the ID of the tournament
-     * @return the extended information about the tournament
-     */
-    @Query("""
-        MATCH (tournament:Tournament {_id: $tournamentId})
-        OPTIONAL MATCH (tournament)<-[:PARTICIPATES]-(participant:User)
-        RETURN
-          tournament._id AS id,
-          tournament.name AS name,
-          tournament.startingTime AS startingTime,
-          tournament.maxParticipants AS maxParticipants,
-          tournament.visibility AS visibility,
-          collect(participant.username) AS participants
-    """)
-    Optional<ExtendedTournamentNeo4jInfo> extendedFindById(String tournamentId);
-
 
     /**
      * Participates in a tournament.

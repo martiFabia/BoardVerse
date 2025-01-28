@@ -9,6 +9,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 
+import java.time.OffsetDateTime;
 import java.util.Date;
 
 
@@ -34,5 +35,6 @@ public class TournamentNeo4j {
 
     @Property("startingTime")
     @NotNull
-    private Date startingTime;
+    private OffsetDateTime startingTime;
+
 }

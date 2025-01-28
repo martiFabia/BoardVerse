@@ -59,8 +59,13 @@ void updateUsernameInTournaments(String oldUsername, String newUsername);
             "{ $project: { '_id': 0, 'gameID': '$_id', 'name': 1, 'yearReleased': 1, 'averageWeightedParticipants': 1 } }"
     })
     List<MostPlayedGameDTO> findTop10GamesWithHighestAverageParticipation(Date startDate, Date endDate);
-@Query("{ 'username': { $in: ?0 } }")
-@Update("{ '$inc': { 'tournaments.participated': -1, 'tournaments.created': { $cond: [ { $eq: ['$username', ?1] }, -1, 0 ] } } }")
-void decrementTournamentStats(List<String> participants, String administrator);
+
+    @Query("{ 'username': { $in: ?0 } }")
+    @Update("{ '$inc': { 'tournaments.participated': -1 } }")
+    void decrementParticipated(List<String> participants);
+
+    @Query("{ 'username': ?0 }")
+    @Update("{ '$inc': { 'tournaments.created': -1 } }")
+    void decrementCreations(String administrator);
 
 }

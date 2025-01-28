@@ -138,7 +138,7 @@ public class AuthService {
 
         TournamentsUser newUserTournaments = new TournamentsUser();
         newUserTournaments.setCreated(0);
-        newUserTournaments.setPartecipated(0);
+        newUserTournaments.setParticipated(0);
         newUserTournaments.setWon(0);
 
         // Crea un nuovo utente con ruolo fisso
