@@ -237,7 +237,6 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
         MATCH (u:User {username: $username})-[c:WON]->(t:Tournament)-[:IS_RELATED_TO]->(g:Game)
         WITH
             CASE 
-            CASE 
                 WHEN t.visibility <> 'PUBLIC' AND $username <> $currentUsername
                 THEN null
                 ELSE t._id
