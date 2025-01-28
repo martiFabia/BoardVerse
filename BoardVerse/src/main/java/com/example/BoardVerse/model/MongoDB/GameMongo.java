@@ -44,7 +44,6 @@ public class GameMongo {
 
     @NotNull(message = "Categories cannot be null")
     private List<String> categories;
-
     private List<String> mechanics;
     private List<String> family;
 

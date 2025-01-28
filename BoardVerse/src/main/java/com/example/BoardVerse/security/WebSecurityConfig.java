@@ -70,7 +70,8 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Consenti l'accesso agli endpoint Swagger
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        //.requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/users/**").authenticated()
                         .anyRequest().permitAll()
                 );
 

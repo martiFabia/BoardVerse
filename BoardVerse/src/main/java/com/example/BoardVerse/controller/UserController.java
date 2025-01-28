@@ -48,7 +48,6 @@ public class UserController {
     }
 
     @Operation(summary = "Get user profile")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @GetMapping("/myProfile")
     public ResponseEntity<UserInfoDTO> getMyInfo() {
         //id utente loggato
@@ -58,7 +57,6 @@ public class UserController {
     }
 
     @Operation(summary = "Update user profile")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PatchMapping("/myProfile")
     public ResponseEntity<UserInfoDTO> updateUser(@RequestBody @Validated UserUpdateDTO userUpdateDTO) {
         //utente loggato
@@ -70,7 +68,6 @@ public class UserController {
     }
 
     @Operation(summary = "Delete user profile")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @DeleteMapping("/myProfile")
     public ResponseEntity<String> deleteUser() {
         //cerco username utente loggato
@@ -80,7 +77,6 @@ public class UserController {
 
     @Operation(summary = "Get user reviews")
     @GetMapping("/myProfile/reviews")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> getMyReviews(@RequestParam(defaultValue = "0") int page) {
         //utente loggato
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -105,7 +101,7 @@ public class UserController {
     // TODO
 //    @Operation(summary = "Get user activity")
 //    @GetMapping("myProfile/feed")
-//    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+//
 //    public ResponseEntity<?> getActivity(
 //            @RequestParam(defaultValue = "10") int pageSize,
 //            @RequestParam(defaultValue = "1") int pageNumber
@@ -117,7 +113,7 @@ public class UserController {
     // TODO
 //    @Operation(summary = "Get user activity")
 //    @GetMapping("/myProfile/recentActivity")
-//    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+//
 //    public ResponseEntity<?> getMyActivity(
 //            @RequestParam(defaultValue = "10") int pageSize,
 //            @RequestParam(defaultValue = "1") int pageNumber
@@ -131,7 +127,6 @@ public class UserController {
 
     @Operation(summary = "Start following a user")
     @PostMapping("/{username}/follow")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<String> followUser(@PathVariable String username) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(userService.followUser(user.getUsername(), username));
@@ -139,7 +134,6 @@ public class UserController {
 
     @Operation(summary = "Stop following a user")
     @DeleteMapping("/{username}/follow")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<String> unfollowUser(@PathVariable String username) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(userService.unfollowUser(user.getUsername(), username));
@@ -147,7 +141,6 @@ public class UserController {
 
     @Operation(summary = "Get users followed by a user")
     @GetMapping("/{username}/following")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> getFollowing(
             @PathVariable String username,
             @RequestParam(defaultValue = "alphabetical") String sortBy,
