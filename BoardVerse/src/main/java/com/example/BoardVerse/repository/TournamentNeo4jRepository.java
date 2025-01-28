@@ -116,9 +116,7 @@ public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo
           tournament.startingTime AS startingTime,
           tournament.maxParticipants AS maxParticipants,
           tournament.visibility AS visibility,
-      COLLECT(
-          participant.username
-        ) AS participants
+          collect(participant.username) AS participants
     """)
     Optional<ExtendedTournamentNeo4jInfo> extendedFindById(String tournamentId);
 
@@ -128,6 +126,7 @@ public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo
      *
      * @param username the username of the user participating in the tournament
      * @param tournamentId the ID of the tournament
+     * @return true if the user was added to the tournament, false otherwise
      */
     @Query("""
             MATCH (u:User {username: $username})
@@ -139,8 +138,9 @@ public interface TournamentNeo4jRepository extends Neo4jRepository<TournamentNeo
             }
               AND t.startingTime > datetime()
             MERGE (u)-[:PARTICIPATES {timestamp: datetime()}]->(t)
+            RETURN count(t) > 0
     """)
-    void addParticipantToTournament(String username, String tournamentId);
+    boolean addParticipantToTournament(String username, String tournamentId);
 
     /**
      * Removes a user from a tournament.

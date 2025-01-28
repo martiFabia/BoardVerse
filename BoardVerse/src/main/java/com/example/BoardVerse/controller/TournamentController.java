@@ -77,31 +77,30 @@ public class TournamentController {
     public ResponseEntity<?> getTournamentParticipants(
             @PathVariable String tournamentId,
             @RequestParam(defaultValue = "alphabetical") String sortBy,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "1") int pageNumber
     ) {
-        return ResponseEntity.ok(tournamentService.getTournamentParticipants(tournamentId, sortBy, page, size));
+        return ResponseEntity.ok(tournamentService.getTournamentParticipants(tournamentId, sortBy, pageSize, pageNumber));
     }
 
     @Operation(summary = "Register to a tournament")
-    @PostMapping("/tournaments/{tournamentId}/register")
+    @PostMapping("/tournaments/{tournamentId}/registration")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<String> registerToTournament(@PathVariable String tournamentId) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(tournamentService.registerToTournament(tournamentId, user.getId()));
+        return ResponseEntity.ok(tournamentService.registerToTournament(tournamentId, user.getId(), user.getUsername()));
     }
 
     @Operation(summary = "Unregister from a tournament")
-    @DeleteMapping("/tournaments/{tournamentId}/unregister")
+    @DeleteMapping("/tournaments/{tournamentId}/registration")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<String> unregisterFromTournament(@PathVariable String tournamentId) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(tournamentService.unregisterFromTournament(tournamentId, user.getId()));
+        return ResponseEntity.ok(tournamentService.unregisterFromTournament(tournamentId, user.getId(), user.getUsername()));
     }
 
     @Operation(summary = "Select a winner for a tournament")
-    @PostMapping("/tournaments/{tournamentId}/selectWinner")
+    @PostMapping("/tournaments/{tournamentId}/winner")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<String> selectWinner(
             @PathVariable String tournamentId,

@@ -454,7 +454,7 @@ public class GameService {
      * @param pageNumber the page number
      * @return a list of users that like the game
      */
-    public List<GameLikesUserList> getLikes(String gameId, String sortBy, int pageSize, int pageNumber) {
+    public List<GameLikesUserList> getLikes(String gameId, String sortBy, int pageNumber, int pageSize) {
         logger.info("Getting users that like game with ID: " + gameId);
         return gameNeo4jRepository.getLikedBy(gameId, sortBy, pageSize, pageNumber);
     }

@@ -171,14 +171,14 @@ public class TournamentService {
      * Deletes a tournament.
      *
      * @param tournamentId the tournament ID
-     * @param userId the user ID
+     * @param administratorUsername the user ID
      */
     @Retryable(
             retryFor = {DataAccessException.class, TransactionSystemException.class},
             maxAttempts = 3,
             backoff = @Backoff(delay = 2000)
     )
-    public String deleteTournament(String tournamentId, String userId) {
+    public String deleteTournament(String tournamentId, String administratorUsername) {
         logger.info("Deleting tournament with ID: {}", tournamentId);
 
         // Check if tournament exists
@@ -195,14 +195,14 @@ public class TournamentService {
                 });
         logger.debug("Tournament found in Neo4j: {}", extendedTournamentNeo4jInfo);
         // Check if user exists
-        UserMongo userMongo = userMongoRepository.findById(userId)
+        UserMongo userMongo = userMongoRepository.findByUsername(administratorUsername)
                 .orElseThrow(() -> {
-                    logger.warn("User not found in MongoDB with ID: {}", userId);
-                    return new NotFoundException("User not found with ID: " + userId);
+                    logger.warn("User not found in MongoDB: {}", administratorUsername);
+                    return new NotFoundException("User not found: " + administratorUsername);
                 });
-        if (userNeo4jRepository.findById(userId).isEmpty()) {
-            logger.warn("User not found in Neo4j with ID: {}", userId);
-            throw new NotFoundException("User not found with ID: " + userId);
+        if (userNeo4jRepository.findByUsername(administratorUsername).isEmpty()) {
+            logger.warn("User not found in Neo4j: {}", administratorUsername);
+            throw new NotFoundException("User not found: " + administratorUsername);
         }
 
         // Verify that the userMongo is the administrator of the tournamentMongo or an admin
@@ -217,7 +217,9 @@ public class TournamentService {
 
         // If there's no winner (so the tournament is not concluded), update participants and administrator statistics
         if (tournamentMongo.getWinner() == null) {
-            tournamentMongoRepository.decrementTournamentStats(extendedTournamentNeo4jInfo.participants(), tournamentMongo.getAdministrator());
+            tournamentMongoRepository.decrementTournamentStats(
+                    extendedTournamentNeo4jInfo.participants(),
+                    tournamentMongo.getAdministrator());
             logger.info("Tournament stats decremented");
         }
 
@@ -419,18 +421,18 @@ public class TournamentService {
             maxAttempts = 3,
             backoff = @Backoff(delay = 2000)
     )
-    public String registerToTournament(String tournamentId, String userId) {
-        logger.info("User with ID: {} is participating to tournament with ID: {}", userId, tournamentId);
+    public String registerToTournament(String tournamentId, String userId, String username) {
+        logger.info("User {} with ID: {} is participating to tournament with ID: {}", username, userId, tournamentId);
 
         // Check if the user exists
-        UserMongo userMongo = userMongoRepository.findByUsername(userId)
+        UserMongo userMongo = userMongoRepository.findByUsername(username)
                 .orElseThrow(() -> {
-                    logger.warn("User not found with ID: {}", userId);
-                    return new NotFoundException("User not found with ID: " + userId);
+                    logger.warn("User not found: {}", username);
+                    return new NotFoundException("User not found: " + username);
                 });
-        if (userNeo4jRepository.findById(userId).isEmpty()) {
-            logger.warn("User not found with ID: {}", userId);
-            throw new NotFoundException("User not found with ID: " + userId);
+        if (userNeo4jRepository.findByUsername(username).isEmpty()) {
+            logger.warn("User not found: {}", username);
+            throw new NotFoundException("User not found: " + username);
         }
 
         // Check if the tournament exists
@@ -462,7 +464,10 @@ public class TournamentService {
         }
 
         // Add user to the tournament
-        tournamentNeo4jRepository.addParticipantToTournament(tournamentId, userId);
+        if(!tournamentNeo4jRepository.addParticipantToTournament(username, tournamentId)){
+            logger.warn("User could not be added to the tournament (tournament not found)");
+            throw new AccessDeniedException("User could not be added to the tournament");
+        }
         logger.info("User successfully added to the tournament in Neo4j");
 
         // Increment user statistics
@@ -490,16 +495,16 @@ public class TournamentService {
             maxAttempts = 3,
             backoff = @Backoff(delay = 2000)
     )
-    public String unregisterFromTournament(String tournamentId, String userId) {
-        logger.info("User with ID: {} is no longer participating to tournament with ID: {}", userId, tournamentId);
+    public String unregisterFromTournament(String tournamentId, String userId, String username) {
+        logger.info("User {} with ID: {} is no longer participating to tournament with ID: {}", username, userId, tournamentId);
 
         // Check if the user exists
-        UserMongo userMongo = userMongoRepository.findByUsername(userId)
+        UserMongo userMongo = userMongoRepository.findByUsername(username)
                 .orElseThrow(() -> {
-                    logger.warn("User not found with ID: {}", userId);
-                    return new NotFoundException("User not found with ID: " + userId);
+                    logger.warn("User not found with ID: {}", username);
+                    return new NotFoundException("User not found with ID: " + username);
                 });
-        if (userNeo4jRepository.findById(userId).isEmpty()) {
+        if (userNeo4jRepository.findByUsername(username).isEmpty()) {
             logger.warn("User not found with ID: {}", userId);
             throw new NotFoundException("User not found with ID: " + userId);
         }
@@ -528,7 +533,7 @@ public class TournamentService {
         }
 
         // Remove user from the tournament
-        tournamentNeo4jRepository.removeParticipantFromTournament(userId, tournamentId);
+        tournamentNeo4jRepository.removeParticipantFromTournament(username, tournamentId);
         logger.info("User successfully removed from the tournament in Neo4j");
 
         // Decrement user statistics
@@ -558,7 +563,7 @@ public class TournamentService {
                     logger.warn("User not found with ID: {}", winnerUsername);
                     return new NotFoundException("User not found with ID: " + winnerUsername);
                 });
-        if (userNeo4jRepository.findById(winnerUsername).isEmpty()) {
+        if (userNeo4jRepository.findByUsername(winnerUsername).isEmpty()) {
             logger.warn("User not found with ID: {}", winnerUsername);
             throw new NotFoundException("User not found with ID: " + winnerUsername);
         }
@@ -582,7 +587,7 @@ public class TournamentService {
         }
 
         // Check if the user is a participant
-        if (!extendedTournamentNeo4jInfo.participants().contains(winnerUsername)) {
+        if (!extendedTournamentNeo4jInfo.participants().contains(userMongo.getId())) {
             logger.warn("User is not a participant to the tournament");
             throw new AccessDeniedException("User is not a participant to the tournament");
         }

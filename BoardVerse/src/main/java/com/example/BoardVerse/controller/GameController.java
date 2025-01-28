@@ -121,10 +121,10 @@ public class GameController {
     public ResponseEntity<?> getLikes(
             @PathVariable String gameId,
             @RequestParam(defaultValue = "alphabetical") String sortBy,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize
     ){
-        return ResponseEntity.ok(gameService.getLikes(gameId, sortBy, page, size));
+        return ResponseEntity.ok(gameService.getLikes(gameId, sortBy, pageNumber, pageSize));
     }
 
 }

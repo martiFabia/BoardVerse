@@ -50,7 +50,7 @@ public interface GameNeo4jRepository  extends Neo4jRepository<GameNeo4j, String>
             RETURN user.username AS username, l.timestamp AS timestamp
         ORDER BY
           CASE $sortBy
-            WHEN 'timestamp' THEN l.timestamp
+            WHEN 'timestamp' THEN l.timestamp DESC
             WHEN 'alphabetical' THEN user.username
           END ASC
         SKIP $pageSize * ($pageNumber - 1)
@@ -68,31 +68,32 @@ public interface GameNeo4jRepository  extends Neo4jRepository<GameNeo4j, String>
      *  @return a list of GameAnalyticsDTO objects
      */
     @Query("""
-            MATCH (game:Game {_id: $gameId})<-[:LIKES]-(user:User)
-            WITH game, COUNT(user) AS likeCount
-            MATCH (game)<-[:IS_RELATED_TO]-(tournament:Tournament)
-            WITH game, likeCount,
-                 COUNT(tournament) AS totalTournaments,
-                 COUNT(CASE WHEN EXISTS { MATCH (tournament)<-[:WINNER]-(:User) } THEN tournament END) AS finishedTournaments,
-                 COUNT(CASE WHEN EXISTS { MATCH (tournament)<-[:PARTICIPATES_IN]-(:User) }
-                    AND tournament.startingTime <= datetime() THEN tournament END) AS ongoingTournaments,
-                 COUNT(CASE WHEN tournament.startingTime > datetime()
-                  AND NOT EXISTS { MATCH (tournament)<-[:WINNER]-(:User) }
-                  THEN tournament END) AS futureTournaments,
-                 COUNT(CASE WHEN tournament.visibility = 'PUBLIC' THEN tournament END) AS publicTournaments,
-                 COUNT(CASE WHEN tournament.visibility = 'PRIVATE' THEN tournament END) AS privateTournaments,
-                 COUNT(CASE WHEN tournament.visibility = 'INVITE' THEN tournament END) AS inviteTournaments
-            RETURN
-              game._id AS gameId,
-              game.name AS gameName,
-              likeCount,
-              totalTournaments,
-              finishedTournaments,
-              ongoingTournaments,
-              futureTournaments,
-              publicTournaments,
-              privateTournaments,
-              inviteTournaments
+        MATCH (game:Game {name: "BANG!"})<-[:LIKES]-(user:User)
+        WITH game, COUNT(user) AS likeCount
+        MATCH (game)<-[:IS_RELATED_TO]-(tournament:Tournament)
+        WITH game, likeCount,
+             COUNT(tournament) AS totalTournaments,
+             COUNT(CASE WHEN EXISTS { MATCH (tournament)<-[:WON]-(:User) }
+                AND tournament.startingTime <= datetime() THEN tournament END) AS finishedTournaments,
+             COUNT(CASE WHEN EXISTS { MATCH (tournament)<-[:PARTICIPATES]-(:User) }
+                AND NOT EXISTS { MATCH (tournament)<-[:WON]-(:User) }
+                AND tournament.startingTime <= datetime() THEN tournament END) AS ongoingTournaments,
+             COUNT(CASE WHEN NOT EXISTS { MATCH (tournament)<-[:WON]-(:User) }
+                AND tournament.startingTime > datetime() THEN tournament END) AS futureTournaments,
+             COUNT(CASE WHEN tournament.visibility = 'PUBLIC' THEN tournament END) AS publicTournaments,
+             COUNT(CASE WHEN tournament.visibility = 'PRIVATE' THEN tournament END) AS privateTournaments,
+             COUNT(CASE WHEN tournament.visibility = 'INVITE' THEN tournament END) AS inviteTournaments
+        RETURN
+          game._id AS gameId,
+          game.name AS gameName,
+          likeCount,
+          totalTournaments,
+          finishedTournaments,
+          ongoingTournaments,
+          futureTournaments,
+          publicTournaments,
+          privateTournaments,
+          inviteTournaments
     """)
     List<GameAnalyticsDTO> getGameStatistics(String gameId);
 }

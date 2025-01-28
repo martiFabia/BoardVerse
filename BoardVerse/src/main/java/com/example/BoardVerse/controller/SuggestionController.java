@@ -30,41 +30,41 @@ public class SuggestionController {
 
     @GetMapping("/suggestedUsers")
     public ResponseEntity<List<UserFollowRecommendationDTO>> getSuggestedUsers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize
     ) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<UserFollowRecommendationDTO> suggestedUsers = suggestionService.getSuggestedUsers(user.getUsername(), page, size);
+        List<UserFollowRecommendationDTO> suggestedUsers = suggestionService.getSuggestedUsers(user.getUsername(), pageSize, pageNumber);
         return ResponseEntity.ok(suggestedUsers);
     }
 
     @GetMapping("/similarUsers")
     public ResponseEntity<List<UserTastesSuggestionDTO>> getSimilarUsers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize
     ) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<UserTastesSuggestionDTO> similarUsers = suggestionService.getSimilarUsers(user.getUsername(), page, size);
+        List<UserTastesSuggestionDTO> similarUsers = suggestionService.getSimilarUsers(user.getUsername(), pageSize, pageNumber);
         return ResponseEntity.ok(similarUsers);
     }
 
     @GetMapping("/suggestedTournaments")
     public ResponseEntity<List<TournamentSuggestionDTO>> getSuggestedTournaments(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize
     ) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<TournamentSuggestionDTO> suggestedTournaments = suggestionService.getSuggestedTournaments(user.getUsername(), page, size);
+        List<TournamentSuggestionDTO> suggestedTournaments = suggestionService.getSuggestedTournaments(user.getUsername(), pageSize, pageNumber);
         return ResponseEntity.ok(suggestedTournaments);
     }
 
     @GetMapping("/suggestedGames")
     public ResponseEntity<List<GameSuggestionDTO>> getSuggestedGames(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize
     ) {
         UserDetailsImpl user = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<GameSuggestionDTO> suggestedGames = suggestionService.getSuggestedGames(user.getUsername(), page, size);
+        List<GameSuggestionDTO> suggestedGames = suggestionService.getSuggestedGames(user.getUsername(), pageSize, pageNumber);
         return ResponseEntity.ok(suggestedGames);
     }
 }

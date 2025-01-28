@@ -165,21 +165,28 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
      * @param pageNumber the page number
      * @return a list of tournaments created by the user
      */
-    @Query("MATCH (u:User {username: $username})-[c:CREATED]->(t:Tournament)-[:IS_RELATED_TO]->(g:Game) " +
-        "RETURN " +
-        "   CASE " +
-        "       WHEN t.visibility <> 'PUBLIC' AND  $username <> $currentUsername" +
-        "       THEN null " +
-        "       ELSE t.id " +
-        "       END AS id, " +
-        "   t.name, " +
-        "   t.visibility, " +
-        "   t.maxParticipants, " +
-        "   t.startingTime, " +
-        "   {id: g._id, name: g.name, yearReleased: g.yearReleased} AS game " +
-        "ORDER BY CASE WHEN $sortBy = 'desc' THEN c.timestamp DESC ELSE c.timestamp END " +
-        "SKIP $pageSize * ($pageNumber - 1) " +
-        "LIMIT $pageSize")
+    @Query("""
+        MATCH (u:User {username: $username})-[c:CREATED]->(t:Tournament)-[:IS_RELATED_TO]->(g:Game)
+        WITH 
+            CASE 
+                WHEN t.visibility <> 'PUBLIC' AND $username <> $currentUsername
+                THEN null
+                ELSE t._id
+            END AS id,
+            t.name AS name,
+            t.visibility AS visibility,
+            t.maxParticipants AS maxParticipants,
+            t.startingTime AS startingTime,
+            {id: g._id, name: g.name, yearReleased: g.yearReleased} AS game,
+            CASE 
+                WHEN $sortBy = 'desc' THEN c.timestamp
+                ELSE 0
+            END AS sortValue
+        ORDER BY sortValue DESC
+        SKIP $pageSize * ($pageNumber - 1)
+        LIMIT $pageSize
+    RETURN id, name, visibility, maxParticipants, startingTime, game
+    """)
     List<TournamentNeo4jDTO> getCreatedTournaments(String username, String currentUsername, String sortBy, int pageSize, int pageNumber);
 
     /**
@@ -192,21 +199,28 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
      * @param pageNumber the page number
      * @return a list of tournaments created by the user
      */
-    @Query("MATCH (u:User {username: $username})-[c:PARTICIPATES]->(t:Tournament)-[:IS_RELATED_TO]->(g:Game) " +
-            "RETURN " +
-            "   CASE " +
-            "       WHEN t.visibility <> 'PUBLIC' AND  $username <> $currentUsername" +
-            "       THEN null " +
-            "       ELSE t.id " +
-            "       END AS id, " +
-            "   t.name, " +
-            "   t.visibility, " +
-            "   t.maxParticipants, " +
-            "   t.startingTime, " +
-            "   {id: g._id, name: g.name, yearReleased: g.yearReleased} AS game " +
-            "ORDER BY CASE WHEN $sortBy = 'desc' THEN c.timestamp DESC ELSE c.timestamp END " +
-            "SKIP $pageSize * ($pageNumber - 1) " +
-            "LIMIT $pageSize")
+    @Query("""
+        MATCH (u:User {username: $username})-[c:PARTICIPATES]->(t:Tournament)-[:IS_RELATED_TO]->(g:Game)
+        WITH 
+            CASE 
+                WHEN t.visibility <> 'PUBLIC' AND $username <> $currentUsername
+                THEN null
+                ELSE t._id
+            END AS id,
+            t.name AS name,
+            t.visibility AS visibility,
+            t.maxParticipants AS maxParticipants,
+            t.startingTime AS startingTime,
+            {id: g._id, name: g.name, yearReleased: g.yearReleased} AS game,
+            CASE 
+                WHEN $sortBy = 'desc' THEN c.timestamp
+                ELSE 0
+            END AS sortValue
+        ORDER BY sortValue DESC
+        SKIP $pageSize * ($pageNumber - 1)
+        LIMIT $pageSize
+    RETURN id, name, visibility, maxParticipants, startingTime, game
+    """)
     List<TournamentNeo4jDTO> getParticipatedTournaments(String username, String currentUsername, String sortBy, int pageSize, int pageNumber);
 
     /**
@@ -219,21 +233,29 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
      * @param pageNumber the page number
      * @return a list of tournaments created by the user
      */
-    @Query("MATCH (u:User {username: $username})-[c:WON]->(t:Tournament)-[:IS_RELATED_TO]->(g:Game) " +
-            "RETURN " +
-            "   CASE " +
-            "       WHEN t.visibility <> 'PUBLIC' AND  $username <> $currentUsername" +
-            "       THEN null " +
-            "       ELSE t.id " +
-            "       END AS id, " +
-            "   t.name, " +
-            "   t.visibility, " +
-            "   t.maxParticipants, " +
-            "   t.startingTime, " +
-            "   {id: g._id, name: g.name, yearReleased: g.yearReleased} AS game " +
-            "ORDER BY CASE WHEN $sortBy = 'desc' THEN c.timestamp DESC ELSE c.timestamp END " +
-            "SKIP $pageSize * ($pageNumber - 1) " +
-            "LIMIT $pageSize")
+    @Query("""
+        MATCH (u:User {username: $username})-[c:WON]->(t:Tournament)-[:IS_RELATED_TO]->(g:Game)
+        WITH
+            CASE 
+            CASE 
+                WHEN t.visibility <> 'PUBLIC' AND $username <> $currentUsername
+                THEN null
+                ELSE t._id
+            END AS id,
+            t.name AS name,
+            t.visibility AS visibility,
+            t.maxParticipants AS maxParticipants,
+            t.startingTime AS startingTime,
+            {id: g._id, name: g.name, yearReleased: g.yearReleased} AS game,
+            CASE 
+                WHEN $sortBy = 'desc' THEN c.timestamp
+                ELSE 0
+            END AS sortValue
+        ORDER BY sortValue DESC
+        SKIP $pageSize * ($pageNumber - 1)
+        LIMIT $pageSize
+    RETURN id, name, visibility, maxParticipants, startingTime, game
+    """)
     List<TournamentNeo4jDTO> getWonTournaments(String username, String currentUsername, String sortBy, int pageSize, int pageNumber);
 
 
@@ -286,19 +308,19 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
     @Query("""
             MATCH (u:User {username: $username})-[activity:LIKES|FOLLOWS|CREATED|PARTICIPATES|WON]->(object)
             OPTIONAL MATCH (object)-[:IS_RELATED_TO]->(game:Game)
-            WITH\s
-                activity,\s
-                CASE\s
-                    WHEN activity:FOLLOWS THEN activity.since\s
-                    ELSE activity.timestamp\s
+            WITH
+                activity,
+                CASE
+                    WHEN activity:FOLLOWS THEN activity.since
+                    ELSE activity.timestamp
                 END AS activityTime,
-                CASE\s
-                    WHEN object:User THEN {username: object.username}\s
-                    WHEN object:Tournament THEN {id: object._id, name: object.name, game: { id: game._id, name: game.name}}\s
-                    ELSE {id: object._id, name: object.name}\s
+                CASE
+                    WHEN object:User THEN {username: object.username}
+                    WHEN object:Tournament THEN {id: object._id, name: object.name, game: { id: game._id, name: game.name}}
+                    ELSE {id: object._id, name: object.name}
                 END AS activityProperties
             WHERE activityTime <= datetime()
-            RETURN\s
+            RETURN
                 type(activity) AS activityType,
                 activityProperties,
                 activityTime
@@ -319,27 +341,28 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
      * @param pageNumber the page number
      * @return a list of games suggested to the user
      */
-    @Query("MATCH (u:User {username: $username})<-[:FOLLOWS]-(follower:User)-[:LIKES]->(g:Game) " +
-            "WHERE NOT (u)-[:LIKES]->(g) " +
-            "WITH u, g " +
-            "MATCH (u)-[:LIKES]->(likedGame:Game) " +
-            "WITH g, likedGame, " +
-            "     [x IN g.categories WHERE x IN likedGame.categories] AS intersection, " +
-            "     g.categories + [x IN likedGame.categories WHERE NOT x IN g.categories] AS union " +
-            "WITH g, size(intersection) AS intersectionSize, size(union) AS unionSize " +
-            "WHERE unionSize > 0 " +
-            "WITH g, (1.0 * intersectionSize / unionSize) AS jaccardSimilarity " +
-            "WHERE jaccardSimilarity > 0 " +
-            "RETURN DISTINCT " +
-            "   g.name AS gameName, " +
-            "   g._id AS _id, " +
-            "   g.yearReleased as yearReleased" +
-            "   g.shortDescription AS shortDescription, " +
-            "   jaccardSimilarity AS similarity" +
-            "ORDER BY jaccardSimilarity DESC " +
-            "SKIP $pageSize * ($pageNumber - 1) " +
-            "LIMIT $pageSize"
-    )
+    @Query("""
+        MATCH (u:User {username: $username})<-[:FOLLOWS]-(follower:User)-[:LIKES]->(g:Game)
+        WHERE NOT (u)-[:LIKES]->(g)
+        WITH u, g
+        MATCH (u)-[:LIKES]->(likedGame:Game)
+        WITH g, likedGame,
+             [x IN g.categories WHERE x IN likedGame.categories] AS intersection,
+             g.categories + [x IN likedGame.categories WHERE NOT x IN g.categories] AS union
+        WITH g, size(intersection) AS intersectionSize, size(union) AS unionSize
+        WHERE unionSize > 0
+        WITH g, (1.0 * intersectionSize / unionSize) AS jaccardSimilarity
+        WHERE jaccardSimilarity > 0
+        RETURN DISTINCT
+           g.name AS name,
+           g._id AS id,
+           g.yearReleased AS yearReleased,
+           g.shortDescription AS shortDescription,
+           jaccardSimilarity AS similarity
+        ORDER BY jaccardSimilarity DESC
+        SKIP $pageSize * ($pageNumber - 1)
+        LIMIT $pageSize
+    """)
     List<GameSuggestionDTO> getGamesRecommendation(String username, int pageSize, int pageNumber);
 
     /**
@@ -350,13 +373,14 @@ public interface UserNeo4jRepository extends Neo4jRepository<UserNeo4j, String> 
      * @param pageNumber the page number
      * @return a list of users suggested to the user
      */
-    @Query("MATCH (currentUser:User {username: $username})-[:FOLLOWS]->(followedUser:User)-[:FOLLOWS]->(suggestedUser:User)"+
-            "WHERE NOT (currentUser)-[:FOLLOWS]->(suggestedUser) AND suggestedUser.username <> $username"+
-            "RETURN suggestedUser.username AS username, COUNT(suggestedUser) AS commonFollowers"+
-            "ORDER BY commonFollowers DESC"+
-            "SKIP $pageSize * ($pageNumber - 1) " +
-            "LIMIT $pageSize"
-    )
+    @Query("""
+        MATCH (currentUser:User {username: $username})-[:FOLLOWS]->(followedUser:User)-[:FOLLOWS]->(suggestedUser:User)
+        WHERE NOT (currentUser)-[:FOLLOWS]->(suggestedUser) AND suggestedUser.username <> $username
+        RETURN suggestedUser.username AS username, COUNT(suggestedUser) AS commonFollowers
+        ORDER BY commonFollowers DESC
+        SKIP $pageSize * ($pageNumber - 1)
+        LIMIT $pageSize
+    """)
     List<UserFollowRecommendationDTO> getUsersRecommendationBySimilarNetwork(String username, int pageSize, int pageNumber);
 
     /**

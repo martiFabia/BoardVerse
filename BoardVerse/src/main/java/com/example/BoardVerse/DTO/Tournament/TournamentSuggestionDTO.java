@@ -1,17 +1,17 @@
 package com.example.BoardVerse.DTO.Tournament;
 
+import com.example.BoardVerse.DTO.User.activity.GameDTO;
 import lombok.Data;
 
+import java.time.OffsetDateTime;
 import java.util.Date;
 
-@Data
-public class TournamentSuggestionDTO {
-    private String id;
-    private String name;
-    private int numParticipants;
-    private int maxParticipants;
-    private String visibility;
-    private Date startingTime;
-    private String administrator;
-}
-
+public record TournamentSuggestionDTO(
+        String id,
+        String name,
+        OffsetDateTime startingTime,
+        Integer numParticipants,
+        Integer maxParticipants,
+        Integer numParticipantFollowers,
+        GameDTO game
+) {}
