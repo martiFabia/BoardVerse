@@ -428,6 +428,9 @@ public class UserService {
         userMongoRepository.incrementFollowers(followUsername);
         logger.info("Followers incremented successfully");
 
+        userMongoRepository.incrementFollowing(username);
+        logger.info("Following incremented successfully");
+
         return "Follow added successfully";
     }
 
@@ -474,6 +477,9 @@ public class UserService {
         // Decrement the number of followers
         userMongoRepository.decrementFollowers(followUsername);
         logger.info("Followers decremented successfully");
+
+        userMongoRepository.decrementFollowing(username);
+        logger.info("Following decremented successfully");
 
         return "Follow removed successfully";
     }

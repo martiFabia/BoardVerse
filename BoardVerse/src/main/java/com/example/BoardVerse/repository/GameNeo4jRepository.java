@@ -47,14 +47,16 @@ public interface GameNeo4jRepository  extends Neo4jRepository<GameNeo4j, String>
      */
     @Query("""
             MATCH (game:Game {_id: $gameId})<-[l:LIKES]-(user:User)
-            RETURN user.username AS username, l.timestamp AS timestamp
-        ORDER BY
-          CASE $sortBy
-            WHEN 'timestamp' THEN l.timestamp DESC
-            WHEN 'alphabetical' THEN user.username
-          END ASC
-        SKIP $pageSize * ($pageNumber - 1)
-        LIMIT $pageSize
+                    WITH user.username AS username, l.timestamp AS timestamp,
+                        CASE
+                            WHEN $sortBy = 'timestamp' THEN l.timestamp
+                            WHEN $sortBy = 'alphabetical' THEN user.username
+                        END AS sortValue
+                    ORDER BY sortValue DESC, username ASC
+                    SKIP $pageSize * ($pageNumber - 1)
+                    LIMIT $pageSize
+                    RETURN username, timestamp
+            
     """)
     List<GameLikesUserList> getLikedBy(String gameId, String sortBy, int pageSize, int pageNumber);
 
@@ -68,7 +70,7 @@ public interface GameNeo4jRepository  extends Neo4jRepository<GameNeo4j, String>
      *  @return a list of GameAnalyticsDTO objects
      */
     @Query("""
-        MATCH (game:Game {name: "BANG!"})<-[:LIKES]-(user:User)
+        MATCH (game:Game {_id: $gameId})<-[:LIKES]-(user:User)
         WITH game, COUNT(user) AS likeCount
         MATCH (game)<-[:IS_RELATED_TO]-(tournament:Tournament)
         WITH game, likeCount,

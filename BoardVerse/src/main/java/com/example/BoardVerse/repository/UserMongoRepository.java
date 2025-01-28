@@ -61,6 +61,14 @@ public interface UserMongoRepository extends MongoRepository<UserMongo, String> 
     void incrementFollowers(String followUsername);
 
     @Query("{ 'username': ?0 }")
+    @Update("{ '$inc': { 'following': 1 } }")
+    void incrementFollowing(String username);
+
+    @Query("{ 'username': ?0 }")
     @Update("{ '$inc': { 'followers': -1 } }")
     void decrementFollowers(String followUsername);
+
+    @Query("{ 'username': ?0 }")
+    @Update("{ '$inc': { 'following': -1 } }")
+    void decrementFollowing(String username);
 }
