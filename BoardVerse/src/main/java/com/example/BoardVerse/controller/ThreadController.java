@@ -111,11 +111,12 @@ public class ThreadController {
     @GetMapping("/games/{gameId}/threads")
     public ResponseEntity<?> getThreadsByGame(
             @PathVariable String gameId,
+            @RequestParam(required = false) String tag,
             @RequestParam(defaultValue = "lastPostDate") String sortBy,
             @RequestParam(defaultValue = "desc") String order,
             @RequestParam(defaultValue = "0") int page
     ) {
-        return ResponseEntity.ok(threadService.getThreadsByGame(gameId, sortBy, order, page));
+        return ResponseEntity.ok(threadService.getThreadsByGame(gameId,tag, sortBy, order, page));
     }
 
 

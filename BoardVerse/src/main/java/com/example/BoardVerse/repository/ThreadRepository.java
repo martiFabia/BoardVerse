@@ -70,10 +70,21 @@ public interface ThreadRepository extends MongoRepository<ThreadMongo, String> {
     @Update("{ '$set': { 'messages.$[].replyTo.username': ?1 } }")
     void updateReplyToUsername(String username, String newUsername);
 
-    @Query(value = "{ 'game.id': ?0 }",
+
+    @Query(value = "{ '$and': [ "
+            + "  { 'game._id': :#{#gameId} }, "
+            + "  { '$or': [ "
+            + "     { '$expr': { '$eq': [ :#{#tag}, null ] } }, "
+            + "     { 'tag': :#{#tag} } "
+            + "  ] } "
+            + "] }",
             fields = "{ 'id': 1, 'tag': 1, 'lastPostDate': 1, " +
                     "'authorUsername': 1, 'postDate': 1, 'content': 1, 'messageCount': { $size: '$messages' } }")
-    Slice<ThreadPreviewGameDTO> findByGameId(String gameId, Pageable pageable);
+    Slice<ThreadPreviewGameDTO> findByGameId(String gameId, String tag, Pageable pageable);
+
+
+
+
 
     @Aggregation(pipeline = {
             // Filtra i messaggi dell'ultimo mese

@@ -34,6 +34,7 @@ public class JwtUtils {
     @Value("${security.jwt.expiration-time}")
     private int jwtExpirationMs;
 
+
     public String generateJwtToken(Authentication authentication) {
 
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();

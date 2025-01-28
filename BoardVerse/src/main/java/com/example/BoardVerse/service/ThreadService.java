@@ -279,7 +279,7 @@ public class ThreadService {
         return new ThreadInfoDTO(thread.getAuthorUsername(), thread.getPostDate(), thread.getContent(), thread.getTag(), thread.getGame(), thread.getLastPostDate(), thread.getMessages(), messagesCount);
     }
 
-    public Slice<ThreadPreviewGameDTO> getThreadsByGame(String gameId,String sortBy, String order,int page) {
+    public Slice<ThreadPreviewGameDTO> getThreadsByGame(String gameId,String tag, String sortBy, String order,int page) {
 
         Sort sort;
         if("creationDate".equalsIgnoreCase(sortBy)) {
@@ -298,7 +298,7 @@ public class ThreadService {
         }
 
         Pageable pageable = PageRequest.of(page, Constants.PAGE_SIZE, sort);
-        return threadRepository.findByGameId(gameId, pageable);
+        return threadRepository.findByGameId(gameId, tag, pageable);
     }
 
 
