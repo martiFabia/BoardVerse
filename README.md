@@ -1,6 +1,7 @@
-## 🧩 BoardVerse
+# 🧩 BoardVerse
 
-BoardVerse is a platform developed for the **Large-Scale and Multi-Structured Databases** course project (A.Y. 2024/2025). It centralizes and explores information about modern board games, integrating data from **BoardGameGeek (BGG)** and **BoardGameArena (BGA)**.
+BoardVerse is a platform developed for the *Large-Scale and Multi-Structured Databases* course project (A.Y. 2024/2025). <br>
+It centralizes and explores information about modern board games, integrating data from **BoardGameGeek (BGG)** and **BoardGameArena (BGA)**.
 
 ---
 
